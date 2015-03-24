@@ -240,6 +240,24 @@ namespace CnC {
         {
             return false;
         }
+
+        // C/R part
+
+        // Hooks placed
+        // lines 210 and 236 in step_instance.h
+        template< typename Tag >
+        void prescribe( const Tag & tag) const
+        {
+        	//TODO capture correct arguments
+        }
+
+        // Hook placed
+        // line 202 & 231 & 125 & 161 in step_instance.h
+        template< typename Tag >
+        void done(const Tag & tag, int prescribes, int puts) const
+        {
+        	//TODO capture correct arguments like total nr of puts and prescribes
+        }
     };
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -510,6 +528,12 @@ namespace CnC {
         int produced_on( const Tag & tag ) const
         {
             return PRODUCER_UNKNOWN;
+        }
+
+        template< typename Tag , typename Item>
+        void put_local(const Tag & tag, Item & a) const
+        {
+        	//TODO implement
         }
     };
 

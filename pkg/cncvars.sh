@@ -30,7 +30,7 @@
 # This is the script file to set up the user's environment variables
 # for Intel(R) Concurrent Collections for C++.
 
-CNCROOT="SUBSTITUTE_INSTALL_DIR_HERE"; export CNCROOT
+CNCROOT="/home/blackline/git/icnc-loadbalancer/build"; export CNCROOT
 __TBB_DIR="$CNCROOT/SUBSTITUTE_TBB_INSTALL_DIR_HERE"
 
 #if [ $# -eq 0 ]; then
