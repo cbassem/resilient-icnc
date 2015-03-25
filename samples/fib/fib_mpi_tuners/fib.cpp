@@ -36,20 +36,19 @@ typedef unsigned long long fib_type;
 #include "fib.h"
 #include <typeinfo>
 
-void cr_step_tuner::prescribe( const int & tag ) const
-{
-    std::cout << "Step with tag: " << tag << " is prescribed by: " << std::endl;
-}
+int fib_cr_tuner::getNrOfPrescribes() const {
+	return 1;
+};
 
-void cr_step_tuner::done( const int & tag ) const
-{
-	std::cout << "Step with tag: " << tag << " has completed successfully " << std::endl;
-}
+int fib_cr_tuner::getNrOfPuts() const {
+	return 1;
+};
 
-void cr_item_tuner::put_local(const int & tag, fib_type * arg) const
-{
-	std::cout << "Item: " << *arg << " put for step tag: " << tag << std::endl;
-}
+int fib_cr_tuner::getStepCollectionUID() const {
+	return 0;
+};
+
+
 
 // the actual step code computing the fib numbers goes here
 int fib_step::execute( const int & tag, fib_context & ctxt ) const

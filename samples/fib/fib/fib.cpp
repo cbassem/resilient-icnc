@@ -61,7 +61,7 @@ int main( int argc, char* argv[] )
 
     // create context
     fib_context ctxt;
-
+    CnC::debug::trace( ctxt.m_steps );
     // put tags to initiate evaluation
     for( int i = 0; i <= n; ++i ) ctxt.m_tags.put( i );
 

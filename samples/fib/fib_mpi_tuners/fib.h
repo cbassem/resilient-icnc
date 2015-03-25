@@ -33,34 +33,28 @@
 // Forward declaration of the context class (also known as graph)
 struct fib_context;
 
-
-// let's use a tuner to pre-declare dependencies
-struct cr_step_tuner : public CnC::step_tuner<>
-{
-    void prescribe( const int & tag ) const;
-    void done( const int & tag ) const;
-};
-
-struct cr_item_tuner : public CnC::hashmap_tuner
-{
-    void put_local( const int & tag, fib_type * arg ) const;
-};
-
-
 // The step classes
-
 struct fib_step
 {
     int execute( const int & t, fib_context & c ) const;
+};
+
+
+// let's use a tuner to pre-declare dependencies
+struct fib_cr_tuner: public CnC::checkpoint_tuner
+{
+	int getNrOfPuts() const;
+	int getNrOfPrescribes() const;
+	int getStepCollectionUID() const;
 };
 
 // The context class
 struct fib_context : public CnC::context< fib_context >
 {
     // step collections
-    CnC::step_collection< fib_step, cr_step_tuner > m_steps;
+    CnC::step_collection< fib_step, CnC::step_tuner<>, fib_cr_tuner > m_steps;
     // Item collections
-    CnC::item_collection< int, fib_type, cr_item_tuner > m_fibs;
+    CnC::item_collection< int, fib_type > m_fibs;
     // Tag collections
     CnC::tag_collection< int > m_tags;
 

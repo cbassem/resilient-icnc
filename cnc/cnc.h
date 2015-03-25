@@ -66,7 +66,7 @@ namespace CnC {
     /// A step-collection must be prescribed by a tag-collection and it
     /// can be part of consumer/producer relationships with item-collections.
     /// Additionally, it can be the controller in control-dependencies (e.g. produce tags).
-    template< typename UserStep, typename Tuner = step_tuner<>, typename CheckpointTuner = checkpoint_tuner>
+    template< typename UserStep, typename Tuner = step_tuner<>, typename CheckpointTuner<> = checkpoint_tuner_nop>
     class step_collection : public virtual Internal::traceable
     {
     public:

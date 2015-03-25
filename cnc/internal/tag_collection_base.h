@@ -235,7 +235,7 @@ namespace CnC {
         template< class Tag, class Tuner >
         void tag_collection_base< Tag, Tuner >::Put( const Tag & user_tag, const int mask )
         {
-        	std::cout << "Put "  << " by " << mask << '\n';
+        	//std::cout << "Put "  << " by " << mask << '\n';
             int _lmask = mask & m_allMask;
 
             // store tag if requested

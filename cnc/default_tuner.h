@@ -619,15 +619,30 @@ namespace CnC {
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    // Not sure yet about templates needed
-    struct checkpoint_tuner: public virtual tuner_base {
+    // Default nop checkpoint tuner
+    template< typename Tag = int >
+    struct checkpoint_tuner_nop: public virtual tuner_base {
 
     	void prescribe();
     	void put();
-    	void done();
 
-
+    	template< typename Tag >
+    	void done(const Tag & tag) const ;
     };
+    template< typename Tag >
+    struct checkpoint_tuner: public virtual tuner_base {
+    	int getNrOfPuts() const;
+    	int getNrOfPrescribes() const;
+    	int getStepCollectionUID() const;
+
+    	//template< typename Tag >
+    	void done(const Tag & tag) const {
+    		std::cout << "Step completed: " << tag << " " << getStepCollectionUID();
+    	}
+    };
+
+
+
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -647,12 +662,12 @@ namespace CnC {
         template< typename CheckpointTuner >
         const CheckpointTuner & get_default_checkpoint_tuner()
         {
-            static tbb::atomic< CheckpointTuner * > s_tuner;
-            if( s_tuner == NULL ) {
+            static tbb::atomic< CheckpointTuner * > cs_tuner;
+            if( cs_tuner == NULL ) {
             	CheckpointTuner * _tmp = new CheckpointTuner;
-                if( s_tuner.compare_and_swap( _tmp, NULL ) != NULL ) delete _tmp;
+                if( cs_tuner.compare_and_swap( _tmp, NULL ) != NULL ) delete _tmp;
             }
-            return *s_tuner;
+            return *cs_tuner;
         }
     }
 
