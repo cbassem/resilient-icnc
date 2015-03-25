@@ -74,6 +74,8 @@ namespace CnC {
         typedef UserStep step_type;
         /// the type of the tuner as provided by the user
         typedef Tuner tuner_type;
+        // the type of the checkpoint tuner as provided by the user
+        typedef CheckpointTuner checkpoint_tuner_type;
         
         /// \brief constructor which registers collection with given context
         ///
@@ -110,6 +112,7 @@ namespace CnC {
     private:
         const step_type     m_userStep;
         const tuner_type   & m_tuner;
+        const checkpoint_tuner_type & m_checkpoint_tuner;
         Internal::distributable_context & m_context;
         template< class Tag, class Step, class Arg, class TTuner, class STuner, class SCheckpointTuner > friend class Internal::step_launcher;
     };

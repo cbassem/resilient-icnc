@@ -52,6 +52,7 @@ namespace CnC {
             typedef typename StepLauncher::range_type range_type;
             typedef typename StepLauncher::arg_type arg_type;
             typedef typename StepLauncher::step_tuner_type step_tuner_type;
+            typedef typename StepLauncher::checkpoint_tuner_type checkpoint_tuner_type;
 
             step_instance( const tag_type & tag, context_base & ctxt, const StepLauncher * step_launcher );
             virtual int affinity() const;
@@ -132,6 +133,7 @@ namespace CnC {
         template< class StepLauncher >
         CnC::Internal::StepReturnValue_t step_instance< StepLauncher >::execute()
         {
+        	const checkpoint_tuner_type & _tuner = m_stepLauncher->get_checkpoint_tuner();
             return do_execute();
         }
 

@@ -69,6 +69,7 @@ namespace CnC {
             typedef Arg arg_type;
             typedef TagTuner tag_tuner_type;
             typedef StepTuner step_tuner_type;
+            typedef CheckpointTuner checkpoint_tuner_type;
             typedef step_instance< step_launcher< Tag, Step, Arg, TagTuner, StepTuner, CheckpointTuner > > step_instance_type;
             typedef step_collection< Step, StepTuner, CheckpointTuner > step_coll_type;
             typedef typename TagTuner::range_type range_type;
@@ -105,6 +106,7 @@ namespace CnC {
 #endif
 
         private:
+            const checkpoint_tuner_type & get_checkpoint_tuner() const { return m_stepColl.m_checkpoint_tuner; }
             const step_tuner_type & get_step_tuner() const { return m_stepColl.m_tuner; }
             const Step  & get_step()  const { return m_stepColl.m_userStep; }
 
@@ -134,7 +136,7 @@ namespace CnC {
         template< class Tag, class Step, class Arg, class TagTuner, class StepTuner, class CheckpointTuner >
         step_launcher< Tag, Step, Arg, TagTuner, StepTuner, CheckpointTuner >::step_launcher( context_base & ctxt, Arg & arg,
                                                                              const step_collection< Step, StepTuner, CheckpointTuner > & sc,
-                                                                             const TagTuner & tt, scheduler_i & sched ) 
+                                                                             const TagTuner & tt, scheduler_i & sched )
             : step_launcher_base< Tag, range_type >( ctxt ),
               m_arg( arg ),
               m_stepInstance(),

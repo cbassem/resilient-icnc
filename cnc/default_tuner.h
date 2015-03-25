@@ -622,6 +622,9 @@ namespace CnC {
     // Not sure yet about templates needed
     struct checkpoint_tuner: public virtual tuner_base {
 
+    	void prescribe();
+    	void put();
+    	void done();
 
 
     };
@@ -636,6 +639,17 @@ namespace CnC {
             static tbb::atomic< Tuner * > s_tuner;
             if( s_tuner == NULL ) {
                 Tuner * _tmp = new Tuner;
+                if( s_tuner.compare_and_swap( _tmp, NULL ) != NULL ) delete _tmp;
+            }
+            return *s_tuner;
+        }
+
+        template< typename CheckpointTuner >
+        const CheckpointTuner & get_default_checkpoint_tuner()
+        {
+            static tbb::atomic< CheckpointTuner * > s_tuner;
+            if( s_tuner == NULL ) {
+            	CheckpointTuner * _tmp = new CheckpointTuner;
                 if( s_tuner.compare_and_swap( _tmp, NULL ) != NULL ) delete _tmp;
             }
             return *s_tuner;

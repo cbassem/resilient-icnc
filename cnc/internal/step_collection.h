@@ -47,7 +47,8 @@ namespace CnC {
         : Internal::traceable( std::string() ),
           m_userStep( UserStep() ),
           m_tuner( Internal::get_default_tuner< Tuner >() ),
-          m_context( ctxt )
+          m_context( ctxt ),
+          m_checkpoint_tuner( Internal::get_default_checkpoint_tuner< CheckpointTuner >() )
     {
         // FIXME register with context
     }
@@ -60,7 +61,8 @@ namespace CnC {
         : Internal::traceable( name ),
           m_userStep( UserStep() ),
           m_tuner( Internal::get_default_tuner< Tuner >() ),
-          m_context( ctxt )
+          m_context( ctxt ),
+          m_checkpoint_tuner( Internal::get_default_checkpoint_tuner< CheckpointTuner >() )
     {
         traceable::set_name( name );
         // FIXME register with context
@@ -73,7 +75,8 @@ namespace CnC {
         : Internal::traceable( name ),
           m_userStep( userStep ),
           m_tuner( Internal::get_default_tuner< Tuner >() ),
-          m_context( ctxt )
+          m_context( ctxt ),
+          m_checkpoint_tuner( Internal::get_default_checkpoint_tuner< CheckpointTuner >() )
     {
         traceable::set_name( name );
         // FIXME register with context
@@ -87,7 +90,8 @@ namespace CnC {
         : Internal::traceable( name ),
           m_userStep( UserStep() ),
           m_tuner( tnr ),
-          m_context( ctxt )
+          m_context( ctxt ),
+          m_checkpoint_tuner( Internal::get_default_checkpoint_tuner< CheckpointTuner >() )
     {
         traceable::set_name( name );
         // FIXME register with context
@@ -102,7 +106,8 @@ namespace CnC {
         : Internal::traceable( name ),
           m_userStep( userStep ),
           m_tuner( tnr ),
-          m_context( ctxt )
+          m_context( ctxt ),
+          m_checkpoint_tuner( Internal::get_default_checkpoint_tuner< CheckpointTuner >() )
     {
         traceable::set_name( name );
         // FIXME register with context
