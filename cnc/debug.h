@@ -40,9 +40,9 @@ namespace CnC {
 
     class graph;
     template< class T > class context;
-    template< typename Tag, typename Tuner > class tag_collection;
-    template< typename Tag, typename Item, typename Tuner > class item_collection;
-    template< typename UserStep, typename Tuner > class step_collection;
+    template< typename Tag, typename Tuner, typename CheckpointTuner > class tag_collection;
+    template< typename Tag, typename Item, typename Tuner, typename CheckpointTuner > class item_collection;
+    template< typename UserStep, typename Tuner, typename CheckpointTuner > class step_collection;
     
 
     /// \brief Debugging interface providing tracing and timing capabilities

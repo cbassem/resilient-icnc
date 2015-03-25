@@ -41,9 +41,9 @@ namespace CnC {
         template< typename Tuner > const Tuner & get_default_tuner();
     }
 
-    template< typename UserStep, typename Tuner >
+    template< typename UserStep, typename Tuner, typename CheckpointTuner >
     template< typename Derived >
-    step_collection< UserStep, Tuner >::step_collection( context< Derived > & ctxt )
+    step_collection< UserStep, Tuner, CheckpointTuner >::step_collection( context< Derived > & ctxt )
         : Internal::traceable( std::string() ),
           m_userStep( UserStep() ),
           m_tuner( Internal::get_default_tuner< Tuner >() ),
@@ -54,9 +54,9 @@ namespace CnC {
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    template< typename UserStep, typename Tuner >
+    template< typename UserStep, typename Tuner, typename CheckpointTuner >
     template< typename Derived >
-    step_collection< UserStep, Tuner >::step_collection( context< Derived > & ctxt, const std::string & name )
+    step_collection< UserStep, Tuner, CheckpointTuner >::step_collection( context< Derived > & ctxt, const std::string & name )
         : Internal::traceable( name ),
           m_userStep( UserStep() ),
           m_tuner( Internal::get_default_tuner< Tuner >() ),
@@ -67,9 +67,9 @@ namespace CnC {
     }
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    template< typename UserStep, typename Tuner >
+    template< typename UserStep, typename Tuner, typename CheckpointTuner >
     template< typename Derived >
-    step_collection< UserStep, Tuner >::step_collection( context< Derived > & ctxt, const std::string & name, const step_type & userStep )
+    step_collection< UserStep, Tuner, CheckpointTuner >::step_collection( context< Derived > & ctxt, const std::string & name, const step_type & userStep )
         : Internal::traceable( name ),
           m_userStep( userStep ),
           m_tuner( Internal::get_default_tuner< Tuner >() ),
@@ -81,9 +81,9 @@ namespace CnC {
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    template< typename UserStep, typename Tuner >
+    template< typename UserStep, typename Tuner, typename CheckpointTuner >
     template< typename Derived >
-    step_collection< UserStep, Tuner >::step_collection( context< Derived > & ctxt, const tuner_type & tnr, const std::string & name )
+    step_collection< UserStep, Tuner, CheckpointTuner >::step_collection( context< Derived > & ctxt, const tuner_type & tnr, const std::string & name )
         : Internal::traceable( name ),
           m_userStep( UserStep() ),
           m_tuner( tnr ),
@@ -95,9 +95,9 @@ namespace CnC {
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    template< typename UserStep, typename Tuner >
+    template< typename UserStep, typename Tuner, typename CheckpointTuner >
     template< typename Derived >
-    step_collection< UserStep, Tuner >::step_collection( context< Derived > & ctxt, const std::string & name,
+    step_collection< UserStep, Tuner, CheckpointTuner >::step_collection( context< Derived > & ctxt, const std::string & name,
                                                          const step_type & userStep, const tuner_type & tnr )
         : Internal::traceable( name ),
           m_userStep( userStep ),
@@ -110,35 +110,35 @@ namespace CnC {
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    template< typename UserStep, typename Tuner >
-    step_collection< UserStep, Tuner >::~step_collection()
+    template< typename UserStep, typename Tuner, typename CheckpointTuner >
+    step_collection< UserStep, Tuner, CheckpointTuner >::~step_collection()
     {
         m_context.reset_distributables( true );
     }
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    template< typename UserStep, typename tuner >
-    template< typename DataTag, typename Item, typename ITuner >
-    void step_collection< UserStep, tuner >:: consumes( CnC::item_collection< DataTag, Item, ITuner > & )
+    template< typename UserStep, typename tuner, typename CheckpointTuner >
+    template< typename DataTag, typename Item, typename ITuner, typename ICheckpointTuner >
+    void step_collection< UserStep, tuner, CheckpointTuner >:: consumes( CnC::item_collection< DataTag, Item, ITuner, ICheckpointTuner > & )
     {
         // currently doing nothing
     } 
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    template< typename UserStep, typename tuner >
-    template< typename DataTag, typename Item, typename ITuner >
-    void step_collection< UserStep, tuner >::produces( CnC::item_collection< DataTag, Item, ITuner > & )
+    template< typename UserStep, typename tuner, typename CheckpointTuner >
+    template< typename DataTag, typename Item, typename ITuner, typename ICheckpointTuner >
+    void step_collection< UserStep, tuner, CheckpointTuner >::produces( CnC::item_collection< DataTag, Item, ITuner, ICheckpointTuner > & )
     {
         // currently doing nothing
     } 
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    template< typename UserStep, typename tuner >
-    template< typename ControlTag, typename TTuner >
-    void step_collection< UserStep, tuner >::controls( CnC::tag_collection< ControlTag, TTuner > & )
+    template< typename UserStep, typename tuner, typename CheckpointTuner >
+    template< typename ControlTag, typename TTuner, typename TCheckpointTuner >
+    void step_collection< UserStep, tuner, CheckpointTuner >::controls( CnC::tag_collection< ControlTag, TTuner, TCheckpointTuner > & )
     {
         // currently doing nothing
     }

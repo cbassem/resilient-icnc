@@ -53,8 +53,8 @@ namespace CnC {
     // forward declarations
     template< class T > class context;
     struct debug;
-    template< typename Tag, typename Tuner > class tag_collection;
-    template< typename Tag, typename Item, typename Tuner > class item_collection;
+    template< typename Tag, typename Tuner, typename CheckpointTuner > class tag_collection;
+    template< typename Tag, typename Item, typename Tuner, typename CheckpointTuner > class item_collection;
 
     /// Steps return CNC_Success if execution was successful
     const int CNC_Success = 0;
@@ -66,7 +66,7 @@ namespace CnC {
     /// A step-collection must be prescribed by a tag-collection and it
     /// can be part of consumer/producer relationships with item-collections.
     /// Additionally, it can be the controller in control-dependencies (e.g. produce tags).
-    template< typename UserStep, typename Tuner = step_tuner<> >
+    template< typename UserStep, typename Tuner = step_tuner<>, typename CheckpointTuner = checkpoint_tuner>
     class step_collection : public virtual Internal::traceable
     {
     public:
@@ -96,22 +96,22 @@ namespace CnC {
         ~step_collection();
 
         /// Declare this step-collecation as consumer of given item-collection
-        template< typename DataTag, typename Item, typename ITuner >
-        void consumes( CnC::item_collection< DataTag, Item, ITuner > & );
+        template< typename DataTag, typename Item, typename ITuner, typename ICheckpointTuner >
+        void consumes( CnC::item_collection< DataTag, Item, ITuner, ICheckpointTuner > & );
 
         /// Declare this step-collecation as producer for given item-collection
-        template< typename DataTag, typename Item, typename ITuner >
-        void produces( CnC::item_collection< DataTag, Item, ITuner > & );
+        template< typename DataTag, typename Item, typename ITuner, typename ICheckpointTuner >
+        void produces( CnC::item_collection< DataTag, Item, ITuner, ICheckpointTuner > & );
 
         /// Declare this step-collection as controller of given tag-collection
-        template< typename ControlTag, typename TTuner >
-        void controls( CnC::tag_collection< ControlTag, TTuner > & );
+        template< typename ControlTag, typename TTuner, typename TCheckpointTuner >
+        void controls( CnC::tag_collection< ControlTag, TTuner, TCheckpointTuner > & );
 
     private:
         const step_type     m_userStep;
         const tuner_type   & m_tuner;
         Internal::distributable_context & m_context;
-        template< class Tag, class Step, class Arg, class TTuner, class STuner > friend class Internal::step_launcher;
+        template< class Tag, class Step, class Arg, class TTuner, class STuner, class SCheckpointTuner > friend class Internal::step_launcher;
     };
 
     /// \brief A tag collection is a set of tags of the same type. It is
@@ -127,7 +127,7 @@ namespace CnC {
     /// operator==. You can provide specialized templates for
     /// cnc_hash and/or cnc_equal or cnc_tag_hash_compare
     /// or specify and implement your own compatible class.
-    template< typename Tag, typename Tuner = tag_tuner<> >
+    template< typename Tag, typename Tuner = tag_tuner<>, typename CheckpointTuner = checkpoint_tuner>
     class /*CNC_API*/ tag_collection
     {
     public:
@@ -166,8 +166,8 @@ namespace CnC {
         ///            arg will be the containing context.
         ///
         /// \return 0 if succeeded, error code otherwise
-        template< typename UserStep, typename STuner, typename Arg >
-        error_type prescribes( const step_collection< UserStep, STuner > & s, Arg & arg );
+        template< typename UserStep, typename STuner, typename Arg, typename SCheckpointTuner >
+        error_type prescribes( const step_collection< UserStep, STuner, SCheckpointTuner > & s, Arg & arg );
 
         /// \brief prescribe the associated step.  If we are preserving tags for this collection, make a copy of the tag and store it in the collection.
         /// \param  t the tag to be put
@@ -260,7 +260,7 @@ namespace CnC {
     /// pointer type, the runtime will not delete the memory the item
     /// points to. If you store pointeres, you have to care for the appropriate 
     /// garbage collection, e.g. you might consider using smart pointers.
-    template< typename Tag, typename Item, typename Tuner = hashmap_tuner >
+    template< typename Tag, typename Item, typename Tuner = hashmap_tuner, typename CheckpointTuner = checkpoint_tuner  >
     class /*CNC_API*/ item_collection
     {
         typedef Internal::item_collection_base< Tag, Item, Tuner > base_coll_type;
@@ -589,9 +589,9 @@ namespace CnC {
         template< typename Tag, bool check_deps, typename Hasher, typename Equality > friend class ::CnC::cancel_tuner;
         template< class T > friend class ::CnC::Internal::creator;
         template< class Index, class Functor, class Tuner, typename Increment > friend class ::CnC::Internal::pfor_context;
-        template< typename Tag, typename Tuner > friend class tag_collection;
-        template< typename Step, typename Tuner > friend class step_collection;
-        template< typename Tag, typename Item, typename Tuner > friend class item_collection;
+        template< typename Tag, typename Tuner, typename CheckpointTuner > friend class tag_collection;
+        template< typename Step, typename Tuner, typename CheckpointTuner > friend class step_collection;
+        template< typename Tag, typename Item, typename Tuner, typename CheckpointTuner > friend class item_collection;
     };
 
     /// \brief Execute f( i ) for every i in {first <= i=first+step*x < last and 0 <= x}.

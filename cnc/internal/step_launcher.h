@@ -39,12 +39,12 @@
 
 namespace CnC {
 
-    template< typename UserStep, typename StepTuner >  class step_collection;
+    template< typename UserStep, typename StepTuner, typename CheckpointTuner >  class step_collection;
 
     namespace Internal {
 
         template< class StepLauncher > class step_instance;
-        template< class Tag, class Step, class Arg, class TagTuner, class StepTuner, class Range > class range_step_instance;
+        template< class Tag, class Step, class Arg, class TagTuner, class StepTuner, class Range, class CheckpointTuner > class range_step_instance;
         class distributor;
         template< class T > class creator;
         
@@ -60,7 +60,7 @@ namespace CnC {
         /// Preparing a step-instance calls the different tuning methods, like depends and distribution stuff.
         /// It sends step-instances to other processes and receives instances (recv_msg).
         /// Executing range-steps requires special handling, so we have specific methods for those.
-        template< class Tag, class Step, class Arg, class TagTuner, class StepTuner >
+        template< class Tag, class Step, class Arg, class TagTuner, class StepTuner, class CheckpointTuner >
         class step_launcher : public step_launcher_base< Tag, typename TagTuner::range_type >
         {
         public:
@@ -69,13 +69,13 @@ namespace CnC {
             typedef Arg arg_type;
             typedef TagTuner tag_tuner_type;
             typedef StepTuner step_tuner_type;
-            typedef step_instance< step_launcher< Tag, Step, Arg, TagTuner, StepTuner > > step_instance_type;
-            typedef step_collection< Step, StepTuner > step_coll_type;
+            typedef step_instance< step_launcher< Tag, Step, Arg, TagTuner, StepTuner, CheckpointTuner > > step_instance_type;
+            typedef step_collection< Step, StepTuner, CheckpointTuner > step_coll_type;
             typedef typename TagTuner::range_type range_type;
             typedef tag_collection_base< Tag, TagTuner > tag_coll_type;
 
-            step_launcher( context_base & ctxt, Arg & arg, const step_collection< Step, StepTuner > & sc, const TagTuner & tt, scheduler_i & sched );
-            step_launcher( tag_coll_type * tc, Arg & arg, const step_collection< Step, StepTuner > & sc ) ;
+            step_launcher( context_base & ctxt, Arg & arg, const step_collection< Step, StepTuner, CheckpointTuner > & sc, const TagTuner & tt, scheduler_i & sched );
+            step_launcher( tag_coll_type * tc, Arg & arg, const step_collection< Step, StepTuner, CheckpointTuner > & sc ) ;
             ~step_launcher();
             virtual tagged_step_instance< tag_type > * create_step_instance( const Tag & tag, context_base & ctxt, bool compute_on ) const;
             virtual tagged_step_instance< range_type > * create_range_step_instance( const range_type & range, context_base & ctxt ) const;
@@ -115,8 +115,8 @@ namespace CnC {
             const TagTuner                             & m_tagTuner;
             scheduler_i                                & m_scheduler;
             tag_coll_type                              * m_tagColl;
-            friend class step_instance< step_launcher< Tag, Step, Arg, TagTuner, StepTuner > >;
-            friend class range_step_instance< Tag, Step, Arg, TagTuner, StepTuner, typename TagTuner::range_type >;
+            friend class step_instance< step_launcher< Tag, Step, Arg, TagTuner, StepTuner, CheckpointTuner > >;
+            friend class range_step_instance< Tag, Step, Arg, TagTuner, StepTuner, typename TagTuner::range_type, CheckpointTuner >;
 #ifdef CNC_WITH_ITAC
             int m_itacid;
 #endif
@@ -131,9 +131,9 @@ namespace CnC {
 namespace CnC {
     namespace Internal {
 
-        template< class Tag, class Step, class Arg, class TagTuner, class StepTuner >
-        step_launcher< Tag, Step, Arg, TagTuner, StepTuner >::step_launcher( context_base & ctxt, Arg & arg,
-                                                                             const step_collection< Step, StepTuner > & sc,
+        template< class Tag, class Step, class Arg, class TagTuner, class StepTuner, class CheckpointTuner >
+        step_launcher< Tag, Step, Arg, TagTuner, StepTuner, CheckpointTuner >::step_launcher( context_base & ctxt, Arg & arg,
+                                                                             const step_collection< Step, StepTuner, CheckpointTuner > & sc,
                                                                              const TagTuner & tt, scheduler_i & sched ) 
             : step_launcher_base< Tag, range_type >( ctxt ),
               m_arg( arg ),
@@ -158,8 +158,8 @@ namespace CnC {
                   //            VT_SYMDEF( distributable::gid(), sc.name().c_str() );
         }
 
-        template< class Tag, class Step, class Arg, class TagTuner, class StepTuner >
-        step_launcher< Tag, Step, Arg, TagTuner, StepTuner >::step_launcher( tag_coll_type * tc, Arg & arg, const step_collection< Step, StepTuner > & sc ) 
+        template< class Tag, class Step, class Arg, class TagTuner, class StepTuner, class CheckpointTuner >
+        step_launcher< Tag, Step, Arg, TagTuner, StepTuner, CheckpointTuner >::step_launcher( tag_coll_type * tc, Arg & arg, const step_collection< Step, StepTuner, CheckpointTuner > & sc )
             : step_launcher_base< Tag, range_type >( tc->get_context() ),
               m_arg( arg ),
               m_stepInstance(),
@@ -185,8 +185,8 @@ namespace CnC {
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class Tag, class Step, class Arg, class TagTuner, class StepTuner >
-        step_launcher< Tag, Step, Arg, TagTuner, StepTuner >::~step_launcher( )
+        template< class Tag, class Step, class Arg, class TagTuner, class StepTuner, class CheckpointTuner >
+        step_launcher< Tag, Step, Arg, TagTuner, StepTuner, CheckpointTuner >::~step_launcher( )
         { 
             delete m_stepInstance;
             /* delete m_step; */ 
@@ -194,10 +194,10 @@ namespace CnC {
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class Tag, class Step, class Arg, class TagTuner, class StepTuner >
-        tagged_step_instance< typename step_launcher< Tag, Step, Arg, TagTuner, StepTuner >::tag_type > * 
+        template< class Tag, class Step, class Arg, class TagTuner, class StepTuner, class CheckpointTuner >
+        tagged_step_instance< typename step_launcher< Tag, Step, Arg, TagTuner, StepTuner, CheckpointTuner >::tag_type > *
         //typename step_launcher< Tag, Step, Arg, TagTuner, StepTuner >::step_instance_type * 
-        step_launcher< Tag, Step, Arg, TagTuner, StepTuner >::create_step_instance( const Tag & tag, context_base & ctxt, bool compute_on ) const
+        step_launcher< Tag, Step, Arg, TagTuner, StepTuner, CheckpointTuner >::create_step_instance( const Tag & tag, context_base & ctxt, bool compute_on ) const
         {
             step_instance_type * _si = new step_instance_type( tag, ctxt, this );
             if( m_scheduler.prepare( _si, compute_on ) ) return _si;
@@ -228,7 +228,7 @@ namespace CnC {
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class Tag, class range_type, class step_instance_type, class StepTuner, class StepLauncher >
+        template< class Tag, class range_type, class step_instance_type, class StepTuner, class StepLauncher, class CheckpointTuner>
         tagged_step_instance< range_type > * create_rsi( const Tag *, const range_type & range, const StepLauncher * sc, context_base & ctxt, scheduler_i & sch,
                                                          const StepTuner & tuner, tbb::atomic< step_instance_type * > & stepInstance, bool compute_on = true )
         {
@@ -241,7 +241,7 @@ namespace CnC {
 #ifndef CNC_PRE_SPLIT
 # define CNC_PRE_SPLIT false
 #endif
-            typedef range_step_instance< Tag, typename StepLauncher::step_type, typename StepLauncher::arg_type, typename StepLauncher::tag_tuner_type, StepTuner, range_type > rsi_type;
+            typedef range_step_instance< Tag, typename StepLauncher::step_type, typename StepLauncher::arg_type, typename StepLauncher::tag_tuner_type, StepTuner, range_type, CheckpointTuner > rsi_type;
 
             tagged_step_instance< range_type > * _si = new rsi_type( range, tuner, ctxt, *sc, sch, CNC_PRE_SPLIT );
             if( sch.prepare( _si, compute_on ) ) return _si;
@@ -260,43 +260,43 @@ namespace CnC {
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class Tag, class Step, class Arg, class TagTuner, class StepTuner >
-        tagged_step_instance< typename step_launcher< Tag, Step, Arg, TagTuner, StepTuner >::range_type > *
-        step_launcher< Tag, Step, Arg, TagTuner, StepTuner >::create_range_step_instance( const typename step_launcher< Tag, Step, Arg, TagTuner, StepTuner >::range_type & range, context_base & ctxt ) const
+        template< class Tag, class Step, class Arg, class TagTuner, class StepTuner, class CheckpointTuner >
+        tagged_step_instance< typename step_launcher< Tag, Step, Arg, TagTuner, StepTuner, CheckpointTuner >::range_type > *
+        step_launcher< Tag, Step, Arg, TagTuner, StepTuner, CheckpointTuner >::create_range_step_instance( const typename step_launcher< Tag, Step, Arg, TagTuner, StepTuner, CheckpointTuner >::range_type & range, context_base & ctxt ) const
         {
             return create_rsi( get_tag_type(), range, this, ctxt, m_scheduler, get_step_tuner(), m_stepInstance );
         }
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class Tag, class Step, class Arg, class TagTuner, class StepTuner >
-        bool step_launcher< Tag, Step, Arg, TagTuner, StepTuner >::prepare_from_range( tagged_step_instance< range_type > * rsi, const Tag & tag, step_delayer & sD, int & passOnTo ) const
+        template< class Tag, class Step, class Arg, class TagTuner, class StepTuner, class CheckpointTuner >
+        bool step_launcher< Tag, Step, Arg, TagTuner, StepTuner, CheckpointTuner >::prepare_from_range( tagged_step_instance< range_type > * rsi, const Tag & tag, step_delayer & sD, int & passOnTo ) const
         {
             return m_stepInstance->prepare_from_range( rsi, tag, sD );
         }
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   
-        template< class Tag, class Step, class Arg, class TagTuner, class StepTuner >
-        CnC::Internal::StepReturnValue_t step_launcher< Tag, Step, Arg, TagTuner, StepTuner >::execute_from_range( tagged_step_instance< range_type > * rsi, const Tag & tag ) const
+        template< class Tag, class Step, class Arg, class TagTuner, class StepTuner, class CheckpointTuner >
+        CnC::Internal::StepReturnValue_t step_launcher< Tag, Step, Arg, TagTuner, StepTuner, CheckpointTuner >::execute_from_range( tagged_step_instance< range_type > * rsi, const Tag & tag ) const
         {
             return m_stepInstance->execute_from_range( rsi, tag );
         }
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class Tag, class Step, class Arg, class TagTuner, class StepTuner >
-        bool step_launcher< Tag, Step, Arg, TagTuner, StepTuner >::timing() const
+        template< class Tag, class Step, class Arg, class TagTuner, class StepTuner, class CheckpointTuner >
+        bool step_launcher< Tag, Step, Arg, TagTuner, StepTuner, CheckpointTuner >::timing() const
         {
             return m_stepColl.timing();
         }
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class Tag, class Step, class Arg, class TagTuner, class StepTuner >
-        void step_launcher< Tag, Step, Arg, TagTuner, StepTuner >::set_tracing( int level )
+        template< class Tag, class Step, class Arg, class TagTuner, class StepTuner, class CheckpointTuner >
+        void step_launcher< Tag, Step, Arg, TagTuner, StepTuner, CheckpointTuner >::set_tracing( int level )
         {
             traceable::set_tracing( level );
-            const_cast< step_collection< Step, StepTuner > & >( m_stepColl ).set_tracing( level );
+            const_cast< step_collection< Step, StepTuner, CheckpointTuner > & >( m_stepColl ).set_tracing( level );
         }
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -310,8 +310,8 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-        template< class Tag, class Step, class Arg, class TagTuner, class StepTuner >
-        void step_launcher< Tag, Step, Arg, TagTuner, StepTuner >::serialize_step( serializer & ser, const tag_type & user_tag ) const
+        template< class Tag, class Step, class Arg, class TagTuner, class StepTuner, class CheckpointTuner >
+        void step_launcher< Tag, Step, Arg, TagTuner, StepTuner, CheckpointTuner >::serialize_step( serializer & ser, const tag_type & user_tag ) const
         {
 #ifdef _DIST_CNC_
             this->context().use_serializer( ser, this );
@@ -321,8 +321,8 @@ namespace CnC {
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class Tag, class Step, class Arg, class TagTuner, class StepTuner >
-        void step_launcher< Tag, Step, Arg, TagTuner, StepTuner >::compute_on( const Tag & user_tag, int target ) const
+        template< class Tag, class Step, class Arg, class TagTuner, class StepTuner, class CheckpointTuner >
+        void step_launcher< Tag, Step, Arg, TagTuner, StepTuner, CheckpointTuner >::compute_on( const Tag & user_tag, int target ) const
         {
 #ifdef _DIST_CNC_
             VT_FUNC( "Dist::step_coll::compute_on" );
@@ -345,8 +345,8 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-        template< class Tag, class Step, class Arg, class TagTuner, class StepTuner >
-        void step_launcher< Tag, Step, Arg, TagTuner, StepTuner >::serialize_range( serializer & ser, const range_type & range ) const
+        template< class Tag, class Step, class Arg, class TagTuner, class StepTuner, class CheckpointTuner >
+        void step_launcher< Tag, Step, Arg, TagTuner, StepTuner, CheckpointTuner >::serialize_range( serializer & ser, const range_type & range ) const
         {
 #ifdef _DIST_CNC_
             this->context().use_serializer( ser, this );
@@ -356,8 +356,8 @@ namespace CnC {
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
-        template< class Tag, class Step, class Arg, class TagTuner, class StepTuner >
-        void step_launcher< Tag, Step, Arg, TagTuner, StepTuner >::compute_on_range( const range_type & range, int target ) const
+        template< class Tag, class Step, class Arg, class TagTuner, class StepTuner, class CheckpointTuner >
+        void step_launcher< Tag, Step, Arg, TagTuner, StepTuner, CheckpointTuner >::compute_on_range( const range_type & range, int target ) const
         {
 #ifdef _DIST_CNC_
             VT_FUNC( "Dist::step_coll::compute_on" );
@@ -369,8 +369,8 @@ namespace CnC {
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class Tag, class Step, class Arg, class TagTuner, class StepTuner >
-        void step_launcher< Tag, Step, Arg, TagTuner, StepTuner >::recv_msg( serializer * ser )
+        template< class Tag, class Step, class Arg, class TagTuner, class StepTuner, class CheckpointTuner >
+        void step_launcher< Tag, Step, Arg, TagTuner, StepTuner, CheckpointTuner >::recv_msg( serializer * ser )
         {
 #ifdef _DIST_CNC_
             VT_FUNC( "Dist::step_coll::recv_msg" );

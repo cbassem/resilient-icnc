@@ -42,35 +42,35 @@ namespace CnC {
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    template< typename Tag, typename Tuner >
+    template< typename Tag, typename Tuner, typename CheckpointTuner >
     template< class Derived >
-    tag_collection< Tag, Tuner >::tag_collection( context< Derived > & context, const std::string & name )
+    tag_collection< Tag, Tuner, CheckpointTuner  >::tag_collection( context< Derived > & context, const std::string & name )
         : m_tagCollection( reinterpret_cast< Internal::context_base & >( context ), name )
     {
     }
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    template< typename Tag, typename Tuner >
+    template< typename Tag, typename Tuner, typename CheckpointTuner  >
     template< class Derived >
-    tag_collection< Tag, Tuner >::tag_collection( context< Derived > & context, const Tuner & tnr )
+    tag_collection< Tag, Tuner, CheckpointTuner>::tag_collection( context< Derived > & context, const Tuner & tnr )
         : m_tagCollection( reinterpret_cast< Internal::context_base & >( context ), std::string(), tnr )
     {
     }
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    template< typename Tag, typename Tuner >
+    template< typename Tag, typename Tuner, typename CheckpointTuner >
     template< class Derived >
-    tag_collection< Tag, Tuner >::tag_collection( context< Derived > & context, const std::string & name, const Tuner & tnr )
+    tag_collection< Tag, Tuner, CheckpointTuner >::tag_collection( context< Derived > & context, const std::string & name, const Tuner & tnr )
         : m_tagCollection( reinterpret_cast< Internal::context_base & >( context ), name, tnr )
     {
     }
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    template< typename Tag, typename Tuner >
-    tag_collection< Tag, Tuner >::~tag_collection()
+    template< typename Tag, typename Tuner, typename CheckpointTuner >
+    tag_collection< Tag, Tuner, CheckpointTuner >::~tag_collection()
     {
         m_tagCollection.get_context().reset_distributables( true );
     }
@@ -78,8 +78,8 @@ namespace CnC {
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    template< typename Tag, typename Tuner >
-    void tag_collection< Tag, Tuner >::put( const Tag & t )
+    template< typename Tag, typename Tuner, typename CheckpointTuner >
+    void tag_collection< Tag, Tuner, CheckpointTuner >::put( const Tag & t )
     {
         m_tagCollection.Put( t );
     }
@@ -87,8 +87,8 @@ namespace CnC {
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    template< typename Tag, typename Tuner >
-    void tag_collection< Tag, Tuner >::put_range( const Internal::no_range & ) const
+    template< typename Tag, typename Tuner, typename CheckpointTuner >
+    void tag_collection< Tag, Tuner, CheckpointTuner >::put_range( const Internal::no_range & ) const
     {
         CNC_ABORT( "You need to specify a range type to put a range" );
     }
@@ -96,8 +96,8 @@ namespace CnC {
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    template< typename Tag, typename Tuner >
-    void tag_collection< Tag, Tuner >::put_range( const typename Tuner::range_type & r )
+    template< typename Tag, typename Tuner, typename CheckpointTuner >
+    void tag_collection< Tag, Tuner, CheckpointTuner >::put_range( const typename Tuner::range_type & r )
     {
         if( r.size() > 0 ) {
             m_tagCollection.create_range_instances( r );
@@ -107,8 +107,8 @@ namespace CnC {
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  
-    template< typename Tag, typename Tuner >
-    typename tag_collection< Tag, Tuner >::const_iterator tag_collection< Tag, Tuner >::begin() const
+    template< typename Tag, typename Tuner, typename CheckpointTuner >
+    typename tag_collection< Tag, Tuner, CheckpointTuner >::const_iterator tag_collection< Tag, Tuner, CheckpointTuner >::begin() const
     {
         return m_tagCollection.begin();
     }
@@ -116,8 +116,8 @@ namespace CnC {
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    template< typename Tag, typename Tuner >
-    typename tag_collection< Tag, Tuner >::const_iterator tag_collection< Tag, Tuner >::end() const
+    template< typename Tag, typename Tuner, typename CheckpointTuner >
+    typename tag_collection< Tag, Tuner, CheckpointTuner >::const_iterator tag_collection< Tag, Tuner, CheckpointTuner >::end() const
     {
         return m_tagCollection.end();
     }
@@ -125,8 +125,8 @@ namespace CnC {
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    template< typename Tag, typename Tuner >
-    void tag_collection< Tag, Tuner >::unsafe_reset()
+    template< typename Tag, typename Tuner, typename CheckpointTuner >
+    void tag_collection< Tag, Tuner, CheckpointTuner >::unsafe_reset()
     {
         m_tagCollection.unsafe_reset( Internal::distributor::numProcs() > 1 && m_tagCollection.get_context().subscribed() );
     }
@@ -134,8 +134,8 @@ namespace CnC {
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    template< typename Tag, typename Tuner >
-    size_t tag_collection< Tag, Tuner >::size()
+    template< typename Tag, typename Tuner, typename CheckpointTuner >
+    size_t tag_collection< Tag, Tuner, CheckpointTuner >::size()
     {
         return m_tagCollection.size();
     }
@@ -143,19 +143,19 @@ namespace CnC {
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    template< typename Tag, typename Tuner >
-    bool tag_collection< Tag, Tuner >::empty()
+    template< typename Tag, typename Tuner, typename CheckpointTuner >
+    bool tag_collection< Tag, Tuner, CheckpointTuner >::empty()
     {
         return m_tagCollection.empty();
     }
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    template< typename Tag, typename Tuner >
-    template< typename Step, typename STuner, typename Arg >
-    error_type tag_collection< Tag, Tuner >::prescribes( const step_collection< Step, STuner > & sc, Arg & arg )
+    template< typename Tag, typename Tuner, typename CheckpointTuner >
+    template< typename Step, typename STuner, typename Arg, typename SCheckpointTuner >
+    error_type tag_collection< Tag, Tuner, CheckpointTuner >::prescribes( const step_collection< Step, STuner, SCheckpointTuner > & sc, Arg & arg )
     {
-        typedef Internal::step_launcher< Tag, Step, Arg, Tuner, STuner > the_step_launcher;
+        typedef Internal::step_launcher< Tag, Step, Arg, Tuner, STuner, SCheckpointTuner > the_step_launcher;
         the_step_launcher * _sl = new the_step_launcher( &m_tagCollection, arg, sc );
         m_tagCollection.addPrescribedCollection( _sl );
         return 0;
@@ -163,8 +163,8 @@ namespace CnC {
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    template< typename Tag, typename Tuner >
-    void tag_collection< Tag, Tuner >::on_put( callback_type * cb )
+    template< typename Tag, typename Tuner, typename CheckpointTuner >
+    void tag_collection< Tag, Tuner, CheckpointTuner >::on_put( callback_type * cb )
     {
         m_tagCollection.on_put( cb );
     }

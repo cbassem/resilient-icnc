@@ -59,8 +59,8 @@ namespace CnC {
             typedef Internal::strided_range< Index, Increment >      range_type;
             class functor_step;
             struct tuner_type;
-            typedef step_collection< functor_step, tuner_type > step_coll_type;
-            typedef Internal::step_launcher< Index, functor_step, context_type, tuner_type, tuner_type > step_launcher_type;
+            typedef step_collection< functor_step, tuner_type, tuner_type > step_coll_type;
+            typedef Internal::step_launcher< Index, functor_step, context_type, tuner_type, tuner_type, tuner_type > step_launcher_type; //TODO What is the meaning of these structs? Hack?
 
             const Tuner        & m_tuner;
             step_coll_type       m_stepColl;

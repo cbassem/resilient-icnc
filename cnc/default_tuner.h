@@ -243,7 +243,7 @@ namespace CnC {
 
         // C/R part
 
-        // Hooks placed
+        // Hooks not yet placed
         // lines 210 and 236 in step_instance.h
         template< typename Tag >
         void prescribe( const Tag & tag) const
@@ -251,7 +251,7 @@ namespace CnC {
         	//TODO capture correct arguments
         }
 
-        // Hook placed
+        // Hook not yet placed
         // line 202 & 231 & 125 & 161 in step_instance.h
         template< typename Tag >
         void done(const Tag & tag, int prescribes, int puts) const
@@ -530,6 +530,7 @@ namespace CnC {
             return PRODUCER_UNKNOWN;
         }
 
+        //hooks not yet placed
         template< typename Tag , typename Item>
         void put_local(const Tag & tag, Item & a) const
         {
@@ -613,6 +614,16 @@ namespace CnC {
         {
             return true;
         };
+    };
+
+
+    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    // Not sure yet about templates needed
+    struct checkpoint_tuner: public virtual tuner_base {
+
+
+
     };
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

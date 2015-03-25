@@ -1,0 +1,11 @@
+#!/bin/bash
+cwd=$(pwd)
+cd "$(dirname "$0")"
+rm -rf build
+mkdir build
+cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release -DTBBROOT=/usr -DMPIROOT=/opt/intel/impi/5.0.3.048/intel64 -DBUILD_LIBS_FOR_MPI=TRUE -DBUILD_LIBS_FOR_ITAC=FALSE
+make
+mkdir ./include
+cp -r ../cnc ./include
+cd "$(dirname pwd)"
