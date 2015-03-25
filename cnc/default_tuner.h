@@ -625,20 +625,21 @@ namespace CnC {
 
     	void prescribe();
     	void put();
+    	void done(const Tag & tag) const;
 
-    	template< typename Tag >
-    	void done(const Tag & tag) const ;
     };
     template< typename Tag >
     struct checkpoint_tuner: public virtual tuner_base {
-    	int getNrOfPuts() const;
-    	int getNrOfPrescribes() const;
-    	int getStepCollectionUID() const;
+    	virtual int getNrOfPuts() const = 0;
+    	virtual int getNrOfPrescribes() const = 0;
+    	virtual int getStepCollectionUID() const = 0;
 
     	//template< typename Tag >
     	void done(const Tag & tag) const {
-    		std::cout << "Step completed: " << tag << " " << getStepCollectionUID();
+    		std::cout << "Step completed: " << tag << " " << getStepCollectionUID() << std::endl;
     	}
+
+    	void prescribe();
     };
 
 
