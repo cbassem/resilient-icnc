@@ -88,6 +88,15 @@ namespace CnC {
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     template< typename Tag, typename Tuner, typename CheckpointTuner >
+    void tag_collection< Tag, Tuner, CheckpointTuner >::put( const Tag & prescriber, const int & prescriberColId , const Tag & t )
+    {
+        m_tagCollection.Put( prescriber, prescriberColId, t );
+    }
+
+    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    template< typename Tag, typename Tuner, typename CheckpointTuner >
     void tag_collection< Tag, Tuner, CheckpointTuner >::put_range( const Internal::no_range & ) const
     {
         CNC_ABORT( "You need to specify a range type to put a range" );

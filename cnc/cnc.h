@@ -61,6 +61,9 @@ namespace CnC {
     /// Steps return CNC_Failure if execution failed
     const int CNC_Failure = 1;
 
+    /// Env ID
+    const int CNC_ENV = 0;
+
     /// \brief A step collection is logical set of step instances.
     ///
     /// A step-collection must be prescribed by a tag-collection and it
@@ -173,8 +176,14 @@ namespace CnC {
         error_type prescribes( const step_collection< UserStep, STuner, SCheckpointTuner > & s, Arg & arg );
 
         /// \brief prescribe the associated step.  If we are preserving tags for this collection, make a copy of the tag and store it in the collection.
+        /// For checkpointing the env will be assumed as prescriber
         /// \param  t the tag to be put
         void put( const Tag & t );
+
+        /// \brief prescribe the associated step.  If we are preserving tags for this collection, make a copy of the tag and store it in the collection.
+        /// This version gives the user the ability to specify the prescriber
+        /// \param  t the tag to be put
+        void put( const Tag & prescriber, const int & prescriberColId, const Tag & tag ); //TODO change to template val
 
         /// \brief prescribe an entire range of tags
         ///
@@ -219,7 +228,7 @@ namespace CnC {
 
         /// callback type for tag-collections
         /// \see register_callback
-        typedef typename Internal::tag_collection_base< Tag, Tuner >::callback_type callback_type;
+        typedef typename Internal::tag_collection_base< Tag, Tuner, CheckpointTuner >::callback_type callback_type;
 
         /// Call this to register a on-put-callback for the tag-collection.
         /// When registered, callback.on_put( tag ) gets called when a tag was put successfully.
@@ -234,7 +243,7 @@ namespace CnC {
         void on_put( callback_type * cb );
 
     private:
-        Internal::tag_collection_base< Tag, Tuner > m_tagCollection;
+        Internal::tag_collection_base< Tag, Tuner, CheckpointTuner > m_tagCollection;
         //template< class T > friend class context;
         friend struct ::CnC::debug;
     };

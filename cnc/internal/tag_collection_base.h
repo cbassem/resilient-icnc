@@ -47,7 +47,7 @@ namespace CnC {
         /// For a tag collection, we maintain a list of prescribed step collections.
         /// When a tag is put (Put()), we schedule a step instance from each of
         /// the prescribed tag collections.
-        template< class Tag, class Tuner >
+        template< class Tag, class Tuner, class CheckpointTuner >
         class tag_collection_base : public tag_collection_i
         {
         public:
@@ -65,6 +65,9 @@ namespace CnC {
             /// \return a bool indicating if the Tag collection is empty or not
             bool empty() const;
             void Put( const Tag & user_tag, const int mask = -1 );
+
+            void Put( const Tag & prescriber, const int & prescriberColId, const Tag & user_tag);
+
             /// when a tag_range is put, we create a "super-step-instance"
             void create_range_instances( const typename Tuner::range_type & r );
             /// needed by distCNC (distributable)
@@ -95,6 +98,7 @@ namespace CnC {
             typedef std::vector< callback_type * > callback_vec;
             callback_vec m_onPuts;
             int m_allMask;
+            const CheckpointTuner & m_ctuner; //The checkpoint tuner
         }; // class tag_collection_base
 
     } // namespace Internal
@@ -115,28 +119,30 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class Tag, class Tuner >
-        tag_collection_base< Tag, Tuner >::tag_collection_base( context_base & g, const std::string & name )
+        template< class Tag, class Tuner, class CheckpointTuner >
+        tag_collection_base< Tag, Tuner, CheckpointTuner >::tag_collection_base( context_base & g, const std::string & name )
             : tag_collection_i( g, name ),
               m_prescribedStepCollections(),
               m_tuner( get_default_tuner< Tuner >() ),
               m_tagTable(),
               m_onPuts(),
-              m_allMask( 0 )
+              m_allMask( 0 ),
+              m_ctuner(get_default_checkpoint_tuner< CheckpointTuner >() )
         {
             traceable::set_name( name );
         }
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class Tag, class Tuner >
-        tag_collection_base< Tag, Tuner >::tag_collection_base( context_base & g, const std::string & name, const Tuner & tnr )
+        template< class Tag, class Tuner, class CheckpointTuner >
+        tag_collection_base< Tag, Tuner, CheckpointTuner >::tag_collection_base( context_base & g, const std::string & name, const Tuner & tnr )
             : tag_collection_i( g, name ),
               m_prescribedStepCollections(),
               m_tuner( tnr ),
               m_tagTable(),
               m_onPuts(),
-              m_allMask( 0 )
+              m_allMask( 0 ),
+              m_ctuner(get_default_checkpoint_tuner< CheckpointTuner >())
         {
             traceable::set_name( name );
         }
@@ -144,8 +150,8 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class Tag, class Tuner >
-        tag_collection_base< Tag, Tuner >::~tag_collection_base()
+        template< class Tag, class Tuner, class CheckpointTuner >
+        tag_collection_base< Tag, Tuner, CheckpointTuner >::~tag_collection_base()
         {
             for( typename PrescribedStepCollections_t::const_iterator ci = this->m_prescribedStepCollections.begin();
                  ci != this->m_prescribedStepCollections.end();
@@ -161,8 +167,8 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class Tag, class Tuner >
-        int tag_collection_base< Tag, Tuner >::addPrescribedCollection( step_launcher_base< Tag, typename Tuner::range_type > * step_launcher )
+        template< class Tag, class Tuner, class CheckpointTuner >
+        int tag_collection_base< Tag, Tuner, CheckpointTuner >::addPrescribedCollection( step_launcher_base< Tag, typename Tuner::range_type > * step_launcher )
         {
             int id = ( 1 << m_prescribedStepCollections.size() );
             step_launcher->set_id( id ),
@@ -174,8 +180,8 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class Tag, class Tuner >
-        size_t tag_collection_base< Tag, Tuner >::size() const
+        template< class Tag, class Tuner, class CheckpointTuner >
+        size_t tag_collection_base< Tag, Tuner, CheckpointTuner >::size() const
         { // Return the size of a collection.
             return m_tagTable.size();
         }
@@ -183,8 +189,8 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class Tag, class Tuner >
-        void tag_collection_base< Tag, Tuner >::unsafe_reset( bool dist )
+        template< class Tag, class Tuner, class CheckpointTuner >
+        void tag_collection_base< Tag, Tuner, CheckpointTuner >::unsafe_reset( bool dist )
         {
 #ifdef _DIST_CNC_
             if( dist ) {
@@ -199,8 +205,8 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class Tag, class Tuner >
-        void tag_collection_base< Tag, Tuner >::do_reset()
+        template< class Tag, class Tuner, class CheckpointTuner >
+        void tag_collection_base< Tag, Tuner, CheckpointTuner >::do_reset()
         {
             m_tagTable.clear();
         }
@@ -208,8 +214,8 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class Tag, class Tuner >
-        bool tag_collection_base< Tag, Tuner >::empty() const
+        template< class Tag, class Tuner, class CheckpointTuner >
+        bool tag_collection_base< Tag, Tuner, CheckpointTuner >::empty() const
         { // Return a bool indicating if the Tag collection is empty or not
             return m_tagTable.empty();
         }
@@ -218,9 +224,9 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-        template< class Tag, class Tuner >
+        template< class Tag, class Tuner, class CheckpointTuner >
         template< typename T >     
-        std::ostream & tag_collection_base< Tag, Tuner >::format( std::ostream & oss, const char * str, const T & tag, step_instance_base * si ) const
+        std::ostream & tag_collection_base< Tag, Tuner, CheckpointTuner >::format( std::ostream & oss, const char * str, const T & tag, step_instance_base * si ) const
         {
             if( si ) {
                 oss << "step ";
@@ -232,9 +238,10 @@ namespace CnC {
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class Tag, class Tuner >
-        void tag_collection_base< Tag, Tuner >::Put( const Tag & user_tag, const int mask )
+        template< class Tag, class Tuner, class CheckpointTuner >
+        void tag_collection_base< Tag, Tuner, CheckpointTuner >::Put( const Tag & user_tag, const int mask )
         {
+        	m_ctuner.prescribe(NULL, 0, user_tag);
         	//std::cout << "Put "  << " by " << mask << '\n';
             int _lmask = mask & m_allMask;
 
@@ -284,9 +291,17 @@ namespace CnC {
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        template< class Tag, class Tuner, class CheckpointTuner >
+        void tag_collection_base< Tag, Tuner, CheckpointTuner >::Put( const Tag & prescriber, const int & prescriberColId, const Tag & user_tag) {
+        	m_ctuner.prescribe(prescriber, prescriberColId, user_tag);
+        	Put( user_tag ); //TODO I thing that it is possible that the tag is already here, in this case the tuner is called to many times.
+        }
 
-        template< typename Tag, typename Tuner >
-        void tag_collection_base< Tag, Tuner >::create_range_instances( const typename Tuner::range_type & r )
+        // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+        template< typename Tag, typename Tuner, class CheckpointTuner >
+        void tag_collection_base< Tag, Tuner, CheckpointTuner >::create_range_instances( const typename Tuner::range_type & r )
         {
             if ( trace_level() > 0 ) {
                 Speaker oss;
@@ -317,8 +332,8 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< typename Tag, typename Tuner >
-        void tag_collection_base< Tag, Tuner >::on_put( callback_type * cb )
+        template< typename Tag, typename Tuner, class CheckpointTuner >
+        void tag_collection_base< Tag, Tuner, CheckpointTuner >::on_put( callback_type * cb )
         {
             // not thread-safe!
             m_onPuts.push_back( cb );
@@ -327,8 +342,8 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< typename Tag, typename Tuner >
-        void tag_collection_base< Tag, Tuner >::recv_msg( serializer * ser )
+        template< typename Tag, typename Tuner, class CheckpointTuner >
+        void tag_collection_base< Tag, Tuner, CheckpointTuner >::recv_msg( serializer * ser )
         {
 #ifdef _DIST_CNC_
             CNC_ASSERT( distributor::active() );

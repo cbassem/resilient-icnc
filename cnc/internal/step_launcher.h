@@ -73,7 +73,7 @@ namespace CnC {
             typedef step_instance< step_launcher< Tag, Step, Arg, TagTuner, StepTuner, CheckpointTuner > > step_instance_type;
             typedef step_collection< Step, StepTuner, CheckpointTuner > step_coll_type;
             typedef typename TagTuner::range_type range_type;
-            typedef tag_collection_base< Tag, TagTuner > tag_coll_type;
+            typedef tag_collection_base< Tag, TagTuner, CheckpointTuner > tag_coll_type;
 
             step_launcher( context_base & ctxt, Arg & arg, const step_collection< Step, StepTuner, CheckpointTuner > & sc, const TagTuner & tt, scheduler_i & sched );
             step_launcher( tag_coll_type * tc, Arg & arg, const step_collection< Step, StepTuner, CheckpointTuner > & sc ) ;

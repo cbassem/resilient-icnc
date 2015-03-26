@@ -639,7 +639,10 @@ namespace CnC {
     		std::cout << "Step completed: " << tag << " " << getStepCollectionUID() << std::endl;
     	}
 
-    	void prescribe();
+    	// prescriber is null in case of env, prescriber colId is then 0
+    	void prescribe(const Tag & prescriber, const int prescriberColId, const Tag & tag) const {
+    		std::cout << "Tag put: " << tag << " By " << prescriber << " @ " << prescriberColId << std::endl;
+    	}
     };
 
 

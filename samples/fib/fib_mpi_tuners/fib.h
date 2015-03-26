@@ -56,7 +56,7 @@ struct fib_context : public CnC::context< fib_context >
     // Item collections
     CnC::item_collection< int, fib_type > m_fibs;
     // Tag collections
-    CnC::tag_collection< int > m_tags;
+    CnC::tag_collection< int, CnC::tag_tuner<>, fib_cr_tuner > m_tags;
 
     // The context class constructor
     fib_context()
