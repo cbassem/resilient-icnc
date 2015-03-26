@@ -652,6 +652,7 @@ namespace CnC {
     	void put(const Tag & putter, const int putterColId, const Tag & tag, const Item & item) const {
     		// Needs: PrescriberId( = Prescriber Tag + Tag collection Id), Prescribed Tag, Tag collection
     	    // ..getItemCollectionId()
+    		std::cout << "Item put: " << tag << " | " << item << " By " << putter << std::endl;
     	}
     };
 
