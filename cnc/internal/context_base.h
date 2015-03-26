@@ -118,7 +118,7 @@ namespace CnC {
             tbb::atomic< int >  m_stepInstanceCount;
 
             friend std::ostream & operator<<( std::ostream &, const context_base & );
-            template< typename T, typename item_type, typename Tuner > friend class item_collection_base;
+            template< typename T, typename item_type, typename Tuner, typename CheckpointTuner > friend class item_collection_base;
         }; // class context_base
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

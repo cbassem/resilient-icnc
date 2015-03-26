@@ -46,6 +46,8 @@ struct fib_cr_tuner: public CnC::checkpoint_tuner<int, fib_type>
 	int getNrOfPuts() const;
 	int getNrOfPrescribes() const;
 	int getStepCollectionUID() const;
+	int getTagCollectionUID() const;
+	int getItemCollectionUID() const;
 };
 
 // The context class
@@ -54,7 +56,7 @@ struct fib_context : public CnC::context< fib_context >
     // step collections
     CnC::step_collection< fib_step, CnC::step_tuner<>, fib_cr_tuner > m_steps;
     // Item collections
-    CnC::item_collection< int, fib_type > m_fibs;
+    CnC::item_collection< int, fib_type, CnC::hashmap_tuner, fib_cr_tuner> m_fibs;
     // Tag collections
     CnC::tag_collection< int, CnC::tag_tuner<>, fib_cr_tuner > m_tags;
 

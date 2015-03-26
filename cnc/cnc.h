@@ -275,7 +275,7 @@ namespace CnC {
     template< typename Tag, typename Item, typename Tuner = hashmap_tuner, typename CheckpointTuner = checkpoint_tuner_nop<>  >
     class /*CNC_API*/ item_collection
     {
-        typedef Internal::item_collection_base< Tag, Item, Tuner > base_coll_type;
+        typedef Internal::item_collection_base< Tag, Item, Tuner, CheckpointTuner > base_coll_type;
     public:
         /// the tag type
         typedef Tag tag_type;
@@ -311,6 +311,13 @@ namespace CnC {
         /// \param tag        the tag identifying the item
         /// \param item       the item to be copied and stored
         void put( const Tag & tag, const Item & item );
+
+        /// \brief make copies of the item and the tag and store them in the collection.
+        /// \param putter	  the step that is adding the item
+        /// \param putterColId The collection where the putter resides
+        /// \param tag        the tag identifying the item
+        /// \param item       the item to be copied and stored
+        void put( const Tag & putter, const int & putterColId, const Tag & tag, const Item & item );
 
         /// \brief get an item
         /// \param  tag the tag identifying the item

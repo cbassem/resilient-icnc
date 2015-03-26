@@ -170,6 +170,12 @@ namespace CnC {
         //return 0; // FIXME error code?
     }
 
+    template< typename Tag, typename Item, typename Tuner, typename CheckpointTuner >
+    void item_collection< Tag, Item, Tuner, CheckpointTuner >::put(const Tag & putter, const int & putterColId, const Tag & t, const Item & i)
+    {
+    	m_itemCollection.put( putter, putterColId, t, i );
+    }
+
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

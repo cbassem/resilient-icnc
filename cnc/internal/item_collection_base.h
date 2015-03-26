@@ -146,13 +146,13 @@ namespace CnC {
         /// the additional bookkeping would actually outweigh the gain in message size.
         /// The same is true for the erase requests.
         /// Sending decrement counts is of course not a bcast, just a message to the owner.
-        template< class T, class item_type, class Tuner >
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
         class item_collection_base : public item_collection_i, CnC::Internal::no_copy
         {
         private:
             enum { UNKNOWN_PID = 0x80000000 };
             typedef tbb::spin_mutex my_mutex_type;
-            typedef item_collection_base< T, item_type, Tuner > my_type;
+            typedef item_collection_base< T, item_type, Tuner, CheckpointTuner > my_type;
         public:
             typedef typename Tuner::template table_type< T, item_type, my_type > table_type;
             typedef typename table_type::const_iterator const_iterator;
@@ -163,6 +163,7 @@ namespace CnC {
             inline std::ostream & format( std::ostream & os, const char * str, const T & tag, const item_type * item, step_instance_base * si ) const;
             void set_max( size_t mx );
             void put(  const T & user_tag, const item_type & item );
+            void put( const T & putter, const int & putterCollectionId, const T & t, const item_type & i );
             void put_or_delete( const T & user_tag, item_type * item, int amOwner = UNKNOWN_PID, bool fromRemote = false );
             void get( const T & user_tag, item_type & item );
             bool unsafe_get( const T & user_tag, item_type & item );
@@ -239,6 +240,7 @@ namespace CnC {
             table_type tagItemTable;
         private:
             const Tuner & m_tuner;
+            const CheckpointTuner & m_ctuner;
             mutable item_allocator_type m_allocator;
             typedef std::vector< callback_type * > callback_vec;
             callback_vec m_onPuts;
@@ -338,13 +340,14 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class T, class item_type, class Tuner >
-        item_collection_base< T, item_type, Tuner >::item_collection_base( context_base & g, const std::string & name, const Tuner & tnr )
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        item_collection_base< T, item_type, Tuner, CheckpointTuner >::item_collection_base( context_base & g, const std::string & name, const Tuner & tnr )
             : item_collection_i( g, name ),
               tagItemTable( this ),
               m_tuner( tnr ),
               m_allocator(),
-              m_onPuts()
+              m_onPuts(),
+              m_ctuner( get_default_checkpoint_tuner< CheckpointTuner >() )
 #ifdef _DIST_CNC_
 #ifndef  __GNUC__
 #pragma warning(suppress : 4355)
@@ -368,13 +371,14 @@ namespace CnC {
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class T, class item_type, class Tuner >
-        item_collection_base< T, item_type, Tuner >::item_collection_base( context_base & g, const std::string & name )
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        item_collection_base< T, item_type, Tuner, CheckpointTuner >::item_collection_base( context_base & g, const std::string & name )
             : item_collection_i( g, name ),
               tagItemTable( this ),
               m_tuner( get_default_tuner< Tuner >() ),
               m_allocator(),
-              m_onPuts()
+              m_onPuts(),
+              m_ctuner( get_default_checkpoint_tuner< CheckpointTuner >() )
 #ifdef _DIST_CNC_
 #ifndef  __GNUC__
 #pragma warning(suppress : 4355)
@@ -398,8 +402,8 @@ namespace CnC {
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
-        template< class T, class item_type, class Tuner >
-        std::ostream & item_collection_base< T, item_type, Tuner >::format( std::ostream & oss, const char * str, const T & tag, step_instance_base * si ) const
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        std::ostream & item_collection_base< T, item_type, Tuner, CheckpointTuner >::format( std::ostream & oss, const char * str, const T & tag, step_instance_base * si ) const
         {
             if( si ) {
                 oss << "step ";
@@ -409,8 +413,8 @@ namespace CnC {
             return cnc_format( oss, tag ) << "]";
         }
 
-        template< class T, class item_type, class Tuner >
-        std::ostream & item_collection_base< T, item_type, Tuner >::format( std::ostream & oss, const char * str, const T & tag, const item_type * item, step_instance_base * si ) const
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        std::ostream & item_collection_base< T, item_type, Tuner, CheckpointTuner >::format( std::ostream & oss, const char * str, const T & tag, const item_type * item, step_instance_base * si ) const
         {
             format( oss, str, tag, si );
             oss << " = ";
@@ -422,8 +426,8 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-        template< class T, class item_type, class Tuner >
-        item_collection_base< T, item_type, Tuner >::~item_collection_base()
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        item_collection_base< T, item_type, Tuner, CheckpointTuner >::~item_collection_base()
         {
 #ifdef _DIST_CNC_
             my_mutex_type::scoped_lock _lock( m_cleanUpMutex );
@@ -438,8 +442,8 @@ namespace CnC {
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class T, class item_type, class Tuner >
-        void item_collection_base< T, item_type, Tuner >::set_max( size_t mx )
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        void item_collection_base< T, item_type, Tuner, CheckpointTuner >::set_max( size_t mx )
         {
             this->tagItemTable.resize( mx + 1 );
         }
@@ -447,8 +451,8 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class T, class item_type, class Tuner >
-        void item_collection_base< T, item_type, Tuner >::get( const T & user_tag, item_type & item )
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        void item_collection_base< T, item_type, Tuner, CheckpointTuner >::get( const T & user_tag, item_type & item )
         {
             step_instance_base * _stepInstance = m_context.current_step_instance();
 #ifndef NDEBUG
@@ -550,8 +554,8 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
-        template< class T, class item_type, class Tuner >
-        bool item_collection_base< T, item_type, Tuner >::unsafe_get( const T & user_tag, item_type & item )
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        bool item_collection_base< T, item_type, Tuner, CheckpointTuner >::unsafe_get( const T & user_tag, item_type & item )
         {
             step_instance_base * _si = m_context.current_step_instance();
 #ifndef NDEBUG
@@ -579,8 +583,8 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
         /// When using getcounts, we maintain a "Get list" of items read by a stepInstance.      
-        template< class T, class item_type, class Tuner >
-        void item_collection_base< T, item_type, Tuner >::update_get_list( step_instance_base * si, const T & user_tag )
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        void item_collection_base< T, item_type, Tuner, CheckpointTuner >::update_get_list( step_instance_base * si, const T & user_tag )
         {
             // Add the item collection and tag to the Get list of the step
             if( si != NULL ) {
@@ -593,8 +597,8 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class T, class item_type, class Tuner >
-        void item_collection_base< T, item_type, Tuner >::decrement_ref_count( const tag_base *tptr )
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        void item_collection_base< T, item_type, Tuner, CheckpointTuner >::decrement_ref_count( const tag_base *tptr )
         {
             const typed_tag< T > * tag_ptr = dynamic_cast< const typed_tag< T > * >( tptr );
             this->decrement_ref_count( tag_ptr->Value() );
@@ -602,8 +606,8 @@ namespace CnC {
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class T, class item_type, class Tuner >
-        void item_collection_base< T, item_type, Tuner >::erase( typename table_type::accessor & aw )
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        void item_collection_base< T, item_type, Tuner, CheckpointTuner >::erase( typename table_type::accessor & aw )
         {
 #ifdef _DIST_CNC_
             if( aw.item() && ! aw.properties()->am_creator() ) {
@@ -617,8 +621,8 @@ namespace CnC {
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class T, class item_type, class Tuner >
-        void item_collection_base< T, item_type, Tuner >::decrement_ref_count( const T & tag, int cnt, bool send )
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        void item_collection_base< T, item_type, Tuner, CheckpointTuner >::decrement_ref_count( const T & tag, int cnt, bool send )
         {
             typename table_type::accessor aw;
             
@@ -647,8 +651,8 @@ namespace CnC {
             }
         }
 
-        template< class T, class item_type, class Tuner >
-        void item_collection_base< T, item_type, Tuner >::decrement_ref_count( typename table_type::accessor & aw, const T & tag, int cnt, bool send )
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        void item_collection_base< T, item_type, Tuner, CheckpointTuner >::decrement_ref_count( typename table_type::accessor & aw, const T & tag, int cnt, bool send )
         {
             item_properties * _prop = aw.properties();
             CNC_ASSERT( _prop->get_count() != item_properties::NO_GET_COUNT );
@@ -680,8 +684,8 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class T, class item_type, class Tuner >
-        inline item_type * item_collection_base< T, item_type, Tuner >::create( const item_type & org ) const
+        template< class T, class item_type, class Tuner,class CheckpointTuner >
+        inline item_type * item_collection_base< T, item_type, Tuner, CheckpointTuner >::create( const item_type & org ) const
         {
             item_type * _item = m_allocator.allocate( 1 );
             m_allocator.construct( _item, org );
@@ -690,8 +694,8 @@ namespace CnC {
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class T, class item_type, class Tuner >
-        inline void item_collection_base< T, item_type, Tuner >::uncreate( item_type * item ) const
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        inline void item_collection_base< T, item_type, Tuner, CheckpointTuner >::uncreate( item_type * item ) const
         {
             if( item ) {
                 m_allocator.destroy( item );
@@ -701,8 +705,8 @@ namespace CnC {
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class T, class item_type, class Tuner >
-        void item_collection_base< T, item_type, Tuner >::put( const T & t, const item_type & i )
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        void item_collection_base< T, item_type, Tuner, CheckpointTuner >::put( const T & t, const item_type & i )
         {
             put_or_delete( t, create( i ) );
 #ifndef NDEBUG
@@ -712,11 +716,17 @@ namespace CnC {
         }
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        void item_collection_base< T, item_type, Tuner, CheckpointTuner >::put( const T & putter, const int & putterCollectionId, const T & t, const item_type & i )
+        {
+        	//TODO implement
+        }
+        // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-        template< class T, class item_type, class Tuner >
-        void item_collection_base< T, item_type, Tuner >::put_or_delete( const T & user_tag, item_type * item, int owner, bool fromRemote )
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        void item_collection_base< T, item_type, Tuner, CheckpointTuner >::put_or_delete( const T & user_tag, item_type * item, int owner, bool fromRemote )
         {
             // depending on the answer of the tuner, the item is send to remote
             // processes and/or inserted into the local collection.
@@ -830,8 +840,8 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class T, class item_type, class Tuner >
-        typename item_collection_base< T, item_type, Tuner >::table_type::item_and_gc_type item_collection_base< T, item_type, Tuner >::delay_step( const T & user_tag,
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        typename item_collection_base< T, item_type, Tuner, CheckpointTuner >::table_type::item_and_gc_type item_collection_base< T, item_type, Tuner, CheckpointTuner >::delay_step( const T & user_tag,
                                                                                                                                                     typename table_type::accessor & a,
                                                                                                                                                     step_instance_base * s )
         {
@@ -853,8 +863,8 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class T, class item_type, class Tuner >
-        const item_type * item_collection_base< T, item_type, Tuner >::delay_step( const T & user_tag )
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        const item_type * item_collection_base< T, item_type, Tuner, CheckpointTuner >::delay_step( const T & user_tag )
         {
             typename table_type::accessor a;
             return this->delay_step( user_tag, a, NULL ).first;
@@ -863,8 +873,8 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class T, class item_type, class Tuner >
-        typename item_collection_base< T, item_type, Tuner >::table_type::item_and_gc_type item_collection_base< T, item_type, Tuner >::wait_for_put( const T & tag,
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        typename item_collection_base< T, item_type, Tuner, CheckpointTuner >::table_type::item_and_gc_type item_collection_base< T, item_type, Tuner, CheckpointTuner >::wait_for_put( const T & tag,
                                                                                                                                                       typename table_type::accessor & aw,
                                                                                                                                                       step_instance_base *,
                                                                                                                                                       bool do_throw )
@@ -912,8 +922,8 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class T, class item_type, class Tuner >
-        void item_collection_base< T, item_type, Tuner >::block_for_put( const T & user_tag, typename table_type::accessor & a )
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        void item_collection_base< T, item_type, Tuner, CheckpointTuner >::block_for_put( const T & user_tag, typename table_type::accessor & a )
         {
             // A get( <tag> ) is waiting for a put( <tag> ).
             //  - the environment will block here until the put( <tag> ) arrive
@@ -929,32 +939,32 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class T, class item_type, class Tuner >
-        size_t item_collection_base< T, item_type, Tuner >::size() const
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        size_t item_collection_base< T, item_type, Tuner, CheckpointTuner >::size() const
         {
             // Return the size of a collection.
             //FIXME: we should implement a optimized version which does not gather items, but just the item counts
-            const_cast< item_collection_base< T, item_type, Tuner > * >( this )->gather(); // first make sure we have all items locally available
+            const_cast< item_collection_base< T, item_type, Tuner, CheckpointTuner > * >( this )->gather(); // first make sure we have all items locally available
             return tagItemTable.size();
         }
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class T, class item_type, class Tuner >
-        typename item_collection_base< T, item_type, Tuner >::const_iterator item_collection_base< T, item_type, Tuner >::begin() const
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        typename item_collection_base< T, item_type, Tuner, CheckpointTuner >::const_iterator item_collection_base< T, item_type, Tuner, CheckpointTuner >::begin() const
         {
             // Return an iterator referring to the first element of the Item collection
 
-            const_cast< item_collection_base< T, item_type, Tuner > * >( this )->gather(); // first make sure we have all items locally available
+            const_cast< item_collection_base< T, item_type, Tuner, CheckpointTuner > * >( this )->gather(); // first make sure we have all items locally available
             return tagItemTable.begin();
         }
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class T, class item_type, class Tuner >
-        typename item_collection_base< T, item_type, Tuner >::const_iterator item_collection_base< T, item_type, Tuner >::end() const
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        typename item_collection_base< T, item_type, Tuner, CheckpointTuner >::const_iterator item_collection_base< T, item_type, Tuner, CheckpointTuner >::end() const
         {
             // Return an iterator referring to the first "past-the-end" element of the Item collection
 
@@ -965,8 +975,8 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class T, class item_type, class Tuner >
-        void item_collection_base< T, item_type, Tuner >::unsafe_reset( bool dist )
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        void item_collection_base< T, item_type, Tuner, CheckpointTuner >::unsafe_reset( bool dist )
         {
 #ifdef _DIST_CNC_
             if( dist ) {
@@ -980,8 +990,8 @@ namespace CnC {
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class T, class item_type, class Tuner >
-        void item_collection_base< T, item_type, Tuner >::cleanup()
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        void item_collection_base< T, item_type, Tuner, CheckpointTuner >::cleanup()
         {
 #ifdef _DIST_CNC_
             my_mutex_type::scoped_lock _lock( m_cleanUpMutex );
@@ -1037,8 +1047,8 @@ namespace CnC {
             };
         }
 
-        template< class T, class item_type, class Tuner >
-        void item_collection_base< T, item_type, Tuner >::do_reset()
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        void item_collection_base< T, item_type, Tuner, CheckpointTuner >::do_reset()
         {
             table_cleanup _tcu;
             tagItemTable.for_all( _tcu, name() );
@@ -1048,12 +1058,12 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class T, class item_type, class Tuner >
-        bool item_collection_base< T, item_type, Tuner >::empty() const
+        template< class T, class item_type, class Tuner,class CheckpointTuner >
+        bool item_collection_base< T, item_type, Tuner, CheckpointTuner >::empty() const
         {
             // Return a bool indicating if the Item collection is empty or not
 
-            const_cast< item_collection_base< T, item_type, Tuner > * >( this )->gather(); // first make sure we have all items locally available
+            const_cast< item_collection_base< T, item_type, Tuner, CheckpointTuner > * >( this )->gather(); // first make sure we have all items locally available
             return tagItemTable.empty();
         }
         //
@@ -1063,8 +1073,8 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class T, class item_type, class Tuner >
-        void item_collection_base< T, item_type, Tuner >::on_put( callback_type * cb )
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        void item_collection_base< T, item_type, Tuner, CheckpointTuner >::on_put( callback_type * cb )
         {
             // not thread-safe!
             m_onPuts.push_back( cb );
@@ -1082,39 +1092,39 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class T, class item_type, class Tuner > void item_collection_base< T, item_type, Tuner >::send_getcounts( bool ) {}
-        template< class T, class item_type, class Tuner > void item_collection_base< T, item_type, Tuner >::erase_alien( const T & tag ) {}
-        template< class T, class item_type, class Tuner > void item_collection_base< T, item_type, Tuner >::add_erased( const T &, bool ) {}
-        template< class T, class item_type, class Tuner > void item_collection_base< T, item_type, Tuner >::send_erased( bool ) {}
-        template< class T, class item_type, class Tuner > void item_collection_base< T, item_type, Tuner >::gather() {}
-        template< class T, class item_type, class Tuner > void item_collection_base< T, item_type, Tuner >::gather( int root ) {}
-        template< class T, class item_type, class Tuner > void item_collection_base< T, item_type, Tuner >::recv_msg( serializer * ser ){}
-        template< class T, class item_type, class Tuner > void item_collection_base< T, item_type, Tuner >::put_request( const T & tag, bool probe, int rcpnt ) {}
-        template< class T, class item_type, class Tuner > void item_collection_base< T, item_type, Tuner >::get_request( const T & tag, int recpnt, bool probe ) {}
-        template< class T, class item_type, class Tuner > void item_collection_base< T, item_type, Tuner >::deliver( const T & tag, const item_type * item, int recpnt, const char dtype, int owner ) {}
+        template< class T, class item_type, class Tuner, class CheckpointTuner > void item_collection_base< T, item_type, Tuner, CheckpointTuner >::send_getcounts( bool ) {}
+        template< class T, class item_type, class Tuner, class CheckpointTuner > void item_collection_base< T, item_type, Tuner, CheckpointTuner >::erase_alien( const T & tag ) {}
+        template< class T, class item_type, class Tuner, class CheckpointTuner > void item_collection_base< T, item_type, Tuner, CheckpointTuner >::add_erased( const T &, bool ) {}
+        template< class T, class item_type, class Tuner, class CheckpointTuner > void item_collection_base< T, item_type, Tuner, CheckpointTuner >::send_erased( bool ) {}
+        template< class T, class item_type, class Tuner, class CheckpointTuner > void item_collection_base< T, item_type, Tuner, CheckpointTuner >::gather() {}
+        template< class T, class item_type, class Tuner, class CheckpointTuner > void item_collection_base< T, item_type, Tuner, CheckpointTuner >::gather( int root ) {}
+        template< class T, class item_type, class Tuner, class CheckpointTuner > void item_collection_base< T, item_type, Tuner, CheckpointTuner >::recv_msg( serializer * ser ){}
+        template< class T, class item_type, class Tuner, class CheckpointTuner > void item_collection_base< T, item_type, Tuner, CheckpointTuner >::put_request( const T & tag, bool probe, int rcpnt ) {}
+        template< class T, class item_type, class Tuner, class CheckpointTuner > void item_collection_base< T, item_type, Tuner, CheckpointTuner >::get_request( const T & tag, int recpnt, bool probe ) {}
+        template< class T, class item_type, class Tuner, class CheckpointTuner > void item_collection_base< T, item_type, Tuner, CheckpointTuner >::deliver( const T & tag, const item_type * item, int recpnt, const char dtype, int owner ) {}
 
-        template< class T, class item_type, class Tuner > inline
-        bool item_collection_base< T, item_type, Tuner >::deliver_to_consumers( const T & user_tag, item_type * item, int & owner, int consumer )
+        template< class T, class item_type, class Tuner, class CheckpointTuner > inline
+        bool item_collection_base< T, item_type, Tuner, CheckpointTuner >::deliver_to_consumers( const T & user_tag, item_type * item, int & owner, int consumer )
         { 
             owner = distributor::myPid();
             return true;
         }
 
-        template< class T, class item_type, class Tuner >
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
         template< typename VEC > inline
-        bool item_collection_base< T, item_type, Tuner >::deliver_to_consumers( const T & user_tag, item_type * item, int & owner, const VEC & consumers )
+        bool item_collection_base< T, item_type, Tuner, CheckpointTuner >::deliver_to_consumers( const T & user_tag, item_type * item, int & owner, const VEC & consumers )
         {
             owner = distributor::myPid();
             return true;
         }
 
-        template< class T, class item_type, class Tuner >
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
         template< class RecpList > inline
-        bool item_collection_base< T, item_type, Tuner >::deliver( const T & tag, const item_type * item, const RecpList & recpnts, const char dtype, int owner )
+        bool item_collection_base< T, item_type, Tuner, CheckpointTuner >::deliver( const T & tag, const item_type * item, const RecpList & recpnts, const char dtype, int owner )
         { return true; }
 
-        template< class T, class item_type, class Tuner > inline
-        void item_collection_base< T, item_type, Tuner >::probe( const T & tag, typename table_type::accessor & a )
+        template< class T, class item_type, class Tuner, class CheckpointTuner > inline
+        void item_collection_base< T, item_type, Tuner, CheckpointTuner >::probe( const T & tag, typename table_type::accessor & a )
         { }
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1122,8 +1132,8 @@ namespace CnC {
 
 #else // _DIST_CNC_ is defined
         
-        template< class T, class item_type, class Tuner >
-        item_collection_base< T, item_type, Tuner >::get_count_collector::get_count_collector( const distributable * ic )
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        item_collection_base< T, item_type, Tuner, CheckpointTuner >::get_count_collector::get_count_collector( const distributable * ic )
             : m_sers( NULL ),
               m_ic( ic ),
               m_reserved( NULL ),
@@ -1140,8 +1150,8 @@ namespace CnC {
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class T, class item_type, class Tuner >
-        item_collection_base< T, item_type, Tuner >::get_count_collector::~get_count_collector()
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        item_collection_base< T, item_type, Tuner, CheckpointTuner >::get_count_collector::~get_count_collector()
         {
             delete [] m_counts;
             delete [] m_reserved;
@@ -1150,9 +1160,9 @@ namespace CnC {
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
-        template< class T, class item_type, class Tuner >
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
         template< typename Tag >
-        void item_collection_base< T, item_type, Tuner >::get_count_collector::collect( const Tag & tag, item_properties & ip, const distributable_context & ctxt )
+        void item_collection_base< T, item_type, Tuner, CheckpointTuner >::get_count_collector::collect( const Tag & tag, item_properties & ip, const distributable_context & ctxt )
         {
             int _myId = distributor::myPid();
             int _owner = ip.owner();
@@ -1172,8 +1182,8 @@ namespace CnC {
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                 
-        template< class T, class item_type, class Tuner >
-        void item_collection_base< T, item_type, Tuner >::get_count_collector::send_getcounts( bool enter_safe, const distributable_context & ctxt )
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        void item_collection_base< T, item_type, Tuner, CheckpointTuner >::get_count_collector::send_getcounts( bool enter_safe, const distributable_context & ctxt )
         {
             scalable_vector< int > _others( 0 );
             int _myId = distributor::myPid();
@@ -1202,10 +1212,10 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class T, class item_type, class Tuner >
-        struct item_collection_base< T, item_type, Tuner >::wait_for_gc_to_complete
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        struct item_collection_base< T, item_type, Tuner, CheckpointTuner >::wait_for_gc_to_complete
         {
-            wait_for_gc_to_complete( item_collection_base< T, item_type, Tuner > * ic )
+            wait_for_gc_to_complete( item_collection_base< T, item_type, Tuner, CheckpointTuner > * ic )
                 : m_ic( ic )
             {}
             
@@ -1223,11 +1233,11 @@ namespace CnC {
                 }
             }
         private:
-            item_collection_base< T, item_type, Tuner > * m_ic;
+            item_collection_base< T, item_type, Tuner, CheckpointTuner > * m_ic;
         };
 
-        template< class T, class item_type, class Tuner >
-        void item_collection_base< T, item_type, Tuner >::send_getcounts( bool enter_safe )
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        void item_collection_base< T, item_type, Tuner, CheckpointTuner >::send_getcounts( bool enter_safe )
         {
             if( ! distributor::active() ) return;
 
@@ -1248,8 +1258,8 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class T, class item_type, class Tuner >
-        void item_collection_base< T, item_type, Tuner >::erase_alien( const T & tag )
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        void item_collection_base< T, item_type, Tuner, CheckpointTuner >::erase_alien( const T & tag )
         {
             typename table_type::accessor aw;
             if( tagItemTable.get_accessor( tag, aw ) ) {
@@ -1260,8 +1270,8 @@ namespace CnC {
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class T, class item_type, class Tuner > inline
-        void item_collection_base< T, item_type, Tuner >::add_erased( const T & tag, bool send )
+        template< class T, class item_type, class Tuner, class CheckpointTuner > inline
+        void item_collection_base< T, item_type, Tuner, CheckpointTuner >::add_erased( const T & tag, bool send )
         {
             if( distributor::numProcs() > 1 && ! am_only_consumer( m_tuner.consumed_on( tag ), distributor::myPid() ) ) {
                 my_mutex_type::scoped_lock _lock( m_serMutex );
@@ -1279,8 +1289,8 @@ namespace CnC {
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class T, class item_type, class Tuner > inline
-        void item_collection_base< T, item_type, Tuner >::send_erased( bool enter_safe )
+        template< class T, class item_type, class Tuner, class CheckpointTuner > inline
+        void item_collection_base< T, item_type, Tuner, CheckpointTuner >::send_erased( bool enter_safe )
         {
             my_mutex_type::scoped_lock _lock( m_serMutex );
             if( enter_safe || m_numErased > CNC_ENABLE_GC/2 ) {
@@ -1304,8 +1314,8 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class T, class item_type, class Tuner >
-        void item_collection_base< T, item_type, Tuner >::put_request( const T & tag, bool probe, int rcpnt )
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        void item_collection_base< T, item_type, Tuner, CheckpointTuner >::put_request( const T & tag, bool probe, int rcpnt )
         {
             if( ! distributor::active() ) return;
             int _pid = distributor::myPid();
@@ -1329,8 +1339,8 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class T, class item_type, class Tuner >
-        void item_collection_base< T, item_type, Tuner >::get_request( const T & tag, int recpnt, bool probe )
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        void item_collection_base< T, item_type, Tuner, CheckpointTuner >::get_request( const T & tag, int recpnt, bool probe )
         {
             CNC_ASSERT( distributor::active() );
             typename table_type::accessor a;
@@ -1357,8 +1367,8 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class T, class item_type, class Tuner >
-        bool item_collection_base< T, item_type, Tuner >::deliver_to_consumers( const T & user_tag, item_type * item, int & owner, int consumer )
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        bool item_collection_base< T, item_type, Tuner, CheckpointTuner >::deliver_to_consumers( const T & user_tag, item_type * item, int & owner, int consumer )
         {
             CNC_ASSERT( owner < 0 );
             if( consumer != CONSUMER_UNKNOWN && consumer != distributor::myPid() && consumer != CONSUMER_LOCAL ) {
@@ -1385,9 +1395,9 @@ namespace CnC {
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class T, class item_type, class Tuner >
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
         template< typename VEC >
-        bool item_collection_base< T, item_type, Tuner >::deliver_to_consumers( const T & user_tag, item_type * item, int & owner, const VEC & consumers )
+        bool item_collection_base< T, item_type, Tuner, CheckpointTuner >::deliver_to_consumers( const T & user_tag, item_type * item, int & owner, const VEC & consumers )
         {
             CNC_ASSERT( owner < 0 );
             if( consumers.size() > 0 ) {
@@ -1408,8 +1418,8 @@ namespace CnC {
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class T, class item_type, class Tuner >
-        void item_collection_base< T, item_type, Tuner >::deliver( const T & tag, const item_type * item, int recpnt, const char dtype, int owner )
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        void item_collection_base< T, item_type, Tuner, CheckpointTuner >::deliver( const T & tag, const item_type * item, int recpnt, const char dtype, int owner )
         {
             CNC_ASSERT( distributor::active() );
             CNC_ASSERT( recpnt != CONSUMER_ALL_OTHERS || dtype == IC::DELIVER );
@@ -1444,9 +1454,9 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class T, class item_type, class Tuner >
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
         template< class RecpList >
-        bool item_collection_base< T, item_type, Tuner >::deliver( const T & tag, const item_type * item, const RecpList & recpnts, const char dtype, int owner )
+        bool item_collection_base< T, item_type, Tuner, CheckpointTuner >::deliver( const T & tag, const item_type * item, const RecpList & recpnts, const char dtype, int owner )
         {
             CNC_ASSERT( distributor::active() );
             if( recpnts.size() == 1 ) {
@@ -1476,8 +1486,8 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class T, class item_type, class Tuner >
-        void item_collection_base< T, item_type, Tuner >::probe( const T & tag, typename table_type::accessor & a )
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        void item_collection_base< T, item_type, Tuner, CheckpointTuner >::probe( const T & tag, typename table_type::accessor & a )
         {
             if( ! distributor::active() ) return;
             item_properties * _prop = a.properties();
@@ -1498,8 +1508,8 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class T, class item_type, class Tuner >
-        void item_collection_base< T, item_type, Tuner >::gather()
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        void item_collection_base< T, item_type, Tuner, CheckpointTuner >::gather()
         {
             if( ! distributor::active() ) return;
    
@@ -1541,8 +1551,8 @@ namespace CnC {
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        template< class T, class item_type, class Tuner >
-        void item_collection_base< T, item_type, Tuner >::gather( int root )
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        void item_collection_base< T, item_type, Tuner, CheckpointTuner >::gather( int root )
         { // FIXME save data movement when repeatedly called. Could remember sent items. or send known item-tags when requesting gather.
             if( ! distributor::active() ) return;
 
@@ -1581,8 +1591,8 @@ namespace CnC {
         };
 
         /// see namespace IC above for message type defs
-        template< class T, class item_type, class Tuner >
-        void item_collection_base< T, item_type, Tuner >::recv_msg( serializer * ser )
+        template< class T, class item_type, class Tuner, class CheckpointTuner>
+        void item_collection_base< T, item_type, Tuner, CheckpointTuner >::recv_msg( serializer * ser )
         {
             CNC_ASSERT( distributor::active() );
             char _msg;
@@ -1623,7 +1633,7 @@ namespace CnC {
                 {
                     int _p;
                     (*ser) & _p;
-                    new service_task< gatherer, std::pair<  item_collection_base< T, item_type, Tuner > *, int > > ( m_context.scheduler(), std::make_pair( this, _p ) );
+                    new service_task< gatherer, std::pair<  item_collection_base< T, item_type, Tuner, CheckpointTuner > *, int > > ( m_context.scheduler(), std::make_pair( this, _p ) );
                     //                    gather( _p );
                     break; // no cleanup
                 }
