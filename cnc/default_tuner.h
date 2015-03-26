@@ -620,28 +620,38 @@ namespace CnC {
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     // Default nop checkpoint tuner
-    template< typename Tag = int >
+    template< typename Tag = int, typename Item = int >
     struct checkpoint_tuner_nop: public virtual tuner_base {
 
-    	void prescribe();
-    	void put();
+    	void prescribe(const Tag & prescriber, const int prescriberColId, const Tag & tag) const;
+    	void put(const Tag & putter, const int putterColId, const Tag & tag, const Item & item) const;
     	void done(const Tag & tag) const;
 
     };
-    template< typename Tag >
+    template< typename Tag, typename Item >
     struct checkpoint_tuner: public virtual tuner_base {
     	virtual int getNrOfPuts() const = 0;
     	virtual int getNrOfPrescribes() const = 0;
-    	virtual int getStepCollectionUID() const = 0;
+    	virtual int getStepCollectionUID() const = 0; //These should be refactored
+    	virtual int getTagCollectionUID() const = 0; // These should be refactored
+    	virtual int getItemCollectionUID() const = 0; // These should be refactored
 
     	//template< typename Tag >
     	void done(const Tag & tag) const {
+    		// Needs: StepId( = Tag + Tag collectionId), #ofputs, #ofprescribes
     		std::cout << "Step completed: " << tag << " " << getStepCollectionUID() << std::endl;
     	}
 
     	// prescriber is null in case of env, prescriber colId is then 0
     	void prescribe(const Tag & prescriber, const int prescriberColId, const Tag & tag) const {
+    		// Needs: PrescriberId( = Prescriber Tag + Tag collection Id), Prescribed Tag, Tag collection
+    		// ..getTagCollectionId()
     		std::cout << "Tag put: " << tag << " By " << prescriber << " @ " << prescriberColId << std::endl;
+    	}
+
+    	void put(const Tag & putter, const int putterColId, const Tag & tag, const Item & item) const {
+    		// Needs: PrescriberId( = Prescriber Tag + Tag collection Id), Prescribed Tag, Tag collection
+    	    // ..getItemCollectionId()
     	}
     };
 

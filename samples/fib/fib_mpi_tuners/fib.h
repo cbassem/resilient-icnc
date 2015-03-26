@@ -41,7 +41,7 @@ struct fib_step
 
 
 // let's use a tuner to pre-declare dependencies
-struct fib_cr_tuner: public CnC::checkpoint_tuner<int>
+struct fib_cr_tuner: public CnC::checkpoint_tuner<int, fib_type>
 {
 	int getNrOfPuts() const;
 	int getNrOfPrescribes() const;
