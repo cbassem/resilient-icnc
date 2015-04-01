@@ -45,6 +45,7 @@
 #include <cnc/internal/context_base.h>
 #include <cnc/internal/no_range.h>
 
+
 /// \brief CnC API
 namespace CnC {
 

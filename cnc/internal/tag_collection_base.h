@@ -241,7 +241,7 @@ namespace CnC {
         template< class Tag, class Tuner, class CheckpointTuner >
         void tag_collection_base< Tag, Tuner, CheckpointTuner >::Put( const Tag & user_tag, const int mask )
         {
-        	m_ctuner.prescribe(NULL, 0, user_tag);
+        	m_ctuner.prescribe(get_context(), NULL, 0, user_tag);
         	//std::cout << "Put "  << " by " << mask << '\n';
             int _lmask = mask & m_allMask;
 

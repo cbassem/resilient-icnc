@@ -719,7 +719,7 @@ namespace CnC {
         template< class T, class item_type, class Tuner, class CheckpointTuner >
         void item_collection_base< T, item_type, Tuner, CheckpointTuner >::put( const T & putter, const int & putterCollectionId, const T & t, const item_type & i )
         {
-        	m_ctuner.put(putter, putterCollectionId, t, i); //TODO Like with tag collection not sure if this is right place. I guess this is all on the local context/collections...
+        	m_ctuner.put(m_context, putter, putterCollectionId, t, i); //TODO Like with tag collection not sure if this is right place. I guess this is all on the local context/collections...
         	put( t, i );
         }
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
