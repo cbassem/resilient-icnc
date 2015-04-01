@@ -633,6 +633,10 @@ namespace CnC {
     };
     template< typename Tag, typename Item >
     struct checkpoint_tuner: public virtual tuner_base, public virtual CnC::Internal::distributable {
+    	const char PUT = 0;
+    	const char PRESCRIBE = 1;
+    	const char DONE = 2;
+
     	virtual int getNrOfPuts() const = 0;
     	virtual int getNrOfPrescribes() const = 0;
     	virtual int getStepCollectionUID() const = 0; //These should be refactored
@@ -657,25 +661,20 @@ namespace CnC {
     		// Needs: PrescriberId( = Prescriber Tag + Tag collection Id), Prescribed Tag, Tag collection
     	    // ..getItemCollectionId()
     		std::cout << "Item put: " << tag << " | " << item << " By " << putter << std::endl;
-        	//serializer * _ser = m_context.new_serializer( this );
+        	serializer * ser = context.new_serializer( this );
+        	(*ser) & 0 & putter & putterColId & tag & item;
+        	context.send_msg(ser, 0); //zero is like the context on the main... right?
     	}
-
-    private:
 
     	//Implementing the distributable interface
     	void recv_msg( serializer * ser ) {
-    		//atm nothing we only want to send
+    		//if everybody sends to the main one then this one will have a reference to the actual checkpoint
+    		std::cout << "yey friends! :D" << std::endl;
     	}
 
     	void unsafe_reset( bool dist ) {
     		//not sure what to do with this...
     	}
-    	///////////////////////////////////////////
-
-    	void send(serializer * ser ) {
-
-    	}
-
 
     };
 
