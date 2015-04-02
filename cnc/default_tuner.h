@@ -666,7 +666,7 @@ namespace CnC {
     		// Needs: StepId( = Tag + Tag collectionId), #ofputs, #ofprescribes
     		//std::cout << "Step completed: " << tag << " " << getStepCollectionUID() << std::endl;
     		serializer * ser = m_context.new_serializer( this );
-    		(*ser) & CnC::checkpoint_tuner_types::DONE & tag & getTagCollectionUID() & getNrOfPuts() & getNrOfPrescribes();
+    		(*ser) & CnC::checkpoint_tuner_types::DONE & tag & getStepCollectionUID() & getNrOfPuts() & getNrOfPrescribes();
     		m_context.send_msg(ser, 0);
     	}
 
@@ -685,7 +685,7 @@ namespace CnC {
     	    // ..getItemCollectionId()
     		//std::cout << "Item put: " << tag << " | " << item << " By " << putter << std::endl;
         	serializer * ser = m_context.new_serializer( this );
-        	(*ser) & CnC::checkpoint_tuner_types::PUT & putter & putterColId & tag & item;
+        	(*ser) & CnC::checkpoint_tuner_types::PUT & putter & putterColId & tag & item & getItemCollectionUID();
         	m_context.send_msg(ser, 0); //zero is like the context on the main... right?
     	}
 
@@ -694,7 +694,39 @@ namespace CnC {
     	//Implementing the distributable interface
     	void recv_msg( serializer * ser ) {
     		//if everybody sends to the main one then this one will have a reference to the actual checkpoint
+    		char msg_tag;
+    		(* ser) & msg_tag;
 
+    		switch (msg_tag) {
+				case CnC::checkpoint_tuner_types::PUT:
+				{
+					Tag putter;
+					int putterColId;
+					Tag tag;
+					Item item;
+					int itemCollectionUID;
+					(* ser) & putter & putterColId & tag & item & itemCollectionUID;
+					break;
+				}
+				case CnC::checkpoint_tuner_types::PRESCRIBE:
+				{
+					Tag prescriber;
+					int prescriberColId;
+					Tag tag;
+					int tagCollectionUID;
+					(* ser) & prescriber & prescriberColId & tag & tagCollectionUID;
+					break;
+				}
+				case CnC::checkpoint_tuner_types::DONE:
+				{
+					Tag tag;
+					int stepCollectionUID, nr_of_puts, nr_of_prescribes;
+					(* ser) & tag & stepCollectionUID & nr_of_puts & nr_of_prescribes;
+					break;
+				}
+				default:
+					CNC_ABORT( "Protocol error: unexpected message tag." );
+    		}
     	}
 
     	void unsafe_reset( bool dist ) {
