@@ -47,6 +47,7 @@
 #include <tbb/concurrent_unordered_set.h>
 //#include <tbb/concurrent_hash_map.h>
 #include <cnc/internal/dist/distributable.h>
+#include <cnc/internal/checkpointingsystem/SimpelCheckpointManager.h>
 
 
 namespace CnC {
@@ -651,7 +652,7 @@ namespace CnC {
     	typedef Internal::distributable_context distcontext;
 
     	//TODO change std::cout << by a logger -> We want pretty printing and debug levels
-    	checkpoint_tuner(distcontext & context): m_context(context) { //Base class constructors are all zero-arg
+    	checkpoint_tuner(distcontext & context): m_context(context), m_cmanager(2, 1, 1) { //Base class constructors are all zero-arg
     		m_context.subscribe(this);
     		//std::cout << "Created a tuner on node: " << myPid() << std::endl;
     	}
@@ -659,6 +660,11 @@ namespace CnC {
     	~checkpoint_tuner() {
     		m_context.unsubscribe(this);
     		//std::cout << "Removed a tuner on node: " << myPid() << std::endl;
+    	}
+
+    	void printCheckpoint() {
+    		m_cmanager.calculateCheckpoint();
+    		m_cmanager.printCheckpoint();
     	}
 
     	//template< typename Tag >
@@ -706,6 +712,7 @@ namespace CnC {
 					Item item;
 					int itemCollectionUID;
 					(* ser) & putter & putterColId & tag & item & itemCollectionUID;
+					m_cmanager.processItemPut(putter, putterColId, tag, item, itemCollectionUID);
 					break;
 				}
 				case CnC::checkpoint_tuner_types::PRESCRIBE:
@@ -715,6 +722,7 @@ namespace CnC {
 					Tag tag;
 					int tagCollectionUID;
 					(* ser) & prescriber & prescriberColId & tag & tagCollectionUID;
+					m_cmanager.processStepPrescribe(prescriber, prescriberColId, tag, tagCollectionUID);
 					break;
 				}
 				case CnC::checkpoint_tuner_types::DONE:
@@ -722,6 +730,7 @@ namespace CnC {
 					Tag tag;
 					int stepCollectionUID, nr_of_puts, nr_of_prescribes;
 					(* ser) & tag & stepCollectionUID & nr_of_puts & nr_of_prescribes;
+					m_cmanager.processStepDone( tag, stepCollectionUID, nr_of_puts, nr_of_prescribes);
 					break;
 				}
 				default:
@@ -736,7 +745,7 @@ namespace CnC {
 
     private:
     	distcontext & m_context;
-
+    	SimpelCheckpointManager< Tag, Item > m_cmanager; //atm they all have an instance but only the "main" context uses one.
     };
 
 
