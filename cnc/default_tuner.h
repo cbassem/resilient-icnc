@@ -633,11 +633,15 @@ namespace CnC {
     	void done(distcontext & context, const Tag & tag) const;
     };
 
+    namespace checkpoint_tuner_types{
+		static const char PUT = 0;
+		static const char PRESCRIBE = 1;
+		static const char DONE = 2;
+    }
+
     template< typename Tag, typename Item >
     struct checkpoint_tuner: public virtual tuner_base, public virtual CnC::Internal::distributable {
-    	static const char PUT = 0;
-    	static const char PRESCRIBE = 1;
-    	static const char DONE = 2;
+
 
     	virtual int getNrOfPuts() const = 0;
     	virtual int getNrOfPrescribes() const = 0;
@@ -658,26 +662,34 @@ namespace CnC {
     	}
 
     	//template< typename Tag >
-    	void done(distcontext & context, const Tag & tag) const {
+    	void done(const Tag & tag) const {
     		// Needs: StepId( = Tag + Tag collectionId), #ofputs, #ofprescribes
     		//std::cout << "Step completed: " << tag << " " << getStepCollectionUID() << std::endl;
+    		serializer * ser = m_context.new_serializer( this );
+    		(*ser) & CnC::checkpoint_tuner_types::DONE & tag & getTagCollectionUID() & getNrOfPuts() & getNrOfPrescribes();
+    		m_context.send_msg(ser, 0);
     	}
 
     	// prescriber is null in case of env, prescriber colId is then 0
-    	void prescribe(distcontext & context, const Tag & prescriber, const int prescriberColId, const Tag & tag) const {
+    	void prescribe(const Tag & prescriber, const int prescriberColId, const Tag & tag) const {
     		// Needs: PrescriberId( = Prescriber Tag + Tag collection Id), Prescribed Tag, Tag collection
     		// ..getTagCollectionId()
     		//std::cout << "Tag put: " << tag << " By " << prescriber << " @ " << prescriberColId << std::endl;
+    		serializer * ser = m_context.new_serializer( this );
+    		(*ser) & CnC::checkpoint_tuner_types::PRESCRIBE & prescriber & prescriberColId & tag & getTagCollectionUID();
+    		m_context.send_msg(ser, 0);
     	}
 
-    	void put(distcontext & context, const Tag & putter, const int putterColId, const Tag & tag, const Item & item) const {
+    	void put(const Tag & putter, const int putterColId, const Tag & tag, const Item & item) const {
     		// Needs: PrescriberId( = Prescriber Tag + Tag collection Id), Prescribed Tag, Tag collection
     	    // ..getItemCollectionId()
     		//std::cout << "Item put: " << tag << " | " << item << " By " << putter << std::endl;
-        	serializer * ser = context.new_serializer( this );
-        	(*ser) & 0 & putter & putterColId & tag & item;
-        	context.send_msg(ser, 0); //zero is like the context on the main... right?
+        	serializer * ser = m_context.new_serializer( this );
+        	(*ser) & CnC::checkpoint_tuner_types::PUT & putter & putterColId & tag & item;
+        	m_context.send_msg(ser, 0); //zero is like the context on the main... right?
     	}
+
+
 
     	//Implementing the distributable interface
     	void recv_msg( serializer * ser ) {

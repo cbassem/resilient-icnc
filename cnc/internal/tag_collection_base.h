@@ -64,7 +64,7 @@ namespace CnC {
             size_t size() const;
             /// \return a bool indicating if the Tag collection is empty or not
             bool empty() const;
-            void Put( const Tag & user_tag, const int mask = -1 );
+            void Put( const Tag & user_tag, const int mask = -1, const bool from_env = true );
 
             void Put( const Tag & prescriber, const int & prescriberColId, const Tag & user_tag);
 
@@ -239,9 +239,9 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
         template< class Tag, class Tuner, class CheckpointTuner >
-        void tag_collection_base< Tag, Tuner, CheckpointTuner >::Put( const Tag & user_tag, const int mask )
+        void tag_collection_base< Tag, Tuner, CheckpointTuner >::Put( const Tag & user_tag, const int mask, const bool from_env )
         {
-        	m_ctuner.prescribe(get_context(), NULL, 0, user_tag);
+        	if (from_env) m_ctuner.prescribe(0, 0, user_tag); // If this call comes from the env then we need to make sure this gets registered as such 0 0 is the env
         	//std::cout << "Put "  << " by " << mask << '\n';
             int _lmask = mask & m_allMask;
 
@@ -294,7 +294,7 @@ namespace CnC {
         template< class Tag, class Tuner, class CheckpointTuner >
         void tag_collection_base< Tag, Tuner, CheckpointTuner >::Put( const Tag & prescriber, const int & prescriberColId, const Tag & user_tag) {
         	m_ctuner.prescribe(prescriber, prescriberColId, user_tag);
-        	Put( user_tag ); //TODO I thing that it is possible that the tag is already here, in this case the tuner is called to many times.
+        	Put( user_tag, -1, false ); //TODO I thing that it is possible that the tag is already here, in this case the tuner is called to many times.
         }
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

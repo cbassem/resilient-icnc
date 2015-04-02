@@ -123,7 +123,7 @@ namespace CnC {
                         m_stepLauncher->itacid() );
 
             	if (res == CNC_Success){
-            		_tuner.done(m_stepLauncher->context(), _tag);
+            		_tuner.done(_tag);
             	}
 
                 return res;
@@ -132,7 +132,7 @@ namespace CnC {
                 oss << "Canceled step ";
                 format( oss );
             }
-            _tuner.done(m_stepLauncher->context(), _tag);
+            _tuner.done(_tag);
             return CNC_Success;
         }
         
@@ -169,7 +169,7 @@ namespace CnC {
                                                                      m_stepLauncher->m_stepColl.name(),
                                                                      m_stepLauncher->itacid() );
             	if(res == CNC_Success) {
-                	_tuner.done(m_stepLauncher->context(), tag);
+                	_tuner.done(tag);
             	}
 
             	return res;
@@ -178,7 +178,7 @@ namespace CnC {
                         oss << "Canceled step ";
                         format( oss );
             }
-        	_tuner.done(m_stepLauncher->context(), tag);
+        	_tuner.done( tag );
             return CNC_Success;
         }
 

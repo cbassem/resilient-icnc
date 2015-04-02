@@ -162,7 +162,7 @@ namespace CnC {
             inline std::ostream & format( std::ostream & os, const char * str, const T & tag, step_instance_base * si ) const;
             inline std::ostream & format( std::ostream & os, const char * str, const T & tag, const item_type * item, step_instance_base * si ) const;
             void set_max( size_t mx );
-            void put(  const T & user_tag, const item_type & item );
+            void put(  const T & user_tag, const item_type & item, const bool from_env = true );
             void put( const T & putter, const int & putterCollectionId, const T & t, const item_type & i );
             void put_or_delete( const T & user_tag, item_type * item, int amOwner = UNKNOWN_PID, bool fromRemote = false );
             void get( const T & user_tag, item_type & item );
@@ -706,8 +706,9 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
         template< class T, class item_type, class Tuner, class CheckpointTuner >
-        void item_collection_base< T, item_type, Tuner, CheckpointTuner >::put( const T & t, const item_type & i )
+        void item_collection_base< T, item_type, Tuner, CheckpointTuner >::put( const T & t, const item_type & i, const bool from_env )
         {
+        	if (from_env) m_ctuner.put(0, 0, t, i);
             put_or_delete( t, create( i ) );
 #ifndef NDEBUG
             step_instance_base * _si = m_context.current_step_instance();
@@ -719,8 +720,8 @@ namespace CnC {
         template< class T, class item_type, class Tuner, class CheckpointTuner >
         void item_collection_base< T, item_type, Tuner, CheckpointTuner >::put( const T & putter, const int & putterCollectionId, const T & t, const item_type & i )
         {
-        	m_ctuner.put(m_context, putter, putterCollectionId, t, i); //TODO Like with tag collection not sure if this is right place. I guess this is all on the local context/collections...
-        	put( t, i );
+        	m_ctuner.put(putter, putterCollectionId, t, i); //TODO Like with tag collection not sure if this is right place. I guess this is all on the local context/collections...
+        	put( t, i, false );
         }
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
