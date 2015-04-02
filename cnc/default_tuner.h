@@ -626,16 +626,18 @@ namespace CnC {
     struct checkpoint_tuner_nop: public virtual tuner_base {
     	typedef Internal::distributable_context distcontext;
 
+    	checkpoint_tuner_nop(distcontext & context);
+
     	void prescribe(distcontext & context, const Tag & prescriber, const int prescriberColId, const Tag & tag) const;
     	void put(distcontext & context, const Tag & putter, const int putterColId, const Tag & tag, const Item & item) const;
     	void done(distcontext & context, const Tag & tag) const;
-
     };
+
     template< typename Tag, typename Item >
     struct checkpoint_tuner: public virtual tuner_base, public virtual CnC::Internal::distributable {
-    	const char PUT = 0;
-    	const char PRESCRIBE = 1;
-    	const char DONE = 2;
+    	static const char PUT = 0;
+    	static const char PRESCRIBE = 1;
+    	static const char DONE = 2;
 
     	virtual int getNrOfPuts() const = 0;
     	virtual int getNrOfPrescribes() const = 0;
@@ -644,23 +646,34 @@ namespace CnC {
     	virtual int getItemCollectionUID() const = 0; // These should be refactored
     	typedef Internal::distributable_context distcontext;
 
+    	//TODO change std::cout << by a logger -> We want pretty printing and debug levels
+    	checkpoint_tuner(distcontext & context): m_context(context) { //Base class constructors are all zero-arg
+    		m_context.subscribe(this);
+    		//std::cout << "Created a tuner on node: " << myPid() << std::endl;
+    	}
+
+    	~checkpoint_tuner() {
+    		m_context.unsubscribe(this);
+    		//std::cout << "Removed a tuner on node: " << myPid() << std::endl;
+    	}
+
     	//template< typename Tag >
     	void done(distcontext & context, const Tag & tag) const {
     		// Needs: StepId( = Tag + Tag collectionId), #ofputs, #ofprescribes
-    		std::cout << "Step completed: " << tag << " " << getStepCollectionUID() << std::endl;
+    		//std::cout << "Step completed: " << tag << " " << getStepCollectionUID() << std::endl;
     	}
 
     	// prescriber is null in case of env, prescriber colId is then 0
     	void prescribe(distcontext & context, const Tag & prescriber, const int prescriberColId, const Tag & tag) const {
     		// Needs: PrescriberId( = Prescriber Tag + Tag collection Id), Prescribed Tag, Tag collection
     		// ..getTagCollectionId()
-    		std::cout << "Tag put: " << tag << " By " << prescriber << " @ " << prescriberColId << std::endl;
+    		//std::cout << "Tag put: " << tag << " By " << prescriber << " @ " << prescriberColId << std::endl;
     	}
 
     	void put(distcontext & context, const Tag & putter, const int putterColId, const Tag & tag, const Item & item) const {
     		// Needs: PrescriberId( = Prescriber Tag + Tag collection Id), Prescribed Tag, Tag collection
     	    // ..getItemCollectionId()
-    		std::cout << "Item put: " << tag << " | " << item << " By " << putter << std::endl;
+    		//std::cout << "Item put: " << tag << " | " << item << " By " << putter << std::endl;
         	serializer * ser = context.new_serializer( this );
         	(*ser) & 0 & putter & putterColId & tag & item;
         	context.send_msg(ser, 0); //zero is like the context on the main... right?
@@ -669,12 +682,16 @@ namespace CnC {
     	//Implementing the distributable interface
     	void recv_msg( serializer * ser ) {
     		//if everybody sends to the main one then this one will have a reference to the actual checkpoint
-    		std::cout << "yey friends! :D" << std::endl;
+
     	}
 
     	void unsafe_reset( bool dist ) {
     		//not sure what to do with this...
     	}
+
+
+    private:
+    	distcontext & m_context;
 
     };
 
@@ -697,11 +714,11 @@ namespace CnC {
         }
 
         template< typename CheckpointTuner >
-        const CheckpointTuner & get_default_checkpoint_tuner()
+        const CheckpointTuner & get_default_checkpoint_tuner(CnC::Internal::distributable_context & context)
         {
             static tbb::atomic< CheckpointTuner * > cs_tuner;
             if( cs_tuner == NULL ) {
-            	CheckpointTuner * _tmp = new CheckpointTuner;
+            	CheckpointTuner * _tmp = new CheckpointTuner(context);
                 if( cs_tuner.compare_and_swap( _tmp, NULL ) != NULL ) delete _tmp;
             }
             return *cs_tuner;

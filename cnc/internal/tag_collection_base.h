@@ -127,7 +127,7 @@ namespace CnC {
               m_tagTable(),
               m_onPuts(),
               m_allMask( 0 ),
-              m_ctuner(get_default_checkpoint_tuner< CheckpointTuner >() )
+              m_ctuner(get_default_checkpoint_tuner< CheckpointTuner >(g) )
         {
             traceable::set_name( name );
         }
@@ -142,7 +142,7 @@ namespace CnC {
               m_tagTable(),
               m_onPuts(),
               m_allMask( 0 ),
-              m_ctuner(get_default_checkpoint_tuner< CheckpointTuner >())
+              m_ctuner(get_default_checkpoint_tuner< CheckpointTuner >(g))
         {
             traceable::set_name( name );
         }

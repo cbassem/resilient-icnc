@@ -347,7 +347,7 @@ namespace CnC {
               m_tuner( tnr ),
               m_allocator(),
               m_onPuts(),
-              m_ctuner( get_default_checkpoint_tuner< CheckpointTuner >() )
+              m_ctuner( get_default_checkpoint_tuner< CheckpointTuner >(g) )
 #ifdef _DIST_CNC_
 #ifndef  __GNUC__
 #pragma warning(suppress : 4355)
@@ -378,7 +378,7 @@ namespace CnC {
               m_tuner( get_default_tuner< Tuner >() ),
               m_allocator(),
               m_onPuts(),
-              m_ctuner( get_default_checkpoint_tuner< CheckpointTuner >() )
+              m_ctuner( get_default_checkpoint_tuner< CheckpointTuner >(g) )
 #ifdef _DIST_CNC_
 #ifndef  __GNUC__
 #pragma warning(suppress : 4355)
