@@ -56,6 +56,7 @@ namespace CnC {
     struct debug;
     template< typename Tag, typename Tuner, typename CheckpointTuner > class tag_collection;
     template< typename Tag, typename Item, typename Tuner, typename CheckpointTuner > class item_collection;
+    template< typename UserStep, typename Tuner, typename CheckpointTuner> class step_collection;
 
     /// Steps return CNC_Success if execution was successful
     const int CNC_Success = 0;
@@ -113,11 +114,14 @@ namespace CnC {
         template< typename ControlTag, typename TTuner, typename TCheckpointTuner >
         void controls( CnC::tag_collection< ControlTag, TTuner, TCheckpointTuner > & );
 
+        const int getId() const;
+
     private:
         const step_type     m_userStep;
         const tuner_type   & m_tuner;
         const checkpoint_tuner_type & m_checkpoint_tuner;
         Internal::distributable_context & m_context;
+        const int m_id;
         template< class Tag, class Step, class Arg, class TTuner, class STuner, class SCheckpointTuner > friend class Internal::step_launcher;
     };
 
@@ -184,7 +188,8 @@ namespace CnC {
         /// \brief prescribe the associated step.  If we are preserving tags for this collection, make a copy of the tag and store it in the collection.
         /// This version gives the user the ability to specify the prescriber
         /// \param  t the tag to be put
-        void put( const Tag & prescriber, const int & prescriberColId, const Tag & tag ); //TODO change to template val
+        template< typename PTag, typename UserStep, typename STuner, typename SCheckpointTuner >
+        void put( const Tag & prescriber, const CnC::step_collection< UserStep, STuner, SCheckpointTuner> & prescriberColId, const Tag & tag ); //TODO change to template val
 
         /// \brief prescribe an entire range of tags
         ///
@@ -318,7 +323,9 @@ namespace CnC {
         /// \param putterColId The collection where the putter resides
         /// \param tag        the tag identifying the item
         /// \param item       the item to be copied and stored
-        void put( const Tag & putter, const int & putterColId, const Tag & tag, const Item & item );
+
+        template< typename PTag, typename UserStep, typename STuner, typename SCheckpointTuner >
+        void put( const PTag & putter, const CnC::step_collection< UserStep, STuner, SCheckpointTuner> & putterColl, const Tag & tag, const Item & item );
 
         /// \brief get an item
         /// \param  tag the tag identifying the item

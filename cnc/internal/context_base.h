@@ -88,6 +88,10 @@ namespace CnC {
             /// REports that a previously active graph is now in quiescent state
             void enter_quiescence();
 
+            const int get_next_step_col_id();
+            const int get_next_tag_col_id();
+            const int get_next_item_col_id();
+
         protected:
             scheduler_i * new_scheduler( bool sbuscribe );
             void delete_scheduler( scheduler_i * );
@@ -116,6 +120,10 @@ namespace CnC {
             tbb::tbb_thread   * m_gcThread;
             int                 m_numThreads;
             tbb::atomic< int >  m_stepInstanceCount;
+
+            int m_next_step_col_id;
+            int m_next_tag_col_id;
+            int m_next_item_col_id;
 
             friend std::ostream & operator<<( std::ostream &, const context_base & );
             template< typename T, typename item_type, typename Tuner, typename CheckpointTuner > friend class item_collection_base;

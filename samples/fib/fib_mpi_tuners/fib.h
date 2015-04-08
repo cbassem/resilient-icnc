@@ -47,7 +47,6 @@ struct fib_cr_tuner: public CnC::checkpoint_tuner<int, fib_type>
 
 	int getNrOfPuts() const;
 	int getNrOfPrescribes() const;
-	int getStepCollectionUID() const;
 	int getTagCollectionUID() const;
 	int getItemCollectionUID() const;
 };

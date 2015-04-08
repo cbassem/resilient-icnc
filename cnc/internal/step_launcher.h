@@ -98,6 +98,8 @@ namespace CnC {
             // for tracing/errors
             const std::string & name() const { return m_stepColl.name(); }
 
+            const int get_step_col_id() const { return m_stepColl.getId(); }
+
             int itacid() const
 #ifdef CNC_WITH_ITAC
             { return m_itacid; }

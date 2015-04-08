@@ -46,10 +46,6 @@ int fib_cr_tuner::getNrOfPuts() const {
 	return 1;
 };
 
-int fib_cr_tuner::getStepCollectionUID() const {
-	return 1;
-};
-
 int fib_cr_tuner::getTagCollectionUID() const {
 	return 0;
 };
@@ -63,14 +59,14 @@ int fib_cr_tuner::getItemCollectionUID() const {
 int fib_step::execute( const int & tag, fib_context & ctxt ) const
 {
     switch( tag ) {
-        case 0 : ctxt.m_fibs.put(tag, 1, tag, 0 ); break;
-        case 1 : ctxt.m_fibs.put(tag, 1, tag, 1 ); break;
+        case 0 : ctxt.m_fibs.put(tag, ctxt.m_steps, tag, 0 ); break;
+        case 1 : ctxt.m_fibs.put(tag, ctxt.m_steps, tag, 1 ); break;
         default : 
             // get previous 2 results
             fib_type f_1; ctxt.m_fibs.get( tag - 1, f_1 );
             fib_type f_2; ctxt.m_fibs.get( tag - 2, f_2 );
             // put our result
-            ctxt.m_fibs.put( tag, 1, tag, f_1 + f_2 );
+            ctxt.m_fibs.put( tag, ctxt.m_steps, tag, f_1 + f_2 );
     }
     return CnC::CNC_Success;
 }

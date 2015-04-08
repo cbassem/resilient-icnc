@@ -644,9 +644,9 @@ namespace CnC {
     struct checkpoint_tuner: public virtual tuner_base, public virtual CnC::Internal::distributable {
 
 
-    	virtual int getNrOfPuts() const = 0;
+    	virtual int getNrOfPuts() const = 0; // should move tuner to context... create a resilient context that subtypes context...
+    										 // Perhaps also create a resilient step collection , item ,tag... ( do we benefit from this) ?
     	virtual int getNrOfPrescribes() const = 0;
-    	virtual int getStepCollectionUID() const = 0; //These should be refactored
     	virtual int getTagCollectionUID() const = 0; // These should be refactored
     	virtual int getItemCollectionUID() const = 0; // These should be refactored
     	typedef Internal::distributable_context distcontext;
@@ -668,11 +668,11 @@ namespace CnC {
     	}
 
     	//template< typename Tag >
-    	void done(const Tag & tag) const {
+    	void done(const Tag & tag, const int tagColId) const {
     		// Needs: StepId( = Tag + Tag collectionId), #ofputs, #ofprescribes
     		//std::cout << "Step completed: " << tag << " " << getStepCollectionUID() << std::endl;
     		serializer * ser = m_context.new_serializer( this );
-    		(*ser) & CnC::checkpoint_tuner_types::DONE & tag & getStepCollectionUID() & getNrOfPuts() & getNrOfPrescribes();
+    		(*ser) & CnC::checkpoint_tuner_types::DONE & tag & tagColId & getNrOfPuts() & getNrOfPrescribes();
     		m_context.send_msg(ser, 0);
     	}
 

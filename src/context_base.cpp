@@ -55,7 +55,10 @@ namespace CnC {
               m_timer( NULL ), 
               m_scheduler( NULL ),
               m_envIsWaiting(),
-              m_stepInstanceCount()
+              m_stepInstanceCount(),
+              m_next_step_col_id(1),
+              m_next_tag_col_id(0),
+              m_next_item_col_id(0)
         {
             if( getenv( "CNC_NUM_THREADS" ) ) {
                 m_numThreads = atoi( getenv( "CNC_NUM_THREADS" ) );
@@ -248,6 +251,16 @@ namespace CnC {
         void context_base::enter_quiescence()
         {
             m_scheduler->enter_quiescence();
+        }
+
+        const int context_base::get_next_step_col_id() {
+        	return m_next_step_col_id;
+        }
+        const int context_base::get_next_tag_col_id() {
+        	return m_next_tag_col_id;
+        }
+        const int context_base::get_next_item_col_id() {
+        	return m_next_item_col_id;
         }
 
     } // namespace Internal

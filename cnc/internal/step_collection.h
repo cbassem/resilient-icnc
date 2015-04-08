@@ -48,7 +48,8 @@ namespace CnC {
           m_userStep( UserStep() ),
           m_tuner( Internal::get_default_tuner< Tuner >() ),
           m_context( ctxt ),
-          m_checkpoint_tuner( Internal::get_default_checkpoint_tuner< CheckpointTuner >(ctxt) )
+          m_checkpoint_tuner( Internal::get_default_checkpoint_tuner< CheckpointTuner >(ctxt) ),
+          m_id(ctxt.get_next_step_col_id())
     {
         // FIXME register with context
     }
@@ -147,6 +148,12 @@ namespace CnC {
     {
         // currently doing nothing
     }
+
+    template< typename UserStep, typename Tuner, typename CheckpointTuner >
+    const int step_collection< UserStep, Tuner, CheckpointTuner >::getId() const
+	{
+    	return m_id;
+	}
 
 } // end namespace CnC
 
