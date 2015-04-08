@@ -244,6 +244,7 @@ namespace CnC {
             mutable item_allocator_type m_allocator;
             typedef std::vector< callback_type * > callback_vec;
             callback_vec m_onPuts;
+            const int m_id;
 
 #ifdef _DIST_CNC_
             class get_count_collector
@@ -347,7 +348,8 @@ namespace CnC {
               m_tuner( tnr ),
               m_allocator(),
               m_onPuts(),
-              m_ctuner( get_default_checkpoint_tuner< CheckpointTuner >(g) )
+              m_ctuner( get_default_checkpoint_tuner< CheckpointTuner >(g) ),
+              m_id(g.get_next_item_col_id())
 #ifdef _DIST_CNC_
 #ifndef  __GNUC__
 #pragma warning(suppress : 4355)
@@ -378,7 +380,8 @@ namespace CnC {
               m_tuner( get_default_tuner< Tuner >() ),
               m_allocator(),
               m_onPuts(),
-              m_ctuner( get_default_checkpoint_tuner< CheckpointTuner >(g) )
+              m_ctuner( get_default_checkpoint_tuner< CheckpointTuner >(g) ),
+              m_id(g.get_next_item_col_id())
 #ifdef _DIST_CNC_
 #ifndef  __GNUC__
 #pragma warning(suppress : 4355)
@@ -708,7 +711,7 @@ namespace CnC {
         template< class T, class item_type, class Tuner, class CheckpointTuner >
         void item_collection_base< T, item_type, Tuner, CheckpointTuner >::put( const T & t, const item_type & i, const bool from_env )
         {
-        	if (from_env) m_ctuner.put(0, 0, t, i);
+        	if (from_env) m_ctuner.put(0, 0, t, i, m_id);
             put_or_delete( t, create( i ) );
 #ifndef NDEBUG
             step_instance_base * _si = m_context.current_step_instance();
@@ -720,7 +723,7 @@ namespace CnC {
         template< class T, class item_type, class Tuner, class CheckpointTuner >
         void item_collection_base< T, item_type, Tuner, CheckpointTuner >::put( const T & putter, const int & putterCollectionId, const T & t, const item_type & i )
         {
-        	m_ctuner.put(putter, putterCollectionId, t, i); //TODO Like with tag collection not sure if this is right place. I guess this is all on the local context/collections...
+        	m_ctuner.put(putter, putterCollectionId, t, i, m_id); //TODO Like with tag collection not sure if this is right place. I guess this is all on the local context/collections...
         	put( t, i, false );
         }
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

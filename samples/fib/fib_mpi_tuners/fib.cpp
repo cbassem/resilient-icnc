@@ -46,10 +46,6 @@ int fib_cr_tuner::getNrOfPuts() const {
 	return 1;
 };
 
-int fib_cr_tuner::getItemCollectionUID() const {
-	return 0;
-};
-
 
 // the actual step code computing the fib numbers goes here
 int fib_step::execute( const int & tag, fib_context & ctxt ) const
