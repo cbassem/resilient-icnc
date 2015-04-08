@@ -647,7 +647,6 @@ namespace CnC {
     	virtual int getNrOfPuts() const = 0; // should move tuner to context... create a resilient context that subtypes context...
     										 // Perhaps also create a resilient step collection , item ,tag... ( do we benefit from this) ?
     	virtual int getNrOfPrescribes() const = 0;
-    	virtual int getTagCollectionUID() const = 0; // These should be refactored
     	virtual int getItemCollectionUID() const = 0; // These should be refactored
     	typedef Internal::distributable_context distcontext;
 
@@ -677,12 +676,12 @@ namespace CnC {
     	}
 
     	// prescriber is null in case of env, prescriber colId is then 0
-    	void prescribe(const Tag & prescriber, const int prescriberColId, const Tag & tag) const {
+    	void prescribe(const Tag & prescriber, const int prescriberColId, const Tag & tag, const int tagColId) const {
     		// Needs: PrescriberId( = Prescriber Tag + Tag collection Id), Prescribed Tag, Tag collection
     		// ..getTagCollectionId()
     		//std::cout << "Tag put: " << tag << " By " << prescriber << " @ " << prescriberColId << std::endl;
     		serializer * ser = m_context.new_serializer( this );
-    		(*ser) & CnC::checkpoint_tuner_types::PRESCRIBE & prescriber & prescriberColId & tag & getTagCollectionUID();
+    		(*ser) & CnC::checkpoint_tuner_types::PRESCRIBE & prescriber & prescriberColId & tag & tagColId;
     		m_context.send_msg(ser, 0);
     	}
 

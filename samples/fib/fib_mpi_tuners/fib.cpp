@@ -46,10 +46,6 @@ int fib_cr_tuner::getNrOfPuts() const {
 	return 1;
 };
 
-int fib_cr_tuner::getTagCollectionUID() const {
-	return 0;
-};
-
 int fib_cr_tuner::getItemCollectionUID() const {
 	return 0;
 };
