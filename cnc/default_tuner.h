@@ -638,6 +638,7 @@ namespace CnC {
 		static const char PUT = 0;
 		static const char PRESCRIBE = 1;
 		static const char DONE = 2;
+		static const char CRASH = 3;
     }
 
     template< typename Tag, typename Item >
@@ -647,13 +648,23 @@ namespace CnC {
     	virtual int getNrOfPuts() const = 0; // should move tuner to context... create a resilient context that subtypes context...
     										 // Perhaps also create a resilient step collection , item ,tag... ( do we benefit from this) ?
     	virtual int getNrOfPrescribes() const = 0;
+
+    	int m_countdown_to_crash;
+    	int m_process_to_crash;
+
     	typedef Internal::distributable_context distcontext;
 
+
+
     	//TODO change std::cout << by a logger -> We want pretty printing and debug levels
-    	checkpoint_tuner(distcontext & context): m_context(context), m_cmanager(2, 1, 1) { //Base class constructors are all zero-arg
+    	checkpoint_tuner(distcontext & context): m_context(context), m_cmanager(2, 1, 1), m_countdown_to_crash(5), m_process_to_crash(1) { //Base class constructors are all zero-arg
     		m_context.subscribe(this);
     		//std::cout << "Created a tuner on node: " << myPid() << std::endl;
     	}
+
+//    	checkpoint_tuner(distcontext & context, int processToCrash, int afterDones): m_countdown_to_crash(afterDones), m_process_to_crash(m_process_to_crash) {
+//    		m_context.subscribe(this);
+//    	}
 
     	~checkpoint_tuner() {
     		m_context.unsubscribe(this);
@@ -666,7 +677,7 @@ namespace CnC {
     	}
 
     	//template< typename Tag >
-    	void done(const Tag & tag, const int tagColId) const {
+    	void done(const Tag & tag, const int tagColId) const { //removed const
     		// Needs: StepId( = Tag + Tag collectionId), #ofputs, #ofprescribes
     		//std::cout << "Step completed: " << tag << " " << getStepCollectionUID() << std::endl;
     		serializer * ser = m_context.new_serializer( this );
@@ -692,6 +703,29 @@ namespace CnC {
         	(*ser) & CnC::checkpoint_tuner_types::PUT & putter & putterColId & tag & item & itemColId;
         	m_context.send_msg(ser, 0); //zero is like the context on the main... right?
     	}
+
+
+    	// For testing purposes
+
+    	void checkForCrash() {
+    		if (m_countdown_to_crash >= 0) {
+    			if (m_countdown_to_crash == 0) {
+    				crash();
+    				m_countdown_to_crash = -1;
+    			} else {
+    				m_countdown_to_crash--;
+    			}
+    		}
+    	}
+
+
+    	void crash() const {
+    		int node_id = 1;
+    		serializer * ser = m_context.new_serializer( this );
+    		(* ser) & CnC::checkpoint_tuner_types::CRASH & node_id;
+    		m_context.send_msg(ser, node_id);
+    	}
+
 
 
 
@@ -729,6 +763,13 @@ namespace CnC {
 					int stepCollectionUID, nr_of_puts, nr_of_prescribes;
 					(* ser) & tag & stepCollectionUID & nr_of_puts & nr_of_prescribes;
 					m_cmanager.processStepDone( tag, stepCollectionUID, nr_of_puts, nr_of_prescribes);
+		    		checkForCrash();
+					break;
+				}
+				case CnC::checkpoint_tuner_types::CRASH:
+				{
+					std::cout << "Crashing " << getpid();
+					delete &m_context;
 					break;
 				}
 				default:

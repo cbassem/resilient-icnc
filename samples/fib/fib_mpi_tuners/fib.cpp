@@ -36,6 +36,7 @@ typedef unsigned long long fib_type;
 #include "fib.h"
 #include <typeinfo>
 
+
 fib_cr_tuner::fib_cr_tuner(CnC::Internal::distributable_context& context ): checkpoint_tuner(context) {};
 
 int fib_cr_tuner::getNrOfPrescribes() const {
@@ -45,6 +46,15 @@ int fib_cr_tuner::getNrOfPrescribes() const {
 int fib_cr_tuner::getNrOfPuts() const {
 	return 1;
 };
+
+int fib_cr_tuner::crashNodeAfter() const {
+	return 5;
+
+}
+
+int fib_cr_tuner::crashNodeId() const {
+	return 1;
+}
 
 
 // the actual step code computing the fib numbers goes here
