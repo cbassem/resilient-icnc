@@ -768,8 +768,8 @@ namespace CnC {
 				}
 				case CnC::checkpoint_tuner_types::CRASH:
 				{
-					std::cout << "Crashing " << getpid();
-					delete &m_context;
+					std::cout << "Crashing " << std::endl;
+					m_context.reset_distributables(true);
 					break;
 				}
 				default:

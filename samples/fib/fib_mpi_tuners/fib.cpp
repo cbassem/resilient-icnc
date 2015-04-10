@@ -48,7 +48,7 @@ int fib_cr_tuner::getNrOfPuts() const {
 };
 
 int fib_cr_tuner::crashNodeAfter() const {
-	return 5;
+	return 6;
 
 }
 

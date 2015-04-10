@@ -90,6 +90,7 @@ namespace CnC {
     {
 #ifdef _DIST_CNC_
         if( m_distributionEnabled ) {
+        	std::cout << "Destructor context.h" << std::endl;
             Internal::distributor::undistribute( this );
         }
 #endif
