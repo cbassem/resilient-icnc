@@ -43,11 +43,9 @@ namespace CnC {
 
 
 	template< class Derived, class Tag, class Item >
-	void resilientContext< Derived, Tag, Item >::done(const Tag & tag, const int tagColId) const {
-		int getNrOfPuts = 1;
-		int getNrOfPrescribes = 0;
+	void resilientContext< Derived, Tag, Item >::done(const Tag & tag, const int tagColId, const int nrOfPuts, const int nrOfPrescribes) const {
 		serializer * ser = dist_context::new_serializer( &m_communicator );
-		(*ser) & checkpoint_tuner_types::DONE & tag & tagColId & getNrOfPuts & getNrOfPrescribes; //FIXME get these from tuners
+		(*ser) & checkpoint_tuner_types::DONE & tag & tagColId & nrOfPuts & nrOfPrescribes;
 		dist_context::send_msg(ser, 0);
 	}
 

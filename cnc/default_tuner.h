@@ -644,6 +644,7 @@ namespace CnC {
 
     	typedef CnC::resilientContext< Derived, Tag, Item > resCtxt;
 
+    	// This reinterpret_cast is 'safe' since we only use this tuner in combination with the resilienceContext.
     	checkpoint_tuner(distcontext & context): m_context(reinterpret_cast< CnC::resilientContext< Derived, Tag, Item > & > (context)) {}
     	virtual ~checkpoint_tuner() {}
 
@@ -651,7 +652,7 @@ namespace CnC {
     	virtual int getNrOfPrescribes() const = 0;
 
     	void done(const Tag & tag, const int tagColId) const {
-    		m_context.done( tag, tagColId ); //TODO add 'this', then we have nr of puts etc
+    		m_context.done( tag, tagColId, getNrOfPuts(), getNrOfPrescribes() );
     	}
 
     	void prescribe(const Tag & prescriber, const int prescriberColId, const Tag & tag, const int tagColId) const {

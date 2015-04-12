@@ -648,7 +648,7 @@ namespace CnC {
     	/// (distCnC) overload this if default construction on remote processes is not enough.
     	virtual void serialize( serializer & ){}
 
-    	void done(const Tag & tag, const int tagColId) const;
+    	void done(const Tag & tag, const int tagColId, const int nrOfPuts, const int nrOfPrescribes) const;
 
     	void prescribe(const Tag & prescriber, const int prescriberColId, const Tag & tag, const int tagColId) const;
 
