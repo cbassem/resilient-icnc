@@ -44,6 +44,7 @@
 #include <cnc/internal/item_collection_base.h>
 #include <cnc/internal/context_base.h>
 #include <cnc/internal/no_range.h>
+#include <cnc/internal/checkpointingsystem/SimpelCheckpointManager.h>
 
 
 /// \brief CnC API
@@ -623,12 +624,12 @@ namespace CnC {
         template< typename Tag, typename Item, typename Tuner, typename CheckpointTuner > friend class item_collection;
     };
 
-//    namespace checkpoint_tuner_types{
-//		static const char PUT = 0;
-//		static const char PRESCRIBE = 1;
-//		static const char DONE = 2;
-//		static const char CRASH = 3;
-//    }
+    namespace checkpoint_tuner_types {
+		static const char PUT = 0;
+		static const char PRESCRIBE = 1;
+		static const char DONE = 2;
+		static const char CRASH = 3;
+    }
 
     template< class Derived, class Tag, class Item >
     class resilientContext : public context< Derived >
@@ -653,7 +654,7 @@ namespace CnC {
 
     	void put(const Tag & putter, const int putterColId, const Tag & tag, const Item & item, const int itemColId) const;
 
-    	void printCheckpoint() const;
+    	void printCheckpoint();
 
 	protected:
     	//Since contexts already have their own implementations of send and receive, lets make our own communicator to handle the resilience stuff
@@ -669,10 +670,10 @@ namespace CnC {
         	void recv_msg( serializer * ser );
         	void unsafe_reset( bool dist );
 
-        	friend class resilientContext;
+        	friend resilientContext< Derived, Tag, Item >;
 
 		private:
-        		resilientContext< Derived, Tag, Item > & m_resilientContext;
+        	resilientContext< Derived, Tag, Item > & m_resilientContext;
 
 		};
 
@@ -686,6 +687,7 @@ namespace CnC {
     	void checkForCrash();
     	void crash() const;
 
+    	friend class communicator;
     	typedef CnC::Internal::distributable_context dist_context;
 
 

@@ -9,10 +9,6 @@
 #define CNC_INTERNAL_RESILIENTCONTEXT_H_
 
 //Implementation of CnC::resilientContext
-//#include <cnc/default_tuner.h>
-#include <cnc/internal/checkpointingsystem/SimpelCheckpointManager.h>
-
-
 namespace CnC {
 
 	template< class Derived, class Tag, class Item >
@@ -70,8 +66,9 @@ namespace CnC {
 	}
 
 	template< class Derived, class Tag, class Item >
-	void resilientContext< Derived, Tag, Item >::printCheckpoint() const {
-
+	void resilientContext< Derived, Tag, Item >::printCheckpoint() {
+		m_cmanager.calculateCheckpoint();
+		m_cmanager.printCheckpoint();
 	}
 
 	template< class Derived, class Tag, class Item >

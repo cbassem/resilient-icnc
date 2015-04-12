@@ -41,15 +41,12 @@ struct fib_step
 
 
 // let's use a tuner to pre-declare dependencies
-struct fib_cr_tuner: public CnC::checkpoint_tuner<int, fib_type>
+struct fib_cr_tuner: public CnC::checkpoint_tuner<fib_context, int, fib_type>
 {
 	fib_cr_tuner(CnC::Internal::distributable_context&);
 
 	int getNrOfPuts() const;
 	int getNrOfPrescribes() const;
-	int crashNodeAfter() const;
-	int crashNodeId() const;
-
 };
 
 // The context class

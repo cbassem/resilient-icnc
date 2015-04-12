@@ -47,10 +47,13 @@
 #include <tbb/concurrent_unordered_set.h>
 //#include <tbb/concurrent_hash_map.h>
 #include <cnc/internal/dist/distributable.h>
-#include <cnc/internal/checkpointingsystem/SimpelCheckpointManager.h>
-
 
 namespace CnC {
+
+	// forward declarations, break cyclic dependency with <cnc/cnc.h>
+	template< class Derived, class Tag, class Item > class resilientContext;
+
+
 
     template< class T > class context;
     namespace Internal {
@@ -629,162 +632,38 @@ namespace CnC {
 
     	checkpoint_tuner_nop(distcontext & context);
 
-    	void prescribe(distcontext & context, const Tag & prescriber, const int prescriberColId, const Tag & tag) const;
-    	void put(distcontext & context, const Tag & putter, const int putterColId, const Tag & tag, const Item & item) const;
-    	void done(distcontext & context, const Tag & tag) const;
+    	void done(const Tag & tag, const int tagColId) const {}
+    	void prescribe(const Tag & prescriber, const int prescriberColId, const Tag & tag, const int tagColId) const {}
+    	void put(const Tag & putter, const int putterColId, const Tag & tag, const Item & item, const int itemColId) const {}
+
     };
 
-    namespace checkpoint_tuner_types{
-		static const char PUT = 0;
-		static const char PRESCRIBE = 1;
-		static const char DONE = 2;
-		static const char CRASH = 3;
-    }
-
-    template< typename Tag, typename Item >
-    struct checkpoint_tuner: public virtual tuner_base, public virtual CnC::Internal::distributable {
-
-
-    	virtual int getNrOfPuts() const = 0; // should move tuner to context... create a resilient context that subtypes context...
-    										 // Perhaps also create a resilient step collection , item ,tag... ( do we benefit from this) ?
-    	virtual int getNrOfPrescribes() const = 0;
-
-    	int m_countdown_to_crash;
-    	int m_process_to_crash;
-
+    template< typename Derived, typename Tag, typename Item >
+    struct checkpoint_tuner: public virtual tuner_base {
     	typedef Internal::distributable_context distcontext;
 
+    	typedef CnC::resilientContext< Derived, Tag, Item > resCtxt;
 
+    	checkpoint_tuner(distcontext & context): m_context(reinterpret_cast< CnC::resilientContext< Derived, Tag, Item > & > (context)) {}
+    	virtual ~checkpoint_tuner() {}
 
-    	//TODO change std::cout << by a logger -> We want pretty printing and debug levels
-    	checkpoint_tuner(distcontext & context): m_context(context), m_cmanager(2, 1, 1), m_countdown_to_crash(5), m_process_to_crash(1) { //Base class constructors are all zero-arg
-    		m_context.subscribe(this);
-    		//std::cout << "Created a tuner on node: " << myPid() << std::endl;
+    	virtual int getNrOfPuts() const = 0;
+    	virtual int getNrOfPrescribes() const = 0;
+
+    	void done(const Tag & tag, const int tagColId) const {
+    		m_context.done( tag, tagColId ); //TODO add 'this', then we have nr of puts etc
     	}
 
-//    	checkpoint_tuner(distcontext & context, int processToCrash, int afterDones): m_countdown_to_crash(afterDones), m_process_to_crash(m_process_to_crash) {
-//    		m_context.subscribe(this);
-//    	}
-
-    	~checkpoint_tuner() {
-    		m_context.unsubscribe(this);
-    		//std::cout << "Removed a tuner on node: " << myPid() << std::endl;
-    	}
-
-    	void printCheckpoint() {
-    		m_cmanager.calculateCheckpoint();
-    		m_cmanager.printCheckpoint();
-    	}
-
-    	//template< typename Tag >
-    	void done(const Tag & tag, const int tagColId) const { //removed const
-    		// Needs: StepId( = Tag + Tag collectionId), #ofputs, #ofprescribes
-    		//std::cout << "Step completed: " << tag << " " << getStepCollectionUID() << std::endl;
-    		serializer * ser = m_context.new_serializer( this );
-    		(*ser) & CnC::checkpoint_tuner_types::DONE & tag & tagColId & getNrOfPuts() & getNrOfPrescribes();
-    		m_context.send_msg(ser, 0);
-    	}
-
-    	// prescriber is null in case of env, prescriber colId is then 0
     	void prescribe(const Tag & prescriber, const int prescriberColId, const Tag & tag, const int tagColId) const {
-    		// Needs: PrescriberId( = Prescriber Tag + Tag collection Id), Prescribed Tag, Tag collection
-    		// ..getTagCollectionId()
-    		//std::cout << "Tag put: " << tag << " By " << prescriber << " @ " << prescriberColId << std::endl;
-    		serializer * ser = m_context.new_serializer( this );
-    		(*ser) & CnC::checkpoint_tuner_types::PRESCRIBE & prescriber & prescriberColId & tag & tagColId;
-    		m_context.send_msg(ser, 0);
+    		m_context.prescribe( prescriber, prescriberColId, tag, tagColId);
     	}
 
     	void put(const Tag & putter, const int putterColId, const Tag & tag, const Item & item, const int itemColId) const {
-    		// Needs: PrescriberId( = Prescriber Tag + Tag collection Id), Prescribed Tag, Tag collection
-    	    // ..getItemCollectionId()
-    		//std::cout << "Item put: " << tag << " | " << item << " By " << putter << std::endl;
-        	serializer * ser = m_context.new_serializer( this );
-        	(*ser) & CnC::checkpoint_tuner_types::PUT & putter & putterColId & tag & item & itemColId;
-        	m_context.send_msg(ser, 0); //zero is like the context on the main... right?
+    		m_context.put( putter, putterColId, tag, item, itemColId);
     	}
-
-
-    	// For testing purposes
-
-    	void checkForCrash() {
-    		if (m_countdown_to_crash >= 0) {
-    			if (m_countdown_to_crash == 0) {
-    				crash();
-    				m_countdown_to_crash = -1;
-    			} else {
-    				m_countdown_to_crash--;
-    			}
-    		}
-    	}
-
-
-    	void crash() const {
-    		int node_id = 1;
-    		serializer * ser = m_context.new_serializer( this );
-    		(* ser) & CnC::checkpoint_tuner_types::CRASH & node_id;
-    		m_context.send_msg(ser, node_id);
-    	}
-
-
-
-
-    	//Implementing the distributable interface
-    	void recv_msg( serializer * ser ) {
-    		//if everybody sends to the main one then this one will have a reference to the actual checkpoint
-    		char msg_tag;
-    		(* ser) & msg_tag;
-
-    		switch (msg_tag) {
-				case CnC::checkpoint_tuner_types::PUT:
-				{
-					Tag putter;
-					int putterColId;
-					Tag tag;
-					Item item;
-					int itemCollectionUID;
-					(* ser) & putter & putterColId & tag & item & itemCollectionUID;
-					m_cmanager.processItemPut(putter, putterColId, tag, item, itemCollectionUID);
-					break;
-				}
-				case CnC::checkpoint_tuner_types::PRESCRIBE:
-				{
-					Tag prescriber;
-					int prescriberColId;
-					Tag tag;
-					int tagCollectionUID;
-					(* ser) & prescriber & prescriberColId & tag & tagCollectionUID;
-					m_cmanager.processStepPrescribe(prescriber, prescriberColId, tag, tagCollectionUID);
-					break;
-				}
-				case CnC::checkpoint_tuner_types::DONE:
-				{
-					Tag tag;
-					int stepCollectionUID, nr_of_puts, nr_of_prescribes;
-					(* ser) & tag & stepCollectionUID & nr_of_puts & nr_of_prescribes;
-					m_cmanager.processStepDone( tag, stepCollectionUID, nr_of_puts, nr_of_prescribes);
-		    		checkForCrash();
-					break;
-				}
-				case CnC::checkpoint_tuner_types::CRASH:
-				{
-					std::cout << "Crashing " << std::endl;
-					m_context.reset_distributables(true);
-					break;
-				}
-				default:
-					CNC_ABORT( "Protocol error: unexpected message tag." );
-    		}
-    	}
-
-    	void unsafe_reset( bool dist ) {
-    		//not sure what to do with this...
-    	}
-
 
     private:
-    	distcontext & m_context;
-    	SimpelCheckpointManager< Tag, Item > m_cmanager; //atm they all have an instance but only the "main" context uses one.
+    	CnC::resilientContext< Derived, Tag, Item > & m_context;
     };
 
 

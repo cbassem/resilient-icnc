@@ -47,15 +47,6 @@ int fib_cr_tuner::getNrOfPuts() const {
 	return 1;
 };
 
-int fib_cr_tuner::crashNodeAfter() const {
-	return 6;
-
-}
-
-int fib_cr_tuner::crashNodeId() const {
-	return 1;
-}
-
 
 // the actual step code computing the fib numbers goes here
 int fib_step::execute( const int & tag, fib_context & ctxt ) const
@@ -99,8 +90,9 @@ int main( int argc, char* argv[] )
     // print result
     std::cout << "fib (" << n << "): " << res2 << std::endl;
 
-    const fib_cr_tuner & a = CnC::Internal::get_default_checkpoint_tuner< fib_cr_tuner >( reinterpret_cast< CnC::Internal::distributable_context & >(ctxt));
+    ctxt.printCheckpoint();
 
-    fib_cr_tuner( a).printCheckpoint(); // should be empty
+    //const fib_cr_tuner & a = CnC::Internal::get_default_checkpoint_tuner< fib_cr_tuner >( reinterpret_cast< CnC::Internal::distributable_context & >(ctxt));
+    //fib_cr_tuner( a).printCheckpoint(); // should be empty
     return 0;
 }
