@@ -53,7 +53,7 @@ struct fib_cr_tuner: public CnC::checkpoint_tuner<int, fib_type>
 };
 
 // The context class
-struct fib_context : public CnC::context< fib_context >
+struct fib_context : public CnC::resilientContext< fib_context, int, fib_type >
 {
     // step collections
     CnC::step_collection< fib_step, CnC::step_tuner<>, fib_cr_tuner > m_steps;
@@ -64,7 +64,7 @@ struct fib_context : public CnC::context< fib_context >
 
     // The context class constructor
     fib_context()
-        : CnC::context< fib_context >(),
+        : CnC::resilientContext< fib_context, int, fib_type >(1, 1, 1),
           // Initialize each step collection
           m_steps( *this ),
           // Initialize each item collection

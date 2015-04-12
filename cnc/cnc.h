@@ -53,6 +53,8 @@ namespace CnC {
 
     // forward declarations
     template< class T > class context;
+    template< class Derived, class Tag, class Item > class resilientContext;
+
     struct debug;
     template< typename Tag, typename Tuner, typename CheckpointTuner > class tag_collection;
     template< typename Tag, typename Item, typename Tuner, typename CheckpointTuner > class item_collection;
@@ -577,7 +579,7 @@ namespace CnC {
        This yields more maintanable code and future versions of CnC may require this convention. 
     **/
     template< class Derived >
-    class /*CNC_API*/ context : private Internal::context_base
+    class /*CNC_API*/ context : protected Internal::context_base
     {
     public:
         /// default constructor
@@ -621,6 +623,75 @@ namespace CnC {
         template< typename Tag, typename Item, typename Tuner, typename CheckpointTuner > friend class item_collection;
     };
 
+//    namespace checkpoint_tuner_types{
+//		static const char PUT = 0;
+//		static const char PRESCRIBE = 1;
+//		static const char DONE = 2;
+//		static const char CRASH = 3;
+//    }
+
+    template< class Derived, class Tag, class Item >
+    class resilientContext : public context< Derived >
+	{
+	public:
+    	/// default constructor
+    	resilientContext();
+
+    	resilientContext(int stepColls, int tagColls, int itemColls);
+
+    	/// Specify-when-to-crash-constructor
+    	resilientContext(int stepColls, int tagColls, int itemColls, int countdown, int processId);
+
+    	/// destructor
+    	virtual ~resilientContext();
+    	/// (distCnC) overload this if default construction on remote processes is not enough.
+    	virtual void serialize( serializer & ){}
+
+    	void done(const Tag & tag, const int tagColId) const;
+
+    	void prescribe(const Tag & prescriber, const int prescriberColId, const Tag & tag, const int tagColId) const;
+
+    	void put(const Tag & putter, const int putterColId, const Tag & tag, const Item & item, const int itemColId) const;
+
+    	void printCheckpoint() const;
+
+	protected:
+    	//Since contexts already have their own implementations of send and receive, lets make our own communicator to handle the resilience stuff
+    	class communicator : public virtual CnC::Internal::distributable
+		{
+		public:
+    	    //communicator();
+    	    communicator(resilientContext<Derived, Tag, Item> & rctxt);
+    	    virtual ~communicator();
+
+
+        	//Implementing the distributable interface
+        	void recv_msg( serializer * ser );
+        	void unsafe_reset( bool dist );
+
+        	friend class resilientContext;
+
+		private:
+        		resilientContext< Derived, Tag, Item > & m_resilientContext;
+
+		};
+
+	private:
+
+    	SimpelCheckpointManager< Tag, Item > m_cmanager; //atm they all have an instance but only the "main" context uses one.
+    	const communicator m_communicator;
+    	int m_countdown_to_crash;
+    	int m_process_to_crash;
+
+    	void checkForCrash();
+    	void crash() const;
+
+    	typedef CnC::Internal::distributable_context dist_context;
+
+
+	};
+
+
     /// \brief Execute f( i ) for every i in {first <= i=first+step*x < last and 0 <= x}.
     ///
     /// For different values of i, function execution might occur in parallel.
@@ -644,6 +715,8 @@ namespace CnC {
 #include <cnc/internal/item_collection.h>
 #include <cnc/internal/graph.h>
 #include <cnc/internal/context.h>
+#include <cnc/internal/resilientContext.h>
+
 #include <cnc/internal/parallel_for.h>
 #include <cnc/internal/hash_item_table.h>
 #include <cnc/internal/vec_item_table.h>
