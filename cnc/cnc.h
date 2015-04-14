@@ -45,6 +45,7 @@
 #include <cnc/internal/context_base.h>
 #include <cnc/internal/no_range.h>
 #include <cnc/internal/checkpointingsystem/SimpelCheckpointManager.h>
+#include <vector>
 
 
 /// \brief CnC API
@@ -54,7 +55,7 @@ namespace CnC {
 
     // forward declarations
     template< class T > class context;
-    template< class Derived, class Tag, class Item > class resilientContext;
+    template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType, class ItemCollectionType > class resilientContext;
 
     struct debug;
     template< typename Tag, typename Tuner, typename CheckpointTuner > class tag_collection;
@@ -631,7 +632,7 @@ namespace CnC {
 		static const char CRASH = 3;
     }
 
-    template< class Derived, class Tag, class Item >
+    template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType>
     class resilientContext : public context< Derived >
 	{
 	public:
@@ -641,12 +642,18 @@ namespace CnC {
     	resilientContext(int stepColls, int tagColls, int itemColls);
 
     	/// Specify-when-to-crash-constructor
-    	resilientContext(int stepColls, int tagColls, int itemColls, int countdown, int processId);
+    	resilientContext(int stepColls, int tagColls, int itemColls, int countdown, int processId); //since the user has to call register coll fcts we could refactor the quantities out
 
     	/// destructor
     	virtual ~resilientContext();
     	/// (distCnC) overload this if default construction on remote processes is not enough.
     	virtual void serialize( serializer & ){}
+
+    	void registerStepCollection( StepCollectionType & step_col );
+
+    	void registerTagCollection( TagCollectionType & tag_col );
+
+    	void registerItemCollection( ItemCollectionType & item_col );
 
     	void done(const Tag & tag, const int tagColId, const int nrOfPuts, const int nrOfPrescribes) const;
 
@@ -667,7 +674,7 @@ namespace CnC {
 		{
 		public:
     	    //communicator();
-    	    communicator(resilientContext<Derived, Tag, Item> & rctxt);
+    	    communicator(resilientContext<Derived, Tag, Item, StepCollectionType, TagCollectionType , ItemCollectionType> & rctxt);
     	    virtual ~communicator();
 
 
@@ -675,10 +682,10 @@ namespace CnC {
         	void recv_msg( serializer * ser );
         	void unsafe_reset( bool dist );
 
-        	friend resilientContext< Derived, Tag, Item >;
+        	friend resilientContext<Derived, Tag, Item, StepCollectionType, TagCollectionType , ItemCollectionType>;
 
 		private:
-        	resilientContext< Derived, Tag, Item > & m_resilientContext;
+        	resilientContext<Derived, Tag, Item, StepCollectionType, TagCollectionType , ItemCollectionType> & m_resilientContext;
 
 		};
 
@@ -688,6 +695,9 @@ namespace CnC {
     	const communicator m_communicator;
     	int m_countdown_to_crash;
     	int m_process_to_crash;
+    	std::vector< StepCollectionType * > m_step_collections;
+    	std::vector< TagCollectionType * > m_tag_collections;
+    	std::vector< ItemCollectionType * > m_item_collections;
 
     	void checkForCrash();
     	void crash() const;

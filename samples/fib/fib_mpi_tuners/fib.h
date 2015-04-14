@@ -30,18 +30,22 @@
 #include <cnc/dist_cnc.h> 
 #include <cnc/debug.h>
 
-// Forward declaration of the context class (also known as graph)
+// Forward declarations
 struct fib_context;
-
+struct fib_cr_tuner;
 // The step classes
 struct fib_step
 {
     int execute( const int & t, fib_context & c ) const;
 };
 
+typedef CnC::step_collection< fib_step, CnC::step_tuner<>, fib_cr_tuner > step_type;
+typedef CnC::item_collection< int, fib_type, CnC::hashmap_tuner, fib_cr_tuner> item_type;
+typedef CnC::tag_collection< int, CnC::tag_tuner<>, fib_cr_tuner > tag_type;
+
 
 // let's use a tuner to pre-declare dependencies
-struct fib_cr_tuner: public CnC::checkpoint_tuner<fib_context, int, fib_type>
+struct fib_cr_tuner: public CnC::checkpoint_tuner<fib_context, int, fib_type, step_type, tag_type, item_type>
 {
 	fib_cr_tuner(CnC::Internal::distributable_context&);
 
@@ -49,8 +53,9 @@ struct fib_cr_tuner: public CnC::checkpoint_tuner<fib_context, int, fib_type>
 	int getNrOfPrescribes() const;
 };
 
+
 // The context class
-struct fib_context : public CnC::resilientContext< fib_context, int, fib_type >
+struct fib_context : public CnC::resilientContext< fib_context, int, fib_type, step_type, tag_type, item_type>
 {
     // step collections
     CnC::step_collection< fib_step, CnC::step_tuner<>, fib_cr_tuner > m_steps;
@@ -61,7 +66,7 @@ struct fib_context : public CnC::resilientContext< fib_context, int, fib_type >
 
     // The context class constructor
     fib_context()
-        : CnC::resilientContext< fib_context, int, fib_type >(1, 1, 1, 5, 1),
+        : CnC::resilientContext< fib_context, int, fib_type, step_type, tag_type, item_type >(1, 1, 1, 5, 1),
           // Initialize each step collection
           m_steps( *this ),
           // Initialize each item collection
@@ -75,6 +80,11 @@ struct fib_context : public CnC::resilientContext< fib_context, int, fib_type >
         m_steps.consumes( m_fibs );
         // Producer relations
         m_steps.produces( m_fibs );
+
+        CnC::resilientContext< fib_context, int, fib_type, step_type, tag_type, item_type>::registerStepCollection(m_steps);
+        CnC::resilientContext< fib_context, int, fib_type, step_type, tag_type, item_type>::registerTagCollection(m_tags);
+        CnC::resilientContext< fib_context, int, fib_type, step_type, tag_type, item_type>::registerItemCollection(m_fibs);
+
     }
 };
 

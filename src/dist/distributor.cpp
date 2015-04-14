@@ -267,31 +267,36 @@ namespace CnC {
                         break;
                     }
                     case REQ_RESTART: { // We need to loop over every context and initiate a restart, do we? depends on whether or not we think the entire "node" crashes
-                    	int senderPid;
-                    	(*serlzr) & senderPid;
+                    	std::cout << "Restarting Request" << myPid() << std::endl;
+                    	int senderPid, ctxtid;
+                    	(*serlzr) & ctxtid & senderPid;
                     	serializer * _serlzr = new_serializer( NULL );
                         my_map::accessor _accr;
-                    	bool _inserted = theDistributor->m_distContexts[pid].insert( _accr, _dctxtId );
+                    	bool _inserted = theDistributor->m_distContexts[pid].insert( _accr, ctxtid );
                     	if( ! _inserted ) {
                     		distributable_context * _dctxt = _accr->second;
                     		int _tid = _dctxt->factory_id();
-                    		(*_serlzr) & _dctxtId & RESTART & _tid & (*_dctxt); //FIXME order of things are messed up
+                    		(*_serlzr) & RESTART & _dctxtId & _tid & (*_dctxt); //FIXME order of things are messed up
                     		send_msg( _serlzr, senderPid );
                     	}
                     	break;
                     }
                     case RESTART: {
-                    	int _typeId;
-                    	(*serlzr) & _typeId & _dctxtId;
+                    	std::cout << "Restarting... " << myPid() << std::endl;
+                    	int _typeId, ctxtid;
+                    	(*serlzr) & ctxtid & _typeId;
                         my_map::accessor _accr;
-                        bool _inserted = theDistributor->m_distContexts[pid].insert( _accr, _dctxtId );
-                    	creatable * _crtbl = factory::create( _typeId );
-                    	CNC_ASSERT( dynamic_cast< distributable_context * >( _crtbl ) );
-                    	distributable_context * _dctxt = static_cast< distributable_context * >( _crtbl );
-                    	_dctxt->set_gid( _dctxtId );
-                    	_accr->second = _dctxt;
-                    	(*serlzr) & (*_dctxt);
-                    	_dctxt->fini_dist_ready();
+                        bool _inserted = theDistributor->m_distContexts[pid].insert( _accr, ctxtid );
+                        if ( ! _inserted ) {
+                        	std::cout << "Recreating context... " << myPid() << std::endl;
+                        	creatable * _crtbl = factory::create( _typeId );
+                        	CNC_ASSERT( dynamic_cast< distributable_context * >( _crtbl ) );
+                        	distributable_context * _dctxt = static_cast< distributable_context * >( _crtbl );
+                        	_dctxt->set_gid( _dctxtId );
+                        	_accr->second = _dctxt;
+                        	(*serlzr) & (*_dctxt);
+                        	//_dctxt->fini_dist_ready();
+                        }
                     	break;
                     }
                     default : {
@@ -327,8 +332,11 @@ namespace CnC {
                 CNC_ASSERT_MSG( _inTable, "Received message for not (yet) existing context\n" );
                 if( _inTable ) {
                     distributable_context * _dctxt = _accr->second;
-                    _accr.release();
-                    _dctxt->recv_msg( serlzr );
+                    //If (1) is called before (2) no segmentation fault, but else is not called (i.e. _dctixt does not get deleted... deadlock)
+                    //If (2) is called before (1) seg fault sometimes, but else is called...
+                    _accr.release(); // (2)
+                    _dctxt->recv_msg( serlzr ); // (1) //TODO race condition
+
                 } else {
                 	std::cout << "Msg received for undefined dctxt " << myPid() << std::endl;
                 	serializer * _serlzr = new_serializer( NULL );

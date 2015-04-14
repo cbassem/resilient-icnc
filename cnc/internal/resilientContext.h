@@ -11,8 +11,8 @@
 //Implementation of CnC::resilientContext
 namespace CnC {
 
-	template< class Derived, class Tag, class Item >
-	resilientContext< Derived, Tag, Item >::resilientContext():
+	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
+	resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::resilientContext():
 		context< Derived >(),
 		m_communicator( *this ),
 		m_cmanager( 1, 0, 0 ),
@@ -20,8 +20,8 @@ namespace CnC {
 		m_process_to_crash( -1 )
 		{};
 
-	template< class Derived, class Tag, class Item >
-	resilientContext< Derived, Tag, Item >::resilientContext(int stepColls, int tagColls, int itemColls):
+	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
+	resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::resilientContext(int stepColls, int tagColls, int itemColls):
 		context< Derived >(),
 		m_communicator( *this ),
 		m_cmanager( stepColls + 1, tagColls, itemColls ),
@@ -29,8 +29,8 @@ namespace CnC {
 		m_process_to_crash( -1 )
 		{};
 
-	template< class Derived, class Tag, class Item >
-	resilientContext< Derived, Tag, Item >::resilientContext(int stepColls, int tagColls, int itemColls, int countdown, int processId):
+	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
+	resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::resilientContext(int stepColls, int tagColls, int itemColls, int countdown, int processId):
 		context< Derived >(),
 		m_communicator( *this ),
 		m_cmanager( stepColls + 1, tagColls, itemColls ),
@@ -38,33 +38,47 @@ namespace CnC {
 		m_process_to_crash( processId )
 		{};
 
-	template< class Derived, class Tag, class Item >
-	resilientContext< Derived, Tag, Item >::~resilientContext() {};
+	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
+	resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::~resilientContext() {};
 
+	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
+	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::registerStepCollection(StepCollectionType & step_col ) {
+		m_step_collections.push_back(&step_col);
+	};
 
-	template< class Derived, class Tag, class Item >
-	void resilientContext< Derived, Tag, Item >::done(const Tag & tag, const int tagColId, const int nrOfPuts, const int nrOfPrescribes) const {
+	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
+	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::registerTagCollection(TagCollectionType & tag_col ) {
+		m_tag_collections.push_back(&tag_col);
+	};
+
+	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
+	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::registerItemCollection(ItemCollectionType & item_col ) {
+		m_item_collections.push_back(&item_col);
+	};
+
+	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
+	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::done(const Tag & tag, const int tagColId, const int nrOfPuts, const int nrOfPrescribes) const {
 		serializer * ser = dist_context::new_serializer( &m_communicator );
 		(*ser) & checkpoint_tuner_types::DONE & tag & tagColId & nrOfPuts & nrOfPrescribes;
 		dist_context::send_msg(ser, 0);
 	}
 
-	template< class Derived, class Tag, class Item >
-	void resilientContext< Derived, Tag, Item >::prescribe(const Tag & prescriber, const int prescriberColId, const Tag & tag, const int tagColId) const {
+	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
+	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::prescribe(const Tag & prescriber, const int prescriberColId, const Tag & tag, const int tagColId) const {
 		serializer * ser = dist_context::new_serializer( &m_communicator );
 		(*ser) & checkpoint_tuner_types::DONE & prescriber & prescriberColId & tag & tagColId;
 		dist_context::send_msg(ser, 0);
 	}
 
-	template< class Derived, class Tag, class Item >
-	void resilientContext< Derived, Tag, Item >::put(const Tag & putter, const int putterColId, const Tag & tag, const Item & item, const int itemColId) const {
+	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
+	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::put(const Tag & putter, const int putterColId, const Tag & tag, const Item & item, const int itemColId) const {
     	serializer * ser = dist_context::new_serializer( &m_communicator );
     	(*ser) & checkpoint_tuner_types::PUT & putter & putterColId & tag & item & itemColId;
     	dist_context::send_msg(ser, 0); //zero is like the context on the main... right?
 	}
 
-	template< class Derived, class Tag, class Item >
-	void resilientContext< Derived, Tag, Item >::printCheckpoint() {
+	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
+	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::printCheckpoint() {
 		m_cmanager.calculateCheckpoint();
 		m_cmanager.printCheckpoint();
 	}
@@ -88,8 +102,8 @@ namespace CnC {
 //        return 0;
 //    }
 
-	template< class Derived, class Tag, class Item >
-	void resilientContext< Derived, Tag, Item >::checkForCrash() {
+	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
+	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::checkForCrash() {
 		if (m_countdown_to_crash >= 0) {
 			if (m_countdown_to_crash == 0) {
 				crash();
@@ -100,16 +114,16 @@ namespace CnC {
 		}
 	}
 
-	template< class Derived, class Tag, class Item >
-	void resilientContext< Derived, Tag, Item >::crash() const {
+	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
+	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::crash() const {
 		int node_id = 1;
 		serializer * ser = dist_context::new_serializer( &m_communicator );
 		(* ser) & checkpoint_tuner_types::CRASH & node_id;
 		dist_context::send_msg(ser, node_id);
 	}
 
-	template< class Derived, class Tag, class Item >
-	void resilientContext< Derived, Tag, Item >::remove_local() {
+	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
+	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::remove_local() {
 		Internal::distributor::remove_local(this);
 		//Internal::distributor::undistribute(this);
 	}
@@ -120,18 +134,18 @@ namespace CnC {
 //	template< class Derived, class Tag, class Item >
 //	resilientContext< Derived, Tag, Item >::communicator::communicator(): m_resilientContext(NULL) {};
 
-	template< class Derived, class Tag, class Item >
-	resilientContext< Derived, Tag, Item >::communicator::communicator(resilientContext< Derived, Tag, Item > & rctxt): m_resilientContext(rctxt) {
+	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
+	resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::communicator::communicator(resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType  > & rctxt): m_resilientContext(rctxt) {
 		m_resilientContext.subscribe(this);
 	}
 
-	template< class Derived, class Tag, class Item >
-	resilientContext< Derived, Tag, Item >::communicator::~communicator() {
+	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
+	resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::communicator::~communicator() {
 		m_resilientContext.unsubscribe(this);
 	}
 
-	template< class Derived, class Tag, class Item >
-	void resilientContext< Derived, Tag, Item >::communicator::recv_msg( serializer * ser ) {
+	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
+	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::communicator::recv_msg( serializer * ser ) {
 		//if everybody sends to the main one then this one will have a reference to the actual checkpoint
 		char msg_tag;
 		(* ser) & msg_tag;
@@ -180,8 +194,8 @@ namespace CnC {
 		}
 	}
 
-	template< class Derived, class Tag, class Item >
-	void resilientContext< Derived, Tag, Item >::communicator::unsafe_reset( bool dist ) {
+	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
+	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::communicator::unsafe_reset( bool dist ) {
 
 	}
 
