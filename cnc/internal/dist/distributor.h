@@ -138,6 +138,7 @@ namespace CnC {
             /// reset received message count
             static int reset_recvd_msg_count() { return active() && theDistributor->m_communicator ? theDistributor->m_nMsgsRecvd.fetch_and_store( 0 ) : 0; }
 
+            static void remove_local( distributable_context * );
         private:
             typedef enum {
                 DIST_OFF,

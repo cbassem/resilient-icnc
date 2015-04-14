@@ -108,6 +108,8 @@ namespace CnC {
         static const char UN_CTXT  = 1;
         static const char PING = 3;
         static const char PONG = 4;
+        static const char REQ_RESTART = 5;
+        static const char RESTART = 6;
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -244,7 +246,7 @@ namespace CnC {
                                 break;
                             }
                         }
-                    }
+                    } // Wanted behaviour!
                     case PONG : {
                         if( myPid() ) {  // reduce expected pong count; if hits 0, send pong back to host
                             if( --theDistributor->m_flushCount == 0 ) {
@@ -263,6 +265,34 @@ namespace CnC {
                             theDistributor->m_sync.push( 0 );
                         }
                         break;
+                    }
+                    case REQ_RESTART: { // We need to loop over every context and initiate a restart, do we? depends on whether or not we think the entire "node" crashes
+                    	int senderPid;
+                    	(*serlzr) & senderPid;
+                    	serializer * _serlzr = new_serializer( NULL );
+                        my_map::accessor _accr;
+                    	bool _inserted = theDistributor->m_distContexts[pid].insert( _accr, _dctxtId );
+                    	if( ! _inserted ) {
+                    		distributable_context * _dctxt = _accr->second;
+                    		int _tid = _dctxt->factory_id();
+                    		(*_serlzr) & _dctxtId & RESTART & _tid & (*_dctxt); //FIXME order of things are messed up
+                    		send_msg( _serlzr, senderPid );
+                    	}
+                    	break;
+                    }
+                    case RESTART: {
+                    	int _typeId;
+                    	(*serlzr) & _typeId & _dctxtId;
+                        my_map::accessor _accr;
+                        bool _inserted = theDistributor->m_distContexts[pid].insert( _accr, _dctxtId );
+                    	creatable * _crtbl = factory::create( _typeId );
+                    	CNC_ASSERT( dynamic_cast< distributable_context * >( _crtbl ) );
+                    	distributable_context * _dctxt = static_cast< distributable_context * >( _crtbl );
+                    	_dctxt->set_gid( _dctxtId );
+                    	_accr->second = _dctxt;
+                    	(*serlzr) & (*_dctxt);
+                    	_dctxt->fini_dist_ready();
+                    	break;
                     }
                     default : {
                         ++theDistributor->m_nMsgsRecvd;
@@ -295,9 +325,18 @@ namespace CnC {
                 my_map::const_accessor _accr;
                 bool _inTable = theDistributor->m_distContexts[pid].find( _accr, _dctxtId );
                 CNC_ASSERT_MSG( _inTable, "Received message for not (yet) existing context\n" );
-                distributable_context * _dctxt = _accr->second;
-                _accr.release();
-                _dctxt->recv_msg( serlzr );
+                if( _inTable ) {
+                    distributable_context * _dctxt = _accr->second;
+                    _accr.release();
+                    _dctxt->recv_msg( serlzr );
+                } else {
+                	std::cout << "Msg received for undefined dctxt " << myPid() << std::endl;
+                	serializer * _serlzr = new_serializer( NULL );
+                	(*_serlzr) & REQ_RESTART & _dctxtId & myPid();
+                    send_msg(_serlzr, 0);
+                }
+
+
             }
         }
 
@@ -345,6 +384,24 @@ namespace CnC {
             (*_serlzr) & _dctxtId;
             return _serlzr;
         }
+
+        // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+        void distributor::remove_local( distributable_context * dctxt )
+		{
+            int _tid = dctxt->factory_id();
+            int _gid = dctxt->gid();
+            my_map::accessor _accr;
+        	bool _inserted = theDistributor->m_distContexts[0].insert( _accr, _gid );
+        	if ( ! _inserted ) {
+                CNC_ASSERT( _action == UN_CTXT );
+                distributable_context * _dctxt = _accr->second;
+                CNC_ASSERT( _accr->second != NULL );
+                delete _dctxt;
+                theDistributor->m_distContexts[0].erase( _accr );
+        	}
+		}
 
     } // namespace Internal
 } // namespace CnC

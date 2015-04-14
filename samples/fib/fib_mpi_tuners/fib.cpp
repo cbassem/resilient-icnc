@@ -54,7 +54,7 @@ int fib_step::execute( const int & tag, fib_context & ctxt ) const
     switch( tag ) {
         case 0 : ctxt.m_fibs.put(tag, ctxt.m_steps, tag, 0 ); break;
         case 1 : ctxt.m_fibs.put(tag, ctxt.m_steps, tag, 1 ); break;
-        default : 
+        default :
             // get previous 2 results
             fib_type f_1; ctxt.m_fibs.get( tag - 1, f_1 );
             fib_type f_2; ctxt.m_fibs.get( tag - 2, f_2 );
@@ -75,14 +75,16 @@ int main( int argc, char* argv[] )
 
     // create context
     fib_context ctxt;
-   
+    CnC::debug::trace_all(ctxt);
+    CnC::debug::collect_scheduler_statistics( ctxt );
+
 
     // put tags to initiate evaluation
     for( int i = 0; i <= n; ++i ) ctxt.m_tags.put( i );
-
+    std::cout<<"start waiting" <<std::endl;
     // wait for completion
-    ctxt.wait(); 
-
+    ctxt.wait();
+    std::cout<<"done waiting" <<std::endl;
     // get result
     fib_type res2;
     ctxt.m_fibs.get( n, res2 );

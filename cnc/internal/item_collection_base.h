@@ -441,6 +441,7 @@ namespace CnC {
             for( typename callback_vec::iterator i = m_onPuts.begin(); i != m_onPuts.end(); ++i ) {
                 delete (*i);
             }
+            std::cout << "Destructor Item Collection " << Internal::distributor::myPid() << std::endl;
         }
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -38,6 +38,7 @@
 #include <cnc/internal/cnc_stddef.h>
 
 namespace CnC {
+
     namespace Internal {
 
         class scheduler_i;
@@ -97,7 +98,7 @@ namespace CnC {
             void delete_scheduler( scheduler_i * );
 
 
-        private:
+        //private: //FiXME ugly but needed for resilientContext
             /// This is logically a queue of  bools, but popping the queue into
             /// a stack variable triggers an assertion check on Windows if the
             /// datatype is 1 byte.  (It checks if the surrounding bytes have been changed.)

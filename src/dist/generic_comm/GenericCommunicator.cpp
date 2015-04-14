@@ -199,6 +199,10 @@ namespace CnC
             try {
                 serializer * ser = m_channel.waitForAnyClient( sender );
                 
+                if ( ser == NULL ) {
+                	std::cout << " Null Serializer "  << std::endl;
+                }
+
                 // Check:
                 CNC_ASSERT( 0 <= sender && sender < m_channel.numProcs() );
                 CNC_ASSERT( sender != m_channel.localId() );

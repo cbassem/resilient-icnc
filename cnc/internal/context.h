@@ -90,10 +90,10 @@ namespace CnC {
     {
 #ifdef _DIST_CNC_
         if( m_distributionEnabled ) {
-        	std::cout << "Destructor context.h" << std::endl;
-            Internal::distributor::undistribute( this );
+            //Internal::distributor::undistribute( this ); //FIXME not if we want to use resilientContext
         }
 #endif
+        std::cout << "Destructor context " << Internal::distributor::myPid()  << std::endl;
     }
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

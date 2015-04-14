@@ -156,6 +156,7 @@ namespace CnC {
             if( subscribed() ) {
                 m_context.unsubscribe( this );
             }
+            std::cout << "Destructor scheduler_i " << Internal::distributor::myPid()  << std::endl;
         }
                 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

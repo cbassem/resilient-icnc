@@ -656,6 +656,11 @@ namespace CnC {
 
     	void printCheckpoint();
 
+    	void remove_local();
+
+    	/// Override wait() to add the restart process
+    	//error_type wait();
+
 	protected:
     	//Since contexts already have their own implementations of send and receive, lets make our own communicator to handle the resilience stuff
     	class communicator : public virtual CnC::Internal::distributable

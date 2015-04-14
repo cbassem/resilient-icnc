@@ -69,6 +69,25 @@ namespace CnC {
 		m_cmanager.printCheckpoint();
 	}
 
+
+
+//	template< class Derived, class Tag, class Item >
+//    error_type resilientContext< Derived, Tag, Item >::wait()
+//    {
+//        CNC_ASSERT( !distributed() || CnC::Internal::distributor::distributed_env() || CnC::Internal::distributor::myPid() == 0 );
+//        CnC::Internal::context_base::m_scheduler->wait_loop();
+//        // Check if a node went down;
+//        if (CnC::Internal::distributor::myPid() == 0) {
+//            int res = CnC::Internal::distributor::flush();
+//            std::cout << "interseting var "<< res << std::endl;
+//        };
+//        if( CnC::Internal::context_base::subscribed() && CnC::Internal::context_base::m_scheduler->subscribed() ) {
+//            if( CnC::Internal::distributor::myPid() == 0 ) CnC::Internal::context_base::cleanup_distributables( true );
+//            CnC::Internal::context_base::m_scheduler->wait_loop();
+//        }
+//        return 0;
+//    }
+
 	template< class Derived, class Tag, class Item >
 	void resilientContext< Derived, Tag, Item >::checkForCrash() {
 		if (m_countdown_to_crash >= 0) {
@@ -84,9 +103,15 @@ namespace CnC {
 	template< class Derived, class Tag, class Item >
 	void resilientContext< Derived, Tag, Item >::crash() const {
 		int node_id = 1;
-		serializer * ser = dist_context::new_serializer( this );
+		serializer * ser = dist_context::new_serializer( &m_communicator );
 		(* ser) & checkpoint_tuner_types::CRASH & node_id;
 		dist_context::send_msg(ser, node_id);
+	}
+
+	template< class Derived, class Tag, class Item >
+	void resilientContext< Derived, Tag, Item >::remove_local() {
+		Internal::distributor::remove_local(this);
+		//Internal::distributor::undistribute(this);
 	}
 
 
@@ -138,14 +163,16 @@ namespace CnC {
 				Tag tag;
 				int stepCollectionUID, nr_of_puts, nr_of_prescribes;
 				(* ser) & tag & stepCollectionUID & nr_of_puts & nr_of_prescribes;
-				m_resilientContext.m_cmanager.processStepDone( tag, stepCollectionUID, nr_of_puts, nr_of_prescribes);//TODO refactor
-				m_resilientContext.checkForCrash();
+				if (stepCollectionUID != 0) {
+					m_resilientContext.m_cmanager.processStepDone( tag, stepCollectionUID, nr_of_puts, nr_of_prescribes);//TODO refactor
+					m_resilientContext.checkForCrash();
+				}
 				break;
 			}
 			case checkpoint_tuner_types::CRASH:
 			{
-				std::cout << "Crashing " << std::endl;
-				m_resilientContext.reset_distributables(true);
+				std::cout << "Crashing " << Internal::distributor::myPid() << std::endl;
+				m_resilientContext.remove_local();
 				break;
 			}
 			default:

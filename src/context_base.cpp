@@ -176,6 +176,7 @@ namespace CnC {
             CNC_ASSERT( !distributed() || distributor::distributed_env() || distributor::myPid() == 0 );
             if( sched == NULL ) sched = m_scheduler;
             sched->wait_loop();
+            std::cout << " Passed first wait loop" << Internal::distributor::myPid() << std::endl;
             if( subscribed() && sched->subscribed() ) {
                 if( distributor::myPid() == 0 ) cleanup_distributables( true );
                 sched->wait_loop();

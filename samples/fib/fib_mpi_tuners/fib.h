@@ -61,7 +61,7 @@ struct fib_context : public CnC::resilientContext< fib_context, int, fib_type >
 
     // The context class constructor
     fib_context()
-        : CnC::resilientContext< fib_context, int, fib_type >(1, 1, 1),
+        : CnC::resilientContext< fib_context, int, fib_type >(1, 1, 1, 5, 1),
           // Initialize each step collection
           m_steps( *this ),
           // Initialize each item collection
