@@ -179,6 +179,13 @@ namespace CnC {
         m_tagCollection.on_put( cb );
     }
 
+    template< typename Tag, typename Tuner, typename CheckpointTuner >
+    int tag_collection< Tag, Tuner, CheckpointTuner >::getId()
+    {
+        return m_tagCollection.getId();
+    }
+
+
 } // namespace CnC
 
 #endif // _CnC_TAG_COLLECTION_H_

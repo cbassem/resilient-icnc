@@ -276,7 +276,7 @@ namespace CnC {
                     	if( ! _inserted ) {
                     		distributable_context * _dctxt = _accr->second;
                     		int _tid = _dctxt->factory_id();
-                    		(*_serlzr) & RESTART & _dctxtId & _tid & (*_dctxt); //FIXME order of things are messed up
+                    		(*_serlzr) & RESTART & ctxtid & _tid & (*_dctxt); //FIXME order of things are messed up
                     		send_msg( _serlzr, senderPid );
                     	}
                     	break;
@@ -287,16 +287,18 @@ namespace CnC {
                     	(*serlzr) & ctxtid & _typeId;
                         my_map::accessor _accr;
                         bool _inserted = theDistributor->m_distContexts[pid].insert( _accr, ctxtid );
-                        if ( ! _inserted ) {
+                        if ( _inserted ) {
                         	std::cout << "Recreating context... " << myPid() << std::endl;
                         	creatable * _crtbl = factory::create( _typeId );
                         	CNC_ASSERT( dynamic_cast< distributable_context * >( _crtbl ) );
                         	distributable_context * _dctxt = static_cast< distributable_context * >( _crtbl );
-                        	_dctxt->set_gid( _dctxtId );
+                        	_dctxt->set_gid( ctxtid );
                         	_accr->second = _dctxt;
                         	(*serlzr) & (*_dctxt);
-                        	//_dctxt->fini_dist_ready();
+                        	_dctxt->set_distributionReady();
+                        	_dctxt->restarted();
                         }
+
                     	break;
                     }
                     default : {

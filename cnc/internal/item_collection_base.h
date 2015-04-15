@@ -191,6 +191,8 @@ namespace CnC {
 
             const Tuner & tuner() const { return m_tuner; }
 
+            int getId() { return m_id; }
+
          private:
             typedef typename Tuner::template item_allocator< item_type >::type item_allocator_type;
             

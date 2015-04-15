@@ -31,6 +31,8 @@ public:
 	void processItemPut(Tag producer, int stepProducerColId, Tag key, Item item, int itemColId);
 	void calculateCheckpoint();
 	void printCheckpoint();
+	std::set< Tag >& getTagCheckpoint( int tag_col_id );
+	std::tr1::unordered_map<Tag, Item >& getItemCheckpoint( int item_col_id );
 
 private:
 	typedef std::tr1::unordered_map<Tag, TagLog<Tag, Item> > hmap;
@@ -103,6 +105,16 @@ void SimpelCheckpointManager<Tag, Item>::printCheckpoint() {
 	std::cout << std::endl;
 }
 
+template<class Tag, class Item>
+std::tr1::unordered_map<Tag, Item >& SimpelCheckpointManager<Tag, Item>::getItemCheckpoint( int item_col_id ) {
+	return item_checkpoint_[item_col_id];
+
+}
+
+template<class Tag, class Item>
+std::set< Tag >& SimpelCheckpointManager<Tag, Item>::getTagCheckpoint( int tag_col_id ) {
+	return tag_checkpoint_[tag_col_id];
+}
 
 template<class Tag, class Item>
 void SimpelCheckpointManager<Tag, Item>::calculateCheckpoint() {

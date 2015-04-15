@@ -53,6 +53,7 @@ namespace CnC {
         class communicator;
         class distributable_context;
 
+
         /// A clone of this sits on every process. The actual object is a static member of the class.
         /// It takes care of distributing distributable_contexts and exchanging their communication.
         /// It also provides information about the distributable status (on/off) of the application.

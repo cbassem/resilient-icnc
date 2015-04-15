@@ -248,6 +248,12 @@ namespace CnC {
         m_itemCollection.on_put( cb );
     }
 
+    template< typename Tag, typename Item, typename Tuner, typename CheckpointTuner >
+    int item_collection< Tag, Item, Tuner, CheckpointTuner >::getId()
+    {
+        return m_itemCollection.getId();
+    }
+
 } // namespace CnC
 
 #endif // _CnC_ITEM_COLLECTION_H_

@@ -87,6 +87,8 @@ namespace CnC {
             /// not thread safe
             void on_put( callback_type * cb );
 
+            int getId() { return m_id; };
+
         private:
             typedef tbb::concurrent_vector< step_launcher_base< Tag, typename Tuner::range_type > * >  PrescribedStepCollections_t;
             PrescribedStepCollections_t m_prescribedStepCollections;

@@ -106,10 +106,14 @@ namespace CnC {
             void cleanup_distributables( bool bcast );
             /// must be implemented by child class to spawn cleanup as service task
             virtual void spawn_cleanup() = 0;
+            /// called after a restart
+            virtual void restarted() = 0;
 
             void init_scheduler_statistics();
             void print_scheduler_statistics();
             statistics * stats() const { return m_statistics; }
+
+            void set_distributionReady();
 
         protected:
             typedef tbb::spin_mutex mutex_type;

@@ -46,6 +46,8 @@
 #include <cnc/internal/no_range.h>
 #include <cnc/internal/checkpointingsystem/SimpelCheckpointManager.h>
 #include <vector>
+#include <set>
+#include <tr1/unordered_map>
 
 
 /// \brief CnC API
@@ -252,6 +254,8 @@ namespace CnC {
         /// \note not needed for regular CnC
         void on_put( callback_type * cb );
 
+        int getId();
+
     private:
         Internal::tag_collection_base< Tag, Tuner, CheckpointTuner > m_tagCollection;
         //template< class T > friend class context;
@@ -391,6 +395,8 @@ namespace CnC {
         ///       (between program start or calling context::wait() and putting the first tag or item).
         /// \note not needed for regular CnC
         void on_put( callback_type * cb );
+
+        int getId();
 
     private:
         base_coll_type m_itemCollection;
@@ -630,6 +636,9 @@ namespace CnC {
 		static const char PRESCRIBE = 1;
 		static const char DONE = 2;
 		static const char CRASH = 3;
+		static const char REQUEST_RESTART_DATA = 4;
+		static const char REQUESTED_ITEM = 5;
+		static const char REQUESTED_TAG = 6;
     }
 
     template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType>
@@ -664,6 +673,8 @@ namespace CnC {
     	void printCheckpoint();
 
     	void remove_local();
+
+    	void restarted();
 
     	/// Override wait() to add the restart process
     	//error_type wait();
@@ -701,6 +712,12 @@ namespace CnC {
 
     	void checkForCrash();
     	void crash() const;
+    	void init_restart(int requester_pid);
+    	void sendItem(Tag key, Item value, int item_coll, int receiver_pid);
+    	void sendTag(Tag tag, int tag_coll, int receiver_pid);
+
+    	void restart_put(Tag key, Item value, int item_coll);
+    	void restart_prescribe(Tag tag, int tag_coll);
 
     	friend class communicator;
     	typedef CnC::Internal::distributable_context dist_context;
