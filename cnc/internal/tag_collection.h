@@ -185,6 +185,13 @@ namespace CnC {
         return m_tagCollection.getId();
     }
 
+    template< typename Tag, typename Tuner, typename CheckpointTuner >
+    void tag_collection< Tag, Tuner, CheckpointTuner >::reset_for_restart()
+    {
+        m_tagCollection.do_reset();
+    }
+
+
 
 } // namespace CnC
 

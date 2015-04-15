@@ -256,6 +256,8 @@ namespace CnC {
 
         int getId();
 
+        void reset_for_restart();
+
     private:
         Internal::tag_collection_base< Tag, Tuner, CheckpointTuner > m_tagCollection;
         //template< class T > friend class context;
@@ -639,6 +641,8 @@ namespace CnC {
 		static const char REQUEST_RESTART_DATA = 4;
 		static const char REQUESTED_ITEM = 5;
 		static const char REQUESTED_TAG = 6;
+		static const char KEEP_ALIVE_PING = 7;
+		static const char KEEP_ALIVE_PONG = 8;
     }
 
     template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType>
@@ -713,11 +717,15 @@ namespace CnC {
     	void checkForCrash();
     	void crash() const;
     	void init_restart(int requester_pid);
+    	void add_checkpoint_data_locally();
     	void sendItem(Tag key, Item value, int item_coll, int receiver_pid);
     	void sendTag(Tag tag, int tag_coll, int receiver_pid);
 
     	void restart_put(Tag key, Item value, int item_coll);
     	void restart_prescribe(Tag tag, int tag_coll);
+
+    	void sendPing(int nr_of_pings_to_go);
+    	void sendPong(int nr_of_pings_to_go);
 
     	friend class communicator;
     	typedef CnC::Internal::distributable_context dist_context;

@@ -89,10 +89,11 @@ namespace CnC {
 
             int getId() { return m_id; };
 
+            void do_reset();
+
         private:
             typedef tbb::concurrent_vector< step_launcher_base< Tag, typename Tuner::range_type > * >  PrescribedStepCollections_t;
             PrescribedStepCollections_t m_prescribedStepCollections;
-            void do_reset();
 
             // the set of tags in the TagCollection
             const Tuner & m_tuner;

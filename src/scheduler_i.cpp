@@ -441,7 +441,7 @@ namespace CnC {
             // FIXME is there a safe and cheap way to determine if we are making progress?
             //       maybe through context and stats
             //       for now we loop at most 99999 times
-            for( int i = 0; i < 99999 && _curr_pend > 0; ++i ) {
+            for( int i = 0; /* i < 99999 && */  _curr_pend > 0; ++i ) { //FIXME resilient context requires that waits stops when there are no meore pending steps, this is not the "defined way"..
 
                 do {
                     wait( m_userStepsInFlight ); // first wait for scheduler (executing steps)

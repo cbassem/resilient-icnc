@@ -66,7 +66,7 @@ namespace CnC {
 	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
 	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::prescribe(const Tag & prescriber, const int prescriberColId, const Tag & tag, const int tagColId) const {
 		serializer * ser = dist_context::new_serializer( &m_communicator );
-		(*ser) & checkpoint_tuner_types::DONE & prescriber & prescriberColId & tag & tagColId;
+		(*ser) & checkpoint_tuner_types::PRESCRIBE & prescriber & prescriberColId & tag & tagColId;
 		dist_context::send_msg(ser, 0);
 	}
 
@@ -113,6 +113,7 @@ namespace CnC {
 
 	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
 	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::restart_prescribe(Tag tag, int tag_coll) {
+		m_tag_collections[tag_coll]->reset_for_restart();
 		m_tag_collections[tag_coll]->put(tag); //TODO perhaps we should carry over the putter data... local checkpoint data might get corrupted
 	}
 
@@ -136,6 +137,45 @@ namespace CnC {
 				sendTag(*itt, crrId, requester_pid);
 			}
 		}
+	}
+
+
+	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
+	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::add_checkpoint_data_locally() {
+		//First calculate checkpoint
+		m_cmanager.calculateCheckpoint();
+		m_cmanager.printCheckpoint();
+		for( typename std::vector< ItemCollectionType * >::const_iterator it = m_item_collections.begin(); it != m_item_collections.end(); ++it ) {
+			int crrId = (*it)->getId();
+			std::tr1::unordered_map<Tag, Item >& map = m_cmanager.getItemCheckpoint(crrId);
+			for( typename std::tr1::unordered_map<Tag, Item >::const_iterator itt = map.begin(); itt != map.end(); ++itt) {
+				restart_put(itt->first, itt->second, crrId);
+			}
+		}
+
+		for( typename std::vector< TagCollectionType * >::const_iterator it = m_tag_collections.begin(); it != m_tag_collections.end(); ++it ) {
+			int crrId = (*it)->getId();
+			std::cout << "restart... adding tags to collecton with Id "<< crrId << std::endl;
+			std::set< Tag >& set = m_cmanager.getTagCheckpoint(crrId);
+			for( typename std::set< Tag >::const_iterator itt = set.begin(); itt != set.end(); ++itt) {
+				std::cout <<  "adding ... tag ... " << std::endl;
+				restart_prescribe(*itt, crrId);
+			}
+		}
+	}
+
+	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
+	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::sendPing(int nr_to_go) {
+		serializer * ser = dist_context::new_serializer( &m_communicator );
+		(*ser) & checkpoint_tuner_types::KEEP_ALIVE_PING & nr_to_go;
+		dist_context::bcast_msg(ser);
+	}
+
+	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
+	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::sendPong(int nr_to_go) {
+		serializer * ser = dist_context::new_serializer( &m_communicator );
+		(*ser) & checkpoint_tuner_types::KEEP_ALIVE_PONG & nr_to_go;
+		dist_context::send_msg(ser, 0);
 	}
 
 //	template< class Derived, class Tag, class Item >
@@ -246,7 +286,9 @@ namespace CnC {
 				std::cout << "Sending Restart Data " << Internal::distributor::myPid() << std::endl;
 				int requester;
 				(* ser) & requester;
-				m_resilientContext.init_restart(requester);
+				//m_resilientContext.init_restart(requester);
+				m_resilientContext.sendPing(10);
+				m_resilientContext.add_checkpoint_data_locally();
 				break;
 			}
 			case checkpoint_tuner_types::REQUESTED_ITEM:
@@ -266,6 +308,21 @@ namespace CnC {
 				m_resilientContext.restart_prescribe(tag, tag_col);
 				break;
 			}
+			case checkpoint_tuner_types::KEEP_ALIVE_PING: //During restart it can happen that there is a brief moment when there are no messages being passed. This triggers the termination of the program.
+			{
+				int nr_of_pings_to_go;
+				(* ser) & nr_of_pings_to_go;
+				m_resilientContext.sendPong(nr_of_pings_to_go);
+				break;
+			}
+			case checkpoint_tuner_types::KEEP_ALIVE_PONG:
+				int nr_of_pings_to_go;
+				(* ser) & nr_of_pings_to_go;
+				if (nr_of_pings_to_go > 0) {
+					m_resilientContext.sendPing(nr_of_pings_to_go - 1);
+				}
+				break;
+
 			default:
 				CNC_ABORT( "Protocol error: unexpected message tag." );
 		}
