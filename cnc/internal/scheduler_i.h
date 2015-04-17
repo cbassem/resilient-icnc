@@ -45,6 +45,8 @@ namespace CnC {
         class context_base;
         class distributed_scheduler;
 
+
+
 		/// This class represents the functionality for a scheduler.
         /// Concrete schedulers derive from this and implement virtual functions.
         ///
@@ -159,6 +161,8 @@ namespace CnC {
 
 			/// counter type for counting steps in flight
 			typedef tbb::atomic< unsigned int > inflight_counter_type;
+
+			static bool restarted;
 
         protected:
             /// blocks until all scheduled step instances have been fully executed

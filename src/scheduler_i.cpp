@@ -76,6 +76,8 @@ namespace CnC {
 
         TLS_static< schedulable * > scheduler_i::m_TLSCurrent;
         
+        bool scheduler_i::restarted = false;
+
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -441,7 +443,7 @@ namespace CnC {
             // FIXME is there a safe and cheap way to determine if we are making progress?
             //       maybe through context and stats
             //       for now we loop at most 99999 times
-            for( int i = 0; /* i < 99999 && */  _curr_pend > 0; ++i ) { //FIXME resilient context requires that waits stops when there are no meore pending steps, this is not the "defined way"..
+            for( int i = 0; i < 99999 &&  _curr_pend > 0 && !restarted; ++i ) { //FIXME resilient context requires that waits stops when there are no meore pending steps, this is not the "defined way"..
 
                 do {
                     wait( m_userStepsInFlight ); // first wait for scheduler (executing steps)
@@ -516,7 +518,7 @@ namespace CnC {
                     init_wait( send );
                     do {
                         wait_all();
-                    } while( distributor::has_pending_messages() && _yield() );
+                    } while(/* distributor::has_pending_messages() && */ _yield() );
                     send = m_root == distributor::myPid();
                 } while( fini_wait()
                          || ( m_root == distributor::myPid() //FIXME root != 0 not supported: m_root reset in fini

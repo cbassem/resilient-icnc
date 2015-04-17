@@ -287,7 +287,7 @@ namespace CnC {
 				int requester;
 				(* ser) & requester;
 				//m_resilientContext.init_restart(requester);
-				m_resilientContext.sendPing(10);
+				//m_resilientContext.sendPing(10);
 				m_resilientContext.add_checkpoint_data_locally();
 				break;
 			}

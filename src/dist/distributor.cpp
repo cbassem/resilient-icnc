@@ -34,6 +34,8 @@
 #include <cnc/internal/dist/communicator.h>
 #include <cnc/internal/dist/factory.h>
 #include <cnc/serializer.h>
+#include <cnc/internal/scheduler_i.h>
+
 
 #include <iostream>
 
@@ -297,6 +299,8 @@ namespace CnC {
                         	(*serlzr) & (*_dctxt);
                         	_dctxt->set_distributionReady();
                         	_dctxt->restarted();
+                        	// reset the semaphore
+                        	CnC::Internal::scheduler_i::restarted = false;
                         }
 
                     	break;
@@ -405,9 +409,19 @@ namespace CnC {
             my_map::accessor _accr;
         	bool _inserted = theDistributor->m_distContexts[0].insert( _accr, _gid );
         	if ( ! _inserted ) {
-                CNC_ASSERT( _action == UN_CTXT );
                 distributable_context * _dctxt = _accr->second;
-                CNC_ASSERT( _accr->second != NULL );
+
+                //we are going to "crash" the context
+                //first we let the wait loop stop.
+                //seg faults if we let it continue while deleting the context
+                //or it has something to do with the scheduler clones
+                //in the different threads
+                CnC::Internal::scheduler_i::restarted = true;
+                //_dctxt->cleanup_distributables(false);
+                //Then we cleanup the distributables (not sure if realy needed but does not hurt)
+                _dctxt->spawn_cleanup();
+                //Make sure the wait loop blocks on our bool.. otherwise seg fault.
+                tbb::this_tbb_thread::sleep(tbb::tick_count::interval_t(0.003));
                 delete _dctxt;
                 theDistributor->m_distContexts[0].erase( _accr );
         	}
