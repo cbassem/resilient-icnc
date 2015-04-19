@@ -76,7 +76,8 @@ namespace CnC {
 
         TLS_static< schedulable * > scheduler_i::m_TLSCurrent;
         
-        bool scheduler_i::restarted = false;
+        volatile bool scheduler_i::restarted = false;
+        volatile bool scheduler_i::restarted_safe = false;
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -105,6 +106,7 @@ namespace CnC {
             if( subscribe ) {
                 c.subscribe( this );
             }
+            std::cout << "scheduler_i constructor " << Internal::distributor::myPid()  << std::endl;
         }
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -158,6 +160,7 @@ namespace CnC {
             if( subscribed() ) {
                 m_context.unsubscribe( this );
             }
+            //_waitTask->destroy(*_waitTask);
             std::cout << "Destructor scheduler_i " << Internal::distributor::myPid()  << std::endl;
         }
                 
@@ -392,10 +395,19 @@ namespace CnC {
             return NULL;
         }
 
+//        tbb::task * tbb_waiter::execute()
+//        {
+//        	increment_ref_count();
+//        	m_sched->wait_loop();
+//        	decrement_ref_count();
+//        	return NULL;
+//        }
+
         void scheduler_i::enqueue_waiter()
         {
-            tbb_waiter * _waitTask = new( tbb::task::allocate_root() ) tbb_waiter( this );
+            _waitTask = new( tbb::task::allocate_root() ) tbb_waiter( this );
             tbb::task::enqueue( *_waitTask );
+            std::cout << " enqued wait task " << CnC::Internal::distributor::myPid() << std::endl;
         }
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -443,7 +455,7 @@ namespace CnC {
             // FIXME is there a safe and cheap way to determine if we are making progress?
             //       maybe through context and stats
             //       for now we loop at most 99999 times
-            for( int i = 0; i < 99999 &&  _curr_pend > 0 && !restarted; ++i ) { //FIXME resilient context requires that waits stops when there are no meore pending steps, this is not the "defined way"..
+            for( int i = 0; i < 99999 &&  _curr_pend > 0; ++i ) { //FIXME resilient context requires that waits stops when there are no meore pending steps, this is not the "defined way"..
 
                 do {
                     wait( m_userStepsInFlight ); // first wait for scheduler (executing steps)
@@ -497,6 +509,12 @@ namespace CnC {
                     }
                 }
             }
+
+            if (Internal::distributor::myPid() == 1) {
+                std::cout << "bam bam " << std::endl;
+
+            }
+
         }
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -518,7 +536,7 @@ namespace CnC {
                     init_wait( send );
                     do {
                         wait_all();
-                    } while(/* distributor::has_pending_messages() && */ _yield() );
+                    } while(distributor::has_pending_messages() && _yield() );
                     send = m_root == distributor::myPid();
                 } while( fini_wait()
                          || ( m_root == distributor::myPid() //FIXME root != 0 not supported: m_root reset in fini
@@ -527,12 +545,13 @@ namespace CnC {
                 // we need the loop because potentially wait() missed the messages received between reset_recvd_msg_count and flush
                 CNC_ASSERT( m_userStepsInFlight == 1 || m_root != distributor::myPid() );
                 // root sends done flag in distributed env setup
-                if( distributor::distributed_env() && m_root == distributor::myPid() ) {
+                if( distributor::distributed_env() && m_root == distributor::myPid() && !restarted) {
                     serializer * _ser = m_context.new_serializer( this );
                     (*_ser) & DONE;
                     m_context.bcast_msg( _ser );
                     //                    { Speaker oss; oss << "bcast DONE"; }
                 } else {
+                	//restarted_safe = true;
                     //                    { Speaker oss; oss << "not sending bcast DONE distenv=" << distributor::distributed_env() << " root=" << m_root; }
                 }
             } else {

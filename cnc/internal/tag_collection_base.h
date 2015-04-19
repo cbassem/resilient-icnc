@@ -160,12 +160,12 @@ namespace CnC {
         template< class Tag, class Tuner, class CheckpointTuner >
         tag_collection_base< Tag, Tuner, CheckpointTuner >::~tag_collection_base()
         {
-            for( typename PrescribedStepCollections_t::const_iterator ci = this->m_prescribedStepCollections.begin();
-                 ci != this->m_prescribedStepCollections.end();
-                 ++ci ) {
-                // FIXME: StepCollections need revivision
-                delete *ci;
-            }
+//            for( typename PrescribedStepCollections_t::const_iterator ci = this->m_prescribedStepCollections.begin();
+//                 ci != this->m_prescribedStepCollections.end();
+//                 ++ci ) {
+//                // FIXME: StepCollections need revivision
+//                delete *ci;
+//            }
             for( typename callback_vec::iterator i = m_onPuts.begin(); i != m_onPuts.end(); ++i ) {
                 delete (*i);
             }

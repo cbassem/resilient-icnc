@@ -279,7 +279,7 @@ namespace CnC {
                     		distributable_context * _dctxt = _accr->second;
                     		int _tid = _dctxt->factory_id();
                     		(*_serlzr) & RESTART & ctxtid & _tid & (*_dctxt); //FIXME order of things are messed up
-                    		send_msg( _serlzr, senderPid );
+                    		//send_msg( _serlzr, senderPid );
                     	}
                     	break;
                     }
@@ -300,7 +300,7 @@ namespace CnC {
                         	_dctxt->set_distributionReady();
                         	_dctxt->restarted();
                         	// reset the semaphore
-                        	CnC::Internal::scheduler_i::restarted = false;
+                        	//CnC::Internal::scheduler_i::restarted = false;
                         }
 
                     	break;
@@ -336,7 +336,7 @@ namespace CnC {
                 my_map::const_accessor _accr;
                 bool _inTable = theDistributor->m_distContexts[pid].find( _accr, _dctxtId );
                 CNC_ASSERT_MSG( _inTable, "Received message for not (yet) existing context\n" );
-                if( _inTable ) {
+                if( _inTable && !CnC::Internal::scheduler_i::restarted) {
                     distributable_context * _dctxt = _accr->second;
                     //If (1) is called before (2) no segmentation fault, but else is not called (i.e. _dctixt does not get deleted... deadlock)
                     //If (2) is called before (1) seg fault sometimes, but else is called...
@@ -345,9 +345,9 @@ namespace CnC {
 
                 } else {
                 	std::cout << "Msg received for undefined dctxt " << myPid() << std::endl;
-                	serializer * _serlzr = new_serializer( NULL );
-                	(*_serlzr) & REQ_RESTART & _dctxtId & myPid();
-                    send_msg(_serlzr, 0);
+                	//serializer * _serlzr = new_serializer( NULL );
+                	//(*_serlzr) & REQ_RESTART & _dctxtId & myPid();
+                    //send_msg(_serlzr, 0);
                 }
 
 
@@ -409,21 +409,25 @@ namespace CnC {
             my_map::accessor _accr;
         	bool _inserted = theDistributor->m_distContexts[0].insert( _accr, _gid );
         	if ( ! _inserted ) {
-                distributable_context * _dctxt = _accr->second;
-
-                //we are going to "crash" the context
-                //first we let the wait loop stop.
-                //seg faults if we let it continue while deleting the context
-                //or it has something to do with the scheduler clones
-                //in the different threads
-                CnC::Internal::scheduler_i::restarted = true;
-                //_dctxt->cleanup_distributables(false);
-                //Then we cleanup the distributables (not sure if realy needed but does not hurt)
-                _dctxt->spawn_cleanup();
-                //Make sure the wait loop blocks on our bool.. otherwise seg fault.
-                tbb::this_tbb_thread::sleep(tbb::tick_count::interval_t(0.003));
+                  distributable_context * _dctxt = _accr->second;
+//
+//
+                  //CnC::Internal::scheduler_i::restarted = true;
+//
+//                tbb::this_tbb_thread::sleep(tbb::tick_count::interval_t(10.0));
+//                //while (!CnC::Internal::scheduler_i::restarted_safe) {};
+//
+                  //_dctxt->cleanup_distributables(false);
+                  CnC::Internal::scheduler_i::restarted = true;
+                  _dctxt->spawn_cleanup();
+                  std::cout << "destructing..." << CnC::Internal::scheduler_i::restarted << "|" << CnC::Internal::scheduler_i::restarted_safe << "|" << std::endl;
+                  //tbb::this_tbb_thread::sleep(tbb::tick_count::interval_t(2.0));
                 delete _dctxt;
+                std::cout << "done destructing..." << std::endl;
                 theDistributor->m_distContexts[0].erase( _accr );
+//            	serializer * _serlzr = new_serializer( NULL );
+//            	(*_serlzr) & REQ_RESTART & _gid & myPid();
+//                send_msg(_serlzr, 0);
         	}
 		}
 

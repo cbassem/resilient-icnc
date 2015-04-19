@@ -39,7 +39,8 @@ namespace CnC {
 		{};
 
 	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
-	resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::~resilientContext() {};
+	resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::~resilientContext() {
+	};
 
 	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
 	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::registerStepCollection(StepCollectionType & step_col ) {
@@ -217,6 +218,7 @@ namespace CnC {
 	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
 	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::remove_local() {
 		Internal::distributor::remove_local(this);
+		//delete this;
 		//Internal::distributor::undistribute(this);
 	}
 

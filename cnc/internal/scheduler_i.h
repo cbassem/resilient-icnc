@@ -45,6 +45,7 @@ namespace CnC {
         class context_base;
         class distributed_scheduler;
 
+        struct tbb_waiter;
 
 
 		/// This class represents the functionality for a scheduler.
@@ -162,7 +163,9 @@ namespace CnC {
 			/// counter type for counting steps in flight
 			typedef tbb::atomic< unsigned int > inflight_counter_type;
 
-			static bool restarted;
+			static volatile bool restarted;
+
+			static volatile bool restarted_safe;
 
         protected:
             /// blocks until all scheduled step instances have been fully executed
@@ -199,6 +202,9 @@ namespace CnC {
             /// it is recommended to use a service_task for this.
             virtual void enqueue_waiter();
             
+
+            tbb_waiter * _waitTask;
+
         public:
             /// executes a schedulable, deleting it after completion
             /// only to be used by scheduler implementations to launch a task.
@@ -213,7 +219,8 @@ namespace CnC {
         protected:
             context_base                         & m_context;
             tbb::concurrent_bounded_queue< int > * m_barrier;      ///< simluates a conditional variable/semaphore
-        private:
+
+        //private:
             const schedulable                    * m_step;         ///< step which created scheduler
             distributed_scheduler                * m_balancer;     ///< distributed load balancer
             typedef scalable_vector_p< schedulable * > pending_list_type;
