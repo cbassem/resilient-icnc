@@ -48,6 +48,7 @@
 #include <vector>
 #include <set>
 #include <tr1/unordered_map>
+#include <cnc/default_tuner.h>
 
 
 /// \brief CnC API
@@ -77,7 +78,7 @@ namespace CnC {
     /// A step-collection must be prescribed by a tag-collection and it
     /// can be part of consumer/producer relationships with item-collections.
     /// Additionally, it can be the controller in control-dependencies (e.g. produce tags).
-    template< typename UserStep, typename Tuner = step_tuner<>, typename CheckpointTuner = checkpoint_tuner_nop<> >
+    template< typename UserStep, typename Tuner = step_tuner<>, typename CheckpointTuner = checkpoint_tuner_nop<int, int> >
     class step_collection : public virtual Internal::traceable
     {
     public:
@@ -144,7 +145,7 @@ namespace CnC {
     /// operator==. You can provide specialized templates for
     /// cnc_hash and/or cnc_equal or cnc_tag_hash_compare
     /// or specify and implement your own compatible class.
-    template< typename Tag, typename Tuner = tag_tuner<>, typename CheckpointTuner = checkpoint_tuner_nop<> >
+    template< typename Tag, typename Tuner = tag_tuner<>, typename CheckpointTuner = checkpoint_tuner_nop< Tag, int > >
     class /*CNC_API*/ tag_collection
     {
     public:
@@ -288,7 +289,7 @@ namespace CnC {
     /// pointer type, the runtime will not delete the memory the item
     /// points to. If you store pointeres, you have to care for the appropriate 
     /// garbage collection, e.g. you might consider using smart pointers.
-    template< typename Tag, typename Item, typename Tuner = hashmap_tuner, typename CheckpointTuner = checkpoint_tuner_nop<>  >
+    template< typename Tag, typename Item, typename Tuner = hashmap_tuner, typename CheckpointTuner = checkpoint_tuner_nop<Tag , Item>  >
     class /*CNC_API*/ item_collection
     {
         typedef Internal::item_collection_base< Tag, Item, Tuner, CheckpointTuner > base_coll_type;

@@ -332,23 +332,30 @@ namespace CnC {
                     }
                 }
             } else {
+//                ++theDistributor->m_nMsgsRecvd;
+//                my_map::const_accessor _accr;
+//                bool _inTable = theDistributor->m_distContexts[pid].find( _accr, _dctxtId );
+//                CNC_ASSERT_MSG( _inTable, "Received message for not (yet) existing context\n" );
+//                if( _inTable && !CnC::Internal::scheduler_i::restarted) {
+//                    distributable_context * _dctxt = _accr->second;
+//                    //If (1) is called before (2) no segmentation fault, but else is not called (i.e. _dctixt does not get deleted... deadlock)
+//                    //If (2) is called before (1) seg fault sometimes, but else is called...
+//                    _accr.release(); // (2)
+//                    _dctxt->recv_msg( serlzr ); // (1) //TODO race condition
+//
+//                } else {
+//                	std::cout << "Msg received for undefined dctxt " << myPid() << std::endl;
+//                	//serializer * _serlzr = new_serializer( NULL );
+//                	//(*_serlzr) & REQ_RESTART & _dctxtId & myPid();
+//                    //send_msg(_serlzr, 0);
+//                }
                 ++theDistributor->m_nMsgsRecvd;
                 my_map::const_accessor _accr;
                 bool _inTable = theDistributor->m_distContexts[pid].find( _accr, _dctxtId );
                 CNC_ASSERT_MSG( _inTable, "Received message for not (yet) existing context\n" );
-                if( _inTable && !CnC::Internal::scheduler_i::restarted) {
-                    distributable_context * _dctxt = _accr->second;
-                    //If (1) is called before (2) no segmentation fault, but else is not called (i.e. _dctixt does not get deleted... deadlock)
-                    //If (2) is called before (1) seg fault sometimes, but else is called...
-                    _accr.release(); // (2)
-                    _dctxt->recv_msg( serlzr ); // (1) //TODO race condition
-
-                } else {
-                	std::cout << "Msg received for undefined dctxt " << myPid() << std::endl;
-                	//serializer * _serlzr = new_serializer( NULL );
-                	//(*_serlzr) & REQ_RESTART & _dctxtId & myPid();
-                    //send_msg(_serlzr, 0);
-                }
+                distributable_context * _dctxt = _accr->second;
+                _accr.release();
+                _dctxt->recv_msg( serlzr );
 
 
             }

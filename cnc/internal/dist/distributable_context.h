@@ -107,7 +107,7 @@ namespace CnC {
             /// must be implemented by child class to spawn cleanup as service task
             virtual void spawn_cleanup() = 0;
             /// called after a restart
-            virtual void restarted() = 0;
+            virtual void restarted() {};
 
             void init_scheduler_statistics();
             void print_scheduler_statistics();

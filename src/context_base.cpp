@@ -139,7 +139,7 @@ namespace CnC {
                         else oss << "Using TBB_TASK scheduler" << _prior << _pin;
                     }
                 }
-				_ts = new simplest_resilient_scheduler( *this, subscribe, m_numThreads, _htstride );//new simplest_resilient_scheduler( *this, subscribe, m_numThreads, _htstride );
+				_ts = new simplest_scheduler( *this, subscribe, m_numThreads, _htstride );//new simplest_resilient_scheduler( *this, subscribe, m_numThreads, _htstride );
             }
 			if( _first ) {
 				_first = false;

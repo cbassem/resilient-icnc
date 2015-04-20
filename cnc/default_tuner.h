@@ -626,11 +626,11 @@ namespace CnC {
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     // Default nop checkpoint tuner
-    template< typename Tag = int, typename Item = int >
+    template< typename Tag, typename Item >
     struct checkpoint_tuner_nop: public virtual tuner_base {
     	typedef Internal::distributable_context distcontext;
 
-    	checkpoint_tuner_nop(distcontext & context);
+    	checkpoint_tuner_nop(distcontext & context) {};
 
     	void done(const Tag & tag, const int tagColId) const {}
     	void prescribe(const Tag & prescriber, const int prescriberColId, const Tag & tag, const int tagColId) const {}

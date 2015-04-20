@@ -53,6 +53,7 @@ int fib_step::execute( const int & tag, fib_context & ctxt ) const
 
 int main( int argc, char* argv[] )
 {
+	CnC::dist_cnc_init<fib_context> _dinit;
     int n = 42;
     // eval command line args
     if( argc < 2 ) {
@@ -61,7 +62,7 @@ int main( int argc, char* argv[] )
 
     // create context
     fib_context ctxt;
-    CnC::debug::trace( ctxt.m_steps );
+    CnC::debug::trace_all(ctxt);
     // put tags to initiate evaluation
     for( int i = 0; i <= n; ++i ) ctxt.m_tags.put( i );
 
