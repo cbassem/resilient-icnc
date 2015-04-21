@@ -18,7 +18,7 @@ namespace CnC {
 		m_cmanager( 1, 0, 0 ),
 		m_countdown_to_crash( -1 ),
 		m_process_to_crash( -1 )
-		{};
+		{ std::cout << " creating res ctxt " << std::endl; };
 
 	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
 	resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::resilientContext(int stepColls, int tagColls, int itemColls):
@@ -27,7 +27,7 @@ namespace CnC {
 		m_cmanager( stepColls + 1, tagColls, itemColls ),
 		m_countdown_to_crash( -1 ),
 		m_process_to_crash( -1 )
-		{};
+		{  std::cout << " creating res ctxt " << std::endl; };
 
 	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
 	resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::resilientContext(int stepColls, int tagColls, int itemColls, int countdown, int processId):
@@ -36,7 +36,7 @@ namespace CnC {
 		m_cmanager( stepColls + 1, tagColls, itemColls ),
 		m_countdown_to_crash( countdown ),
 		m_process_to_crash( processId )
-		{};
+		{  std::cout << " creating res ctxt " << std::endl; };
 
 	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
 	resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::~resilientContext() {
@@ -58,24 +58,36 @@ namespace CnC {
 	};
 
 	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
-	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::done(const Tag & tag, const int tagColId, const int nrOfPuts, const int nrOfPrescribes) const {
+	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::done(const Tag & tag, const int tagColId, const int nrOfPuts, const int nrOfPrescribes) {
 		serializer * ser = dist_context::new_serializer( &m_communicator );
 		(*ser) & checkpoint_tuner_types::DONE & tag & tagColId & nrOfPuts & nrOfPrescribes;
-		dist_context::send_msg(ser, 0);
+		if (Internal::distributor::myPid() == 0) { //sockets cannot send to themselves
+			m_cmanager.processStepDone( tag, tagColId, nrOfPuts, nrOfPrescribes);
+		} else {
+			dist_context::send_msg(ser, 0);
+		}
 	}
 
 	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
-	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::prescribe(const Tag & prescriber, const int prescriberColId, const Tag & tag, const int tagColId) const {
+	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::prescribe(const Tag & prescriber, const int prescriberColId, const Tag & tag, const int tagColId) {
 		serializer * ser = dist_context::new_serializer( &m_communicator );
 		(*ser) & checkpoint_tuner_types::PRESCRIBE & prescriber & prescriberColId & tag & tagColId;
-		dist_context::send_msg(ser, 0);
+		if (Internal::distributor::myPid() == 0) {
+			m_cmanager.processStepPrescribe( prescriber, prescriberColId, tag, tagColId );
+		} else {
+			dist_context::send_msg(ser, 0);
+		}
 	}
 
 	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
-	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::put(const Tag & putter, const int putterColId, const Tag & tag, const Item & item, const int itemColId) const {
+	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::put(const Tag & putter, const int putterColId, const Tag & tag, const Item & item, const int itemColId) {
     	serializer * ser = dist_context::new_serializer( &m_communicator );
     	(*ser) & checkpoint_tuner_types::PUT & putter & putterColId & tag & item & itemColId;
-    	dist_context::send_msg(ser, 0);
+		if (Internal::distributor::myPid() == 0) {
+			m_cmanager.processItemPut(putter, putterColId, tag, item, itemColId);
+		} else {
+			dist_context::send_msg(ser, 0);
+		}
 	}
 
 	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
@@ -231,6 +243,7 @@ namespace CnC {
 	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
 	resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::communicator::communicator(resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType  > & rctxt): m_resilientContext(rctxt) {
 		m_resilientContext.subscribe(this);
+		std::cout << " creating res ctxt comm " << std::endl;
 	}
 
 	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >

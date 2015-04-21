@@ -669,11 +669,11 @@ namespace CnC {
 
     	void registerItemCollection( ItemCollectionType & item_col );
 
-    	void done(const Tag & tag, const int tagColId, const int nrOfPuts, const int nrOfPrescribes) const;
+    	void done(const Tag & tag, const int tagColId, const int nrOfPuts, const int nrOfPrescribes);
 
-    	void prescribe(const Tag & prescriber, const int prescriberColId, const Tag & tag, const int tagColId) const;
+    	void prescribe(const Tag & prescriber, const int prescriberColId, const Tag & tag, const int tagColId);
 
-    	void put(const Tag & putter, const int putterColId, const Tag & tag, const Item & item, const int itemColId) const;
+    	void put(const Tag & putter, const int putterColId, const Tag & tag, const Item & item, const int itemColId);
 
     	void printCheckpoint();
 
