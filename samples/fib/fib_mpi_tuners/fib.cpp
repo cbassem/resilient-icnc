@@ -35,6 +35,11 @@ typedef unsigned long long fib_type;
 
 #include "fib.h"
 #include <typeinfo>
+#include <stdio.h>
+#include <execinfo.h>
+#include <signal.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 
 fib_cr_tuner::fib_cr_tuner(CnC::Internal::distributable_context& context ): checkpoint_tuner(context) {};
@@ -64,8 +69,22 @@ int fib_step::execute( const int & tag, fib_context & ctxt ) const
     return CnC::CNC_Success;
 }
 
+void handler(int sig) {
+  void *array[10];
+  size_t size;
+
+  // get void*'s for all entries on the stack
+  size = backtrace(array, 10);
+
+  // print out all the frames to stderr
+  fprintf(stderr, "Error: signal %d:\n", sig);
+  backtrace_symbols_fd(array, size, STDERR_FILENO);
+  exit(1);
+}
+
 int main( int argc, char* argv[] )
 {
+	signal(SIGSEGV, handler);
     CnC::dist_cnc_init<fib_context> _dinit;
     int n = 42;
     // eval command line args

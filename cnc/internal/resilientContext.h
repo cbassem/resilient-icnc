@@ -8,6 +8,8 @@
 #ifndef CNC_INTERNAL_RESILIENTCONTEXT_H_
 #define CNC_INTERNAL_RESILIENTCONTEXT_H_
 
+#include <cnc/internal/scheduler_i.h>
+
 //Implementation of CnC::resilientContext
 namespace CnC {
 
@@ -222,17 +224,15 @@ namespace CnC {
 
 	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
 	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::crash() const {
-		serializer * ser = dist_context::new_serializer( &m_communicator );
-		(* ser) & checkpoint_tuner_types::CRASH & m_process_to_crash;
-		dist_context::send_msg(ser, m_process_to_crash);
+		Internal::distributor::send_crash_msg(this->gid(), m_process_to_crash);
 	}
 
 	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
-	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::remove_local() {
-		Internal::distributor::remove_local(this);
-		//delete this;
-		//Internal::distributor::undistribute(this);
+	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::stop_wait_loop() {
+		CnC::Internal::context_base::m_scheduler->stop_wait_task();
 	}
+
+
 
 
 	// Implementation of CnC::resilientContext::communicator
@@ -288,12 +288,6 @@ namespace CnC {
 					m_resilientContext.m_cmanager.processStepDone( tag, stepCollectionUID, nr_of_puts, nr_of_prescribes);//TODO refactor
 					m_resilientContext.checkForCrash();
 				}
-				break;
-			}
-			case checkpoint_tuner_types::CRASH:
-			{
-				std::cout << "Crashing " << Internal::distributor::myPid() << std::endl;
-				m_resilientContext.remove_local();
 				break;
 			}
 			case checkpoint_tuner_types::REQUEST_RESTART_DATA:

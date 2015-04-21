@@ -638,7 +638,6 @@ namespace CnC {
 		static const char PUT = 0;
 		static const char PRESCRIBE = 1;
 		static const char DONE = 2;
-		static const char CRASH = 3;
 		static const char REQUEST_RESTART_DATA = 4;
 		static const char REQUESTED_ITEM = 5;
 		static const char REQUESTED_TAG = 6;
@@ -677,9 +676,9 @@ namespace CnC {
 
     	void printCheckpoint();
 
-    	void remove_local();
-
     	void restarted();
+
+    	void stop_wait_loop();
 
     	/// Override wait() to add the restart process
     	//error_type wait();

@@ -112,6 +112,7 @@ namespace CnC {
         static const char PONG = 4;
         static const char REQ_RESTART = 5;
         static const char RESTART = 6;
+        static const char CRASH = 7;
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -305,6 +306,12 @@ namespace CnC {
 
                     	break;
                     }
+                    case CRASH: {
+                    	int ctxtid;
+                    	(*serlzr) & ctxtid;
+                    	remove_local(ctxtid);
+                    	break;
+                    }
                     default : {
                         ++theDistributor->m_nMsgsRecvd;
                         int _typeId;
@@ -332,32 +339,23 @@ namespace CnC {
                     }
                 }
             } else {
-//                ++theDistributor->m_nMsgsRecvd;
-//                my_map::const_accessor _accr;
-//                bool _inTable = theDistributor->m_distContexts[pid].find( _accr, _dctxtId );
-//                CNC_ASSERT_MSG( _inTable, "Received message for not (yet) existing context\n" );
-//                if( _inTable && !CnC::Internal::scheduler_i::restarted) {
-//                    distributable_context * _dctxt = _accr->second;
-//                    //If (1) is called before (2) no segmentation fault, but else is not called (i.e. _dctixt does not get deleted... deadlock)
-//                    //If (2) is called before (1) seg fault sometimes, but else is called...
-//                    _accr.release(); // (2)
-//                    _dctxt->recv_msg( serlzr ); // (1) //TODO race condition
-//
-//                } else {
-//                	std::cout << "Msg received for undefined dctxt " << myPid() << std::endl;
-//                	//serializer * _serlzr = new_serializer( NULL );
-//                	//(*_serlzr) & REQ_RESTART & _dctxtId & myPid();
-//                    //send_msg(_serlzr, 0);
-//                }
                 ++theDistributor->m_nMsgsRecvd;
                 my_map::const_accessor _accr;
                 bool _inTable = theDistributor->m_distContexts[pid].find( _accr, _dctxtId );
                 CNC_ASSERT_MSG( _inTable, "Received message for not (yet) existing context\n" );
-                distributable_context * _dctxt = _accr->second;
-                _accr.release();
-                _dctxt->recv_msg( serlzr );
+                if( _inTable && !CnC::Internal::scheduler_i::restarted) {
+                    distributable_context * _dctxt = _accr->second;
+                    //If (1) is called before (2) no segmentation fault, but else is not called (i.e. _dctixt does not get deleted... deadlock)
+                    //If (2) is called before (1) seg fault sometimes, but else is called...
+                    _accr.release(); // (2)
+                    _dctxt->recv_msg( serlzr ); // (1) //TODO race condition
 
-
+                } else {
+                	std::cout << "Msg received for undefined dctxt " << myPid() << std::endl;
+                	//serializer * _serlzr = new_serializer( NULL );
+                	//(*_serlzr) & REQ_RESTART & _dctxtId & myPid();
+                    //send_msg(_serlzr, 0);
+                }
             }
         }
 
@@ -409,12 +407,16 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        void distributor::remove_local( distributable_context * dctxt )
+        void distributor::send_crash_msg( int gid, int processtocrash ) {
+        	serializer * _serlzr = new_serializer( NULL );
+        	(*_serlzr) & CRASH & gid;
+        	send_msg(_serlzr, processtocrash);
+        }
+
+        void distributor::remove_local( int gid )
 		{
-            int _tid = dctxt->factory_id();
-            int _gid = dctxt->gid();
             my_map::accessor _accr;
-        	bool _inserted = theDistributor->m_distContexts[0].insert( _accr, _gid );
+        	bool _inserted = theDistributor->m_distContexts[0].insert( _accr, gid );
         	if ( ! _inserted ) {
                   distributable_context * _dctxt = _accr->second;
 //
@@ -425,10 +427,12 @@ namespace CnC {
 //                //while (!CnC::Internal::scheduler_i::restarted_safe) {};
 //
                   //_dctxt->cleanup_distributables(false);
-                  CnC::Internal::scheduler_i::restarted = true;
-                  _dctxt->spawn_cleanup();
-                  std::cout << "destructing..." << CnC::Internal::scheduler_i::restarted << "|" << CnC::Internal::scheduler_i::restarted_safe << "|" << std::endl;
+                CnC::Internal::scheduler_i::restarted = true;
+                  //_dctxt->spawn_cleanup();
+                std::cout << "destructing..." << CnC::Internal::scheduler_i::restarted << "|" << CnC::Internal::scheduler_i::restarted_safe << "|" << std::endl;
                   //tbb::this_tbb_thread::sleep(tbb::tick_count::interval_t(2.0));
+
+                do {} while (!CnC::Internal::scheduler_i::restarted_safe);
                 delete _dctxt;
                 std::cout << "done destructing..." << std::endl;
                 theDistributor->m_distContexts[0].erase( _accr );

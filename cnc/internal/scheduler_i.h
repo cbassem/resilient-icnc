@@ -151,6 +151,9 @@ namespace CnC {
             /// \param from_schedulable set to true if called from within a step/schedulable
             void wait_loop( bool from_schedulable = false );
 
+
+            void wait_loop_clone( bool from_schedulable = false );
+
             /// register a schedulable as pending for getting re-scheduled in wait()
             /// use this only on ranges and alike; it will only slow down normal steps with no other effect
             void pending( schedulable * );
@@ -166,6 +169,8 @@ namespace CnC {
 			static volatile bool restarted;
 
 			static volatile bool restarted_safe;
+
+			void stop_wait_task();
 
         protected:
             /// blocks until all scheduled step instances have been fully executed

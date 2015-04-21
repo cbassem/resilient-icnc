@@ -390,7 +390,8 @@ namespace CnC {
         tbb::task * tbb_waiter::execute()
         {
             increment_ref_count();
-            m_sched->wait_loop();
+            //m_sched->wait_loop();
+            m_sched->wait_loop_clone();
             decrement_ref_count();
             return NULL;
         }
@@ -408,6 +409,11 @@ namespace CnC {
             _waitTask = new( tbb::task::allocate_root() ) tbb_waiter( this );
             tbb::task::enqueue( *_waitTask );
             std::cout << " enqued wait task " << CnC::Internal::distributor::myPid() << std::endl;
+        }
+
+        void scheduler_i::stop_wait_task()
+        {
+        	_waitTask->destroy(* _waitTask);
         }
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -536,7 +542,7 @@ namespace CnC {
                     init_wait( send );
                     do {
                         wait_all();
-                    } while(distributor::has_pending_messages() && _yield() );
+                    } while(/** distributor::has_pending_messages() && **/ _yield() );
                     send = m_root == distributor::myPid();
                 } while( fini_wait()
                          || ( m_root == distributor::myPid() //FIXME root != 0 not supported: m_root reset in fini
@@ -560,6 +566,25 @@ namespace CnC {
             }
             if( ! from_schedulable ) --m_userStepsInFlight;
         }
+
+
+        /// Calls wait_all() which delegates it to wait() of the actual scheduler (child class).
+        /// Distributed systems require communication flushing and barriers. See \ref scheduler_i::init_wait for details.
+        void scheduler_i::wait_loop_clone( bool from_schedulable )
+        {
+            // if called from schedulable, this taks/step will not complete herein
+            //   -> don't increment/decrement counter
+            if( ! from_schedulable ) ++m_userStepsInFlight;
+            bool send = m_root == distributor::myPid() && !distributor::distributed_env(); // if dist_env, the remote processes also call wait explicitly!
+            int _nProcs = distributor::numProcs();
+            init_wait(send);
+            do {
+            	wait_all();
+            } while (!restarted && _yield());
+            restarted_safe = true;
+
+        }
+
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
