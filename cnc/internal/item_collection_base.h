@@ -193,6 +193,8 @@ namespace CnC {
 
             int getId() { return m_id; }
 
+            void restart_put(const T & user_tag, const item_type & item);
+
          private:
             typedef typename Tuner::template item_allocator< item_type >::type item_allocator_type;
             
@@ -236,7 +238,6 @@ namespace CnC {
             /// will release the given lock/accessor
             void block_for_put( const T & user_tag, typename table_type::accessor & a );
 
-            
         protected:
             void erase( typename table_type::accessor & a );
             table_type tagItemTable;
@@ -729,6 +730,26 @@ namespace CnC {
         	m_ctuner.put(putter, putterCollectionId, t, i, m_id); //TODO Like with tag collection not sure if this is right place. I guess this is all on the local context/collections...
         	put( t, i, false );
         }
+
+        template< class T, class item_type, class Tuner, class CheckpointTuner >
+        void item_collection_base< T, item_type, Tuner, CheckpointTuner >::restart_put(const T & user_tag, const item_type & item)
+        {
+        	put_or_delete( user_tag, create( item ), distributor::myPid());
+        	//Force ownership
+            typename table_type::accessor a;
+            typename table_type::item_and_gc_type _tmpitem = tagItemTable.get_item_or_accessor( user_tag, a );
+            if( _tmpitem.first != NULL ) { // which due to the put_or_delete "should" not be possible
+            	tagItemTable.get_accessor( user_tag, a );
+            	bool _amowner = a.properties()->am_owner();
+            	if ( ! _amowner ) {
+            		a.properties()->set_owner(distributor::myPid());
+            	}
+            }
+
+
+        }
+
+
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -788,6 +809,7 @@ namespace CnC {
                     if( fromRemote ) _prop->unset_creator();
                     if( _prop->m_subscribers ) {
                         if( _prop->am_owner() ) {
+                        	std::cout << "delivering item " << std::endl;
                             this->deliver( user_tag, item, *_prop->m_subscribers, IC::DELIVER, distributor::myPid() );
                         }
                         delete _prop->m_subscribers;
@@ -1135,6 +1157,9 @@ namespace CnC {
         void item_collection_base< T, item_type, Tuner, CheckpointTuner >::probe( const T & tag, typename table_type::accessor & a )
         { }
 
+
+
+
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1350,6 +1375,8 @@ namespace CnC {
         template< class T, class item_type, class Tuner, class CheckpointTuner >
         void item_collection_base< T, item_type, Tuner, CheckpointTuner >::get_request( const T & tag, int recpnt, bool probe )
         {
+
+        	std::cout << recpnt << " requested data fot tag = " << tag << std::endl;
             CNC_ASSERT( distributor::active() );
             typename table_type::accessor a;
             typename table_type::item_and_gc_type _tmpitem = tagItemTable.get_item_or_accessor( tag, a );
@@ -1364,6 +1391,7 @@ namespace CnC {
                 tagItemTable.get_accessor( tag, a );
             }
             bool _amowner = a.properties()->am_owner();
+            std::cout << "Are we owner " << _amowner << std::endl;
             a.release();
             if( _amowner && _tmpitem.first != NULL ) {
                 this->deliver( tag, _tmpitem.first, recpnt, IC::DELIVER, distributor::myPid() );

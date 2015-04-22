@@ -177,6 +177,12 @@ namespace CnC {
     	m_itemCollection.put( putter, putterColl.getId(), t, i );
     }
 
+    template< typename Tag, typename Item, typename Tuner, typename CheckpointTuner >
+    void item_collection< Tag, Item, Tuner, CheckpointTuner >::restart_put(const Tag & user_tag, const Item & item)
+    {
+    	m_itemCollection.restart_put( user_tag, item);
+    }
+
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

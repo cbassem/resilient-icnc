@@ -124,7 +124,7 @@ namespace CnC {
 
 	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
 	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::restart_put(Tag key, Item value, int item_coll) {
-		m_item_collections[item_coll]->put(key, value); //TODO perhaps we should carry over the putter data... local checkpoint data might get corrupted
+		m_item_collections[item_coll]->restart_put(key, value); //TODO perhaps we should carry over the putter data... local checkpoint data might get corrupted
 	}
 
 	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
@@ -173,13 +173,20 @@ namespace CnC {
 		}
 
 		//Put Items from back to forth: , this solution might not keep working if we have smaller checkpoint sizes...
-		tbb::this_tbb_thread::sleep(tbb::tick_count::interval_t(1.0));
 		for ( typename std::vector< ItemCollectionType * >::reverse_iterator it = m_item_collections.rbegin(); it != m_item_collections.rend(); ++it ) {
 			int crrId = (*it)->getId();
 			std::tr1::unordered_map<Tag, Item>& map = m_cmanager.getItemCheckpoint( crrId );
 			std::cout << "adding items ... " << std::endl;
+			std::vector<typename std::tr1::unordered_map< Tag, Item >::const_iterator > tmp_;
 			for (typename std::tr1::unordered_map<Tag, Item>::const_iterator itt =map.begin(); itt != map.end(); ++itt) {
-				restart_put(itt->first, itt->second, crrId);
+				tmp_.push_back(itt);
+				//restart_put(itt->first, itt->second, crrId);
+			}
+
+			for (typename std::vector<typename std::tr1::unordered_map< Tag, Item >::const_iterator >::reverse_iterator itt=tmp_.rbegin();
+					itt != tmp_.rend();
+					++itt ) {
+				restart_put((*itt)->first, (*itt)->second, crrId);
 			}
 		}
 	}

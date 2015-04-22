@@ -543,12 +543,14 @@ namespace CnC {
                     init_wait( send );
                     do {
                         wait_all();
-                    } while(/** distributor::has_pending_messages() && **/ _yield() );
+                    } while(/** distributor::has_pending_messages()  && **/ _yield() );
                     send = m_root == distributor::myPid();
+                std::cout << "scheduler_i main no more messages" << std::endl;
                 } while( fini_wait()
                          || ( m_root == distributor::myPid() //FIXME root != 0 not supported: m_root reset in fini
                               && distributor::flush() > 2*_nProcs - 2 ) ); //3*_nProcs - 2 );
                               // >  5*_nProcs-3 ) ); if ++numMsgRecvd in distributor::new:serializer
+                std::cout << "scheduler_i main fini_wait()" << std::endl;
                 // we need the loop because potentially wait() missed the messages received between reset_recvd_msg_count and flush
                 CNC_ASSERT( m_userStepsInFlight == 1 || m_root != distributor::myPid() );
                 // root sends done flag in distributed env setup
@@ -573,10 +575,13 @@ namespace CnC {
         /// Distributed systems require communication flushing and barriers. See \ref scheduler_i::init_wait for details.
         void scheduler_i::wait_loop_clone( bool from_schedulable )
         {
-            do {
-            	wait_all();
-            } while (!restarted && _yield());
-            restarted_safe = true;
+
+        	do{
+        		do {
+        			wait_all();
+        		} while ((!restarted /**| distributor::has_pending_messages() **/) && _yield());
+        	} while (fini_wait());
+           restarted_safe = true;
 
         }
 

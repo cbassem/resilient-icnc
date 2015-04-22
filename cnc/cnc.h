@@ -338,6 +338,8 @@ namespace CnC {
         template< typename PTag, typename UserStep, typename STuner, typename SCheckpointTuner >
         void put( const PTag & putter, const CnC::step_collection< UserStep, STuner, SCheckpointTuner> & putterColl, const Tag & tag, const Item & item );
 
+        void restart_put(const Tag & user_tag, const Item & item);
+
         /// \brief get an item
         /// \param  tag the tag identifying the item
         /// \param  item reference to item to store result in
