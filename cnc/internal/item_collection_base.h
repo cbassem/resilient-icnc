@@ -909,6 +909,7 @@ namespace CnC {
                                                                                                                                                       step_instance_base *,
                                                                                                                                                       bool do_throw )
         {
+
             // A get( <tag> ) is waiting for a put( <tag> ).
 
             //  - a stepInstance will be replayed when the put( <tag> ) arrives
@@ -924,7 +925,9 @@ namespace CnC {
             // prepare this Step Instance and throw exception
 
             //_stepInstance->decCounter();
-            if( _prop->m_suspendGroup == NULL ) {
+            //FIXME So normally when a step is in a suspended group we will not "re-broadcast" the request for an item, this as the request is allready send. Now with restart this becomes troublesome. We need to re-broadcast the requests for all the groups.
+            // Until I find out how, skip this test...
+            //if( _prop->m_suspendGroup == NULL ) {
                 if( distributor::numProcs() <= 1 || CnC::Internal::consumers_unspecified( m_tuner.consumed_on( tag ) ) ) {
                     // request item only the first time
                     int _owner = UNKNOWN_PID;
@@ -937,7 +940,7 @@ namespace CnC {
                 } else {
                     CNC_ASSERT( am_consumer( m_tuner.consumed_on( tag ), distributor::myPid() ) );
                 }
-            }
+            //}
             _prop->m_suspendGroup = scheduler_i::suspend( _prop->m_suspendGroup );
             // _stepInstance->suspend(); is called within scheduler().suspend
             if( do_throw ) {

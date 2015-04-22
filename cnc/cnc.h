@@ -198,6 +198,8 @@ namespace CnC {
         template< typename PTag, typename UserStep, typename STuner, typename SCheckpointTuner >
         void put( const Tag & prescriber, const CnC::step_collection< UserStep, STuner, SCheckpointTuner> & prescriberColId, const Tag & tag ); //TODO change to template val
 
+        void restart_put( const Tag & t );
+
         /// \brief prescribe an entire range of tags
         ///
         /// \param r  A range, which is potentially splittible through a partitioner.

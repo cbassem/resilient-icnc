@@ -129,7 +129,7 @@ namespace CnC {
 
 	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
 	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::restart_prescribe(Tag tag, int tag_coll) {
-		m_tag_collections[tag_coll]->put(tag); //TODO perhaps we should carry over the putter data... local checkpoint data might get corrupted
+		m_tag_collections[tag_coll]->restart_put(tag); //TODO perhaps we should carry over the putter data... local checkpoint data might get corrupted
 	}
 
 	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
@@ -161,17 +161,6 @@ namespace CnC {
 		m_cmanager.calculateCheckpoint();
 		m_cmanager.printCheckpoint();
 
-		//First put steps. Steps get triggered from waiting state by item puts
-		for( typename std::vector< TagCollectionType * >::const_iterator it = m_tag_collections.begin(); it != m_tag_collections.end(); ++it ) {
-			int crrId = (*it)->getId();
-			std::cout << "restart... adding tags to collecton with Id "<< crrId << std::endl;
-			std::set< Tag >& set = m_cmanager.getTagCheckpoint(crrId);
-			std::cout <<  "adding tags ... " << std::endl;
-			for( typename std::set< Tag >::const_iterator itt = set.begin(); itt != set.end(); ++itt) {
-				restart_prescribe(*itt, crrId);
-			}
-		}
-
 		//Put Items from back to forth: , this solution might not keep working if we have smaller checkpoint sizes...
 		for ( typename std::vector< ItemCollectionType * >::reverse_iterator it = m_item_collections.rbegin(); it != m_item_collections.rend(); ++it ) {
 			int crrId = (*it)->getId();
@@ -189,6 +178,19 @@ namespace CnC {
 				restart_put((*itt)->first, (*itt)->second, crrId);
 			}
 		}
+
+		//First put steps. Steps get triggered from waiting state by item puts
+		for( typename std::vector< TagCollectionType * >::const_iterator it = m_tag_collections.begin(); it != m_tag_collections.end(); ++it ) {
+			int crrId = (*it)->getId();
+			std::cout << "restart... adding tags to collecton with Id "<< crrId << std::endl;
+			std::set< Tag >& set = m_cmanager.getTagCheckpoint(crrId);
+			std::cout <<  "adding tags ... " << std::endl;
+			for( typename std::set< Tag >::const_iterator itt = set.begin(); itt != set.end(); ++itt) {
+				restart_prescribe(*itt, crrId);
+			}
+		}
+
+
 	}
 
 	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >

@@ -68,6 +68,8 @@ namespace CnC {
 
             void Put( const Tag & prescriber, const int & prescriberColId, const Tag & user_tag);
 
+            void restart_put( const Tag & user_tag );
+
             /// when a tag_range is put, we create a "super-step-instance"
             void create_range_instances( const typename Tuner::range_type & r );
             /// needed by distCNC (distributable)
@@ -303,6 +305,39 @@ namespace CnC {
         void tag_collection_base< Tag, Tuner, CheckpointTuner >::Put( const Tag & prescriber, const int & prescriberColId, const Tag & user_tag) {
         	m_ctuner.prescribe(prescriber, prescriberColId, user_tag, m_id);
         	Put( user_tag, -1, false ); //TODO I thing that it is possible that the tag is already here, in this case the tuner is called to many times.
+        }
+
+        template< class Tag, class Tuner, class CheckpointTuner >
+        void tag_collection_base< Tag, Tuner, CheckpointTuner >::restart_put( const Tag & user_tag ) {
+        	int mask = -1;
+        	int _lmask = mask & m_allMask;
+
+        	// store tag if requested
+        	int _found = m_tagTable.insert( user_tag, -1 );
+
+        	// walk the list of prescribed steps, and insert an
+        	// instance for each one if tag was not inserted yet.
+        	if( _found != _lmask || m_allMask == 0 ) {
+        		if ( trace_level() > 0 ) {
+        	    	Speaker oss;
+        	        format( oss, "Put tag ", user_tag, get_context().current_step_instance() );
+        	        if ( trace_level() > 1 ) {
+        	                oss << " mask " << mask << " " << _lmask << " _found " << _found;
+        	        }
+        	    }
+
+        	    for( typename PrescribedStepCollections_t::const_iterator ci = this->m_prescribedStepCollections.begin();
+        	    		ci != this->m_prescribedStepCollections.end(); ++ci ) {
+
+        	    	step_launcher_base< Tag, typename Tuner::range_type > *_stepLauncher = *ci;
+        	    		if( ( _lmask & _stepLauncher->id() ) && ! ( _found & _stepLauncher->id() ) ) {
+        	    			// create new step_instance_base and schedule it
+        	                _stepLauncher->create_step_instance( user_tag, get_context(), mask == -1 );
+
+        	            }
+        	    }
+
+        	}
         }
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -94,6 +94,11 @@ namespace CnC {
         m_tagCollection.Put( prescriber, prescriberCol.getId(), t );
     }
 
+    template< typename Tag, typename Tuner, typename CheckpointTuner >
+    void tag_collection< Tag, Tuner, CheckpointTuner >::restart_put( const Tag & t ) {
+    	m_tagCollection.restart_put( t );
+    }
+
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
