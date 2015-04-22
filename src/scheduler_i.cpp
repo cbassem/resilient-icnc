@@ -515,12 +515,6 @@ namespace CnC {
                     }
                 }
             }
-
-            if (Internal::distributor::myPid() == 1) {
-                std::cout << "bam bam " << std::endl;
-
-            }
-
         }
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

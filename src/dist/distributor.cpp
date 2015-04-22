@@ -270,7 +270,7 @@ namespace CnC {
                         break;
                     }
                     case REQ_RESTART: { // We need to loop over every context and initiate a restart, do we? depends on whether or not we think the entire "node" crashes
-                    	std::cout << "Restarting Request" << myPid() << std::endl;
+                    	std::cout << "Restarting request received" << myPid() << std::endl;
                     	int senderPid, ctxtid;
                     	(*serlzr) & ctxtid & senderPid;
                     	serializer * _serlzr = new_serializer( NULL );
@@ -280,11 +280,15 @@ namespace CnC {
                     		distributable_context * _dctxt = _accr->second;
                     		int _tid = _dctxt->factory_id();
                     		(*_serlzr) & RESTART & ctxtid & _tid & (*_dctxt); //FIXME order of things are messed up
-                    		//send_msg( _serlzr, senderPid );
+                    		send_msg( _serlzr, senderPid );
                     	}
                     	break;
                     }
                     case RESTART: {
+                    	// reset the semaphores
+                    	CnC::Internal::scheduler_i::restarted = false;
+                    	CnC::Internal::scheduler_i::restarted_safe = false;
+
                     	std::cout << "Restarting... " << myPid() << std::endl;
                     	int _typeId, ctxtid;
                     	(*serlzr) & ctxtid & _typeId;
@@ -300,8 +304,6 @@ namespace CnC {
                         	(*serlzr) & (*_dctxt);
                         	_dctxt->set_distributionReady();
                         	_dctxt->restarted();
-                        	// reset the semaphore
-                        	//CnC::Internal::scheduler_i::restarted = false;
                         }
 
                     	break;
@@ -413,32 +415,24 @@ namespace CnC {
         	send_msg(_serlzr, processtocrash);
         }
 
+        static bool _yield() { tbb::this_tbb_thread::sleep(tbb::tick_count::interval_t(0.0002)); return true; }
+
         void distributor::remove_local( int gid )
 		{
             my_map::accessor _accr;
         	bool _inserted = theDistributor->m_distContexts[0].insert( _accr, gid );
         	if ( ! _inserted ) {
-                  distributable_context * _dctxt = _accr->second;
-//
-//
-                  //CnC::Internal::scheduler_i::restarted = true;
-//
-//                tbb::this_tbb_thread::sleep(tbb::tick_count::interval_t(10.0));
-//                //while (!CnC::Internal::scheduler_i::restarted_safe) {};
-//
-                  //_dctxt->cleanup_distributables(false);
+                distributable_context * _dctxt = _accr->second;
                 CnC::Internal::scheduler_i::restarted = true;
-                  //_dctxt->spawn_cleanup();
                 std::cout << "destructing..." << CnC::Internal::scheduler_i::restarted << "|" << CnC::Internal::scheduler_i::restarted_safe << "|" << std::endl;
-                  //tbb::this_tbb_thread::sleep(tbb::tick_count::interval_t(2.0));
-
-                do {} while (!CnC::Internal::scheduler_i::restarted_safe);
+                do {} while (_yield() && !CnC::Internal::scheduler_i::restarted_safe);
+                do {} while (_yield() && has_pending_messages());
                 delete _dctxt;
                 std::cout << "done destructing..." << std::endl;
                 theDistributor->m_distContexts[0].erase( _accr );
-//            	serializer * _serlzr = new_serializer( NULL );
-//            	(*_serlzr) & REQ_RESTART & _gid & myPid();
-//                send_msg(_serlzr, 0);
+            	serializer * _serlzr = new_serializer( NULL );
+            	(*_serlzr) & REQ_RESTART & gid & myPid();
+                send_msg(_serlzr, 0);
         	}
 		}
 

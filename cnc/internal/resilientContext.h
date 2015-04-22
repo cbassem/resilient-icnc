@@ -128,7 +128,6 @@ namespace CnC {
 
 	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
 	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::restart_prescribe(Tag tag, int tag_coll) {
-		m_tag_collections[tag_coll]->reset_for_restart();
 		m_tag_collections[tag_coll]->put(tag); //TODO perhaps we should carry over the putter data... local checkpoint data might get corrupted
 	}
 
@@ -233,8 +232,6 @@ namespace CnC {
 	}
 
 
-
-
 	// Implementation of CnC::resilientContext::communicator
 
 //	template< class Derived, class Tag, class Item >
@@ -297,7 +294,9 @@ namespace CnC {
 				(* ser) & requester;
 				//m_resilientContext.init_restart(requester);
 				//m_resilientContext.sendPing(10);
+				//m_resilientContext.m_tag_collections[0]->reset_for_restart(); //FIXME UGLY HACK THAT WILL NOT WORK WHEN > 1 clone
 				m_resilientContext.add_checkpoint_data_locally();
+				//m_resilientContext.reset_suspended_steps();
 				break;
 			}
 			case checkpoint_tuner_types::REQUESTED_ITEM:
