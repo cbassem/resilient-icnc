@@ -101,6 +101,7 @@ namespace CnC {
 	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
 	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::restarted() {
 		std::cout << "Restarted and checking for data... " << Internal::distributor::myPid() << std::endl;
+		CnC::Internal::context_base::m_scheduler->start_dist();
 		serializer * ser = dist_context::new_serializer( &m_communicator );
 		(*ser) & checkpoint_tuner_types::REQUEST_RESTART_DATA & CnC::Internal::distributor::myPid();
 		dist_context::send_msg(ser, 0);
@@ -162,6 +163,7 @@ namespace CnC {
 		for( typename std::vector< ItemCollectionType * >::const_iterator it = m_item_collections.begin(); it != m_item_collections.end(); ++it ) {
 			int crrId = (*it)->getId();
 			std::tr1::unordered_map<Tag, Item >& map = m_cmanager.getItemCheckpoint(crrId);
+			std::cout <<  "adding items ... " << std::endl;
 			for( typename std::tr1::unordered_map<Tag, Item >::const_iterator itt = map.begin(); itt != map.end(); ++itt) {
 				restart_put(itt->first, itt->second, crrId);
 			}
@@ -171,8 +173,8 @@ namespace CnC {
 			int crrId = (*it)->getId();
 			std::cout << "restart... adding tags to collecton with Id "<< crrId << std::endl;
 			std::set< Tag >& set = m_cmanager.getTagCheckpoint(crrId);
+			std::cout <<  "adding tags ... " << std::endl;
 			for( typename std::set< Tag >::const_iterator itt = set.begin(); itt != set.end(); ++itt) {
-				std::cout <<  "adding ... tag ... " << std::endl;
 				restart_prescribe(*itt, crrId);
 			}
 		}
@@ -191,23 +193,6 @@ namespace CnC {
 		(*ser) & checkpoint_tuner_types::KEEP_ALIVE_PONG & nr_to_go;
 		dist_context::send_msg(ser, 0);
 	}
-
-//	template< class Derived, class Tag, class Item >
-//    error_type resilientContext< Derived, Tag, Item >::wait()
-//    {
-//        CNC_ASSERT( !distributed() || CnC::Internal::distributor::distributed_env() || CnC::Internal::distributor::myPid() == 0 );
-//        CnC::Internal::context_base::m_scheduler->wait_loop();
-//        // Check if a node went down;
-//        if (CnC::Internal::distributor::myPid() == 0) {
-//            int res = CnC::Internal::distributor::flush();
-//            std::cout << "interseting var "<< res << std::endl;
-//        };
-//        if( CnC::Internal::context_base::subscribed() && CnC::Internal::context_base::m_scheduler->subscribed() ) {
-//            if( CnC::Internal::distributor::myPid() == 0 ) CnC::Internal::context_base::cleanup_distributables( true );
-//            CnC::Internal::context_base::m_scheduler->wait_loop();
-//        }
-//        return 0;
-//    }
 
 	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
 	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::checkForCrash() {
@@ -229,6 +214,11 @@ namespace CnC {
 	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
 	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::stop_wait_loop() {
 		CnC::Internal::context_base::m_scheduler->stop_wait_task();
+	}
+
+	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
+	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::remote_wait_init( int recvr ) {
+		CnC::Internal::context_base::m_scheduler->re_init_wati( recvr );
 	}
 
 
@@ -295,6 +285,7 @@ namespace CnC {
 				//m_resilientContext.init_restart(requester);
 				//m_resilientContext.sendPing(10);
 				//m_resilientContext.m_tag_collections[0]->reset_for_restart(); //FIXME UGLY HACK THAT WILL NOT WORK WHEN > 1 clone
+				m_resilientContext.remote_wait_init( requester );
 				m_resilientContext.add_checkpoint_data_locally();
 				//m_resilientContext.reset_suspended_steps();
 				break;

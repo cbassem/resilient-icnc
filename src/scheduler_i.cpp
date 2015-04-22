@@ -447,6 +447,13 @@ namespace CnC {
             }
         }
 
+        void scheduler_i::re_init_wati(int recvr)
+        {
+        		serializer * _ser = m_context.new_serializer( this );
+        	   (*_ser) & PING & m_root;
+        	   m_context.send_msg( _ser, recvr );
+        }
+
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -566,12 +573,6 @@ namespace CnC {
         /// Distributed systems require communication flushing and barriers. See \ref scheduler_i::init_wait for details.
         void scheduler_i::wait_loop_clone( bool from_schedulable )
         {
-            // if called from schedulable, this taks/step will not complete herein
-            //   -> don't increment/decrement counter
-            if( ! from_schedulable ) ++m_userStepsInFlight;
-            bool send = m_root == distributor::myPid() && !distributor::distributed_env(); // if dist_env, the remote processes also call wait explicitly!
-            int _nProcs = distributor::numProcs();
-            init_wait(send);
             do {
             	wait_all();
             } while (!restarted && _yield());

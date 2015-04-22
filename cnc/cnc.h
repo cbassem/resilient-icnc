@@ -724,6 +724,8 @@ namespace CnC {
     	void restart_put(Tag key, Item value, int item_coll);
     	void restart_prescribe(Tag tag, int tag_coll);
 
+    	void remote_wait_init( int recvr );
+
     	void sendPing(int nr_of_pings_to_go);
     	void sendPong(int nr_of_pings_to_go);
 

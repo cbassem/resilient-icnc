@@ -172,6 +172,9 @@ namespace CnC {
 
 			void stop_wait_task();
 
+			void re_init_wati(int recvr);
+
+
         protected:
             /// blocks until all scheduled step instances have been fully executed
             /// to be implemented by scheduler implementation (derived classes)
