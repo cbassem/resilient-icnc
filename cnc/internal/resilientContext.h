@@ -160,15 +160,8 @@ namespace CnC {
 		//First calculate checkpoint
 		m_cmanager.calculateCheckpoint();
 		m_cmanager.printCheckpoint();
-		for( typename std::vector< ItemCollectionType * >::const_iterator it = m_item_collections.begin(); it != m_item_collections.end(); ++it ) {
-			int crrId = (*it)->getId();
-			std::tr1::unordered_map<Tag, Item >& map = m_cmanager.getItemCheckpoint(crrId);
-			std::cout <<  "adding items ... " << std::endl;
-			for( typename std::tr1::unordered_map<Tag, Item >::const_iterator itt = map.begin(); itt != map.end(); ++itt) {
-				restart_put(itt->first, itt->second, crrId);
-			}
-		}
 
+		//First put steps. Steps get triggered from waiting state by item puts
 		for( typename std::vector< TagCollectionType * >::const_iterator it = m_tag_collections.begin(); it != m_tag_collections.end(); ++it ) {
 			int crrId = (*it)->getId();
 			std::cout << "restart... adding tags to collecton with Id "<< crrId << std::endl;
@@ -176,6 +169,17 @@ namespace CnC {
 			std::cout <<  "adding tags ... " << std::endl;
 			for( typename std::set< Tag >::const_iterator itt = set.begin(); itt != set.end(); ++itt) {
 				restart_prescribe(*itt, crrId);
+			}
+		}
+
+		//Put Items from back to forth: , this solution might not keep working if we have smaller checkpoint sizes...
+		tbb::this_tbb_thread::sleep(tbb::tick_count::interval_t(1.0));
+		for ( typename std::vector< ItemCollectionType * >::reverse_iterator it = m_item_collections.rbegin(); it != m_item_collections.rend(); ++it ) {
+			int crrId = (*it)->getId();
+			std::tr1::unordered_map<Tag, Item>& map = m_cmanager.getItemCheckpoint( crrId );
+			std::cout << "adding items ... " << std::endl;
+			for (typename std::tr1::unordered_map<Tag, Item>::const_iterator itt =map.begin(); itt != map.end(); ++itt) {
+				restart_put(itt->first, itt->second, crrId);
 			}
 		}
 	}
@@ -284,7 +288,6 @@ namespace CnC {
 				(* ser) & requester;
 				//m_resilientContext.init_restart(requester);
 				//m_resilientContext.sendPing(10);
-				//m_resilientContext.m_tag_collections[0]->reset_for_restart(); //FIXME UGLY HACK THAT WILL NOT WORK WHEN > 1 clone
 				m_resilientContext.remote_wait_init( requester );
 				m_resilientContext.add_checkpoint_data_locally();
 				//m_resilientContext.reset_suspended_steps();

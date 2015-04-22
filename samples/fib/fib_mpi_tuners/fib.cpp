@@ -94,7 +94,6 @@ int main( int argc, char* argv[] )
 
     // create context
     fib_context ctxt;
-    CnC::debug::trace_all(ctxt);
     CnC::debug::collect_scheduler_statistics( ctxt );
 
 
