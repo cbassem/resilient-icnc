@@ -13,6 +13,9 @@
 #include <vector>
 #include <set>
 #include <tr1/unordered_map>
+#include <tbb/spin_mutex.h>
+#include <tbb/tbb_thread.h>
+
 
 /*
  * This simple checkpoint manager keeps every item in the checkpoint.
@@ -53,6 +56,9 @@ private:
 	TagLog<Tag, Item>& getTagLog(int colid, Tag tag);
 	void removeTagFromCheckpoint(Tag tag, int collection);
 
+	typedef tbb::spin_mutex mutex_t;
+	mutex_t                                m_mutex;
+
 };
 
 
@@ -64,18 +70,25 @@ SimpelCheckpointManager<Tag, Item>::SimpelCheckpointManager(int step_collections
 
 template<class Tag, class Item>
 void SimpelCheckpointManager<Tag, Item>::processStepPrescribe(Tag prescriber, int prescriberColId, Tag tag, int tagCollectionId) {
+    mutex_t::scoped_lock _l( m_mutex );
 	getTagLog(prescriberColId, prescriber).processPrescribe(tag, tagCollectionId);
 	tag_checkpoint_[tagCollectionId].insert(tag);
 }
 
 template<class Tag, class Item>
 void SimpelCheckpointManager<Tag, Item>::processItemPut(Tag producer, int stepProducerColId, Tag key, Item item, int itemColId) {
+    mutex_t::scoped_lock _l( m_mutex );
 	getTagLog(stepProducerColId, producer).processPut(key, item, itemColId);
-	item_checkpoint_[itemColId][key] = item;
+	if (itemColId < item_checkpoint_.size() && itemColId >= 0) {
+		item_checkpoint_[itemColId][key] = item;
+	} else {
+		std::cout << "Warning, attempting to register item put for unknown collection..." << std::endl;
+	}
 }
 
 template<class Tag, class Item>
 void SimpelCheckpointManager<Tag, Item>::processStepDone(Tag step, int stepColId, int puts, int prescribes) {
+    mutex_t::scoped_lock _l( m_mutex );
 	getTagLog(stepColId, step).processDone(puts, prescribes);
 }
 

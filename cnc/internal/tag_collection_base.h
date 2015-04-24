@@ -162,12 +162,12 @@ namespace CnC {
         template< class Tag, class Tuner, class CheckpointTuner >
         tag_collection_base< Tag, Tuner, CheckpointTuner >::~tag_collection_base()
         {
-//            for( typename PrescribedStepCollections_t::const_iterator ci = this->m_prescribedStepCollections.begin();
-//                 ci != this->m_prescribedStepCollections.end();
-//                 ++ci ) {
-//                // FIXME: StepCollections need revivision
-//                delete *ci;
-//            }
+            for( typename PrescribedStepCollections_t::const_iterator ci = this->m_prescribedStepCollections.begin();
+                 ci != this->m_prescribedStepCollections.end();
+                 ++ci ) {
+                // FIXME: StepCollections need revivision
+                delete *ci;
+            }
             for( typename callback_vec::iterator i = m_onPuts.begin(); i != m_onPuts.end(); ++i ) {
                 delete (*i);
             }
@@ -202,6 +202,7 @@ namespace CnC {
         template< class Tag, class Tuner, class CheckpointTuner >
         void tag_collection_base< Tag, Tuner, CheckpointTuner >::unsafe_reset( bool dist )
         {
+        	std::cout << "UNSAFE RESET!!!!!! with bool " << dist << std::endl;
 #ifdef _DIST_CNC_
             if( dist ) {
                 serializer * _ser = get_context().new_serializer( this );
@@ -218,6 +219,7 @@ namespace CnC {
         template< class Tag, class Tuner, class CheckpointTuner >
         void tag_collection_base< Tag, Tuner, CheckpointTuner >::do_reset()
         {
+        	std::cout << "DO RESET!!!!!!" << std::endl;
             m_tagTable.clear();
         }
 
@@ -313,7 +315,7 @@ namespace CnC {
         	int _lmask = mask & m_allMask;
 
         	// store tag if requested
-        	int _found = m_tagTable.insert( user_tag, -1 );
+        	int _found = m_tagTable.insert( user_tag, mask );
 
         	// walk the list of prescribed steps, and insert an
         	// instance for each one if tag was not inserted yet.

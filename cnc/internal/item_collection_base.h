@@ -809,7 +809,7 @@ namespace CnC {
                     if( fromRemote ) _prop->unset_creator();
                     if( _prop->m_subscribers ) {
                         if( _prop->am_owner() ) {
-                        	std::cout << "delivering item " << std::endl;
+                        	//std::cout << "delivering item " << std::endl;
                             this->deliver( user_tag, item, *_prop->m_subscribers, IC::DELIVER, distributor::myPid() );
                         }
                         delete _prop->m_subscribers;
@@ -1379,7 +1379,7 @@ namespace CnC {
         void item_collection_base< T, item_type, Tuner, CheckpointTuner >::get_request( const T & tag, int recpnt, bool probe )
         {
 
-        	std::cout << recpnt << " requested data fot tag = " << tag << std::endl;
+        	//std::cout << recpnt << " requested data fot tag = " << tag << std::endl;
             CNC_ASSERT( distributor::active() );
             typename table_type::accessor a;
             typename table_type::item_and_gc_type _tmpitem = tagItemTable.get_item_or_accessor( tag, a );
@@ -1394,7 +1394,7 @@ namespace CnC {
                 tagItemTable.get_accessor( tag, a );
             }
             bool _amowner = a.properties()->am_owner();
-            std::cout << "Are we owner " << _amowner << std::endl;
+            //std::cout << "Are we owner " << _amowner << std::endl;
             a.release();
             if( _amowner && _tmpitem.first != NULL ) {
                 this->deliver( tag, _tmpitem.first, recpnt, IC::DELIVER, distributor::myPid() );

@@ -286,7 +286,9 @@ namespace CnC {
 				(* ser) & tag & stepCollectionUID & nr_of_puts & nr_of_prescribes;
 				if (stepCollectionUID != 0) {
 					m_resilientContext.m_cmanager.processStepDone( tag, stepCollectionUID, nr_of_puts, nr_of_prescribes);//TODO refactor
-					m_resilientContext.checkForCrash();
+					if ( m_resilientContext.gid() == 0) {
+						m_resilientContext.checkForCrash();
+					}
 				}
 				break;
 			}
