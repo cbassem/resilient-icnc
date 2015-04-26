@@ -19,7 +19,8 @@ namespace CnC {
 		m_communicator( *this ),
 		m_cmanager( 1, 0, 0 ),
 		m_countdown_to_crash( -1 ),
-		m_process_to_crash( -1 )
+		m_process_to_crash( -1 ),
+		m_mutex()
 		{ std::cout << " creating res ctxt " << std::endl; };
 
 	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
@@ -28,7 +29,8 @@ namespace CnC {
 		m_communicator( *this ),
 		m_cmanager( stepColls + 1, tagColls, itemColls ),
 		m_countdown_to_crash( -1 ),
-		m_process_to_crash( -1 )
+		m_process_to_crash( -1 ),
+		m_mutex()
 		{  std::cout << " creating res ctxt " << std::endl; };
 
 	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
@@ -37,7 +39,8 @@ namespace CnC {
 		m_communicator( *this ),
 		m_cmanager( stepColls + 1, tagColls, itemColls ),
 		m_countdown_to_crash( countdown ),
-		m_process_to_crash( processId )
+		m_process_to_crash( processId ),
+		m_mutex()
 		{  std::cout << " creating res ctxt " << std::endl; };
 
 	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
@@ -61,6 +64,7 @@ namespace CnC {
 
 	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
 	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::done(const Tag & tag, const int tagColId, const int nrOfPuts, const int nrOfPrescribes) {
+	    mutex_t::scoped_lock _l( m_mutex );
 		serializer * ser = dist_context::new_serializer( &m_communicator );
 		(*ser) & checkpoint_tuner_types::DONE & tag & tagColId & nrOfPuts & nrOfPrescribes;
 		if (Internal::distributor::myPid() == 0) { //sockets cannot send to themselves
@@ -68,10 +72,12 @@ namespace CnC {
 		} else {
 			dist_context::send_msg(ser, 0);
 		}
+		_l.release();
 	}
 
 	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
 	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::prescribe(const Tag & prescriber, const int prescriberColId, const Tag & tag, const int tagColId) {
+	    mutex_t::scoped_lock _l( m_mutex );
 		serializer * ser = dist_context::new_serializer( &m_communicator );
 		(*ser) & checkpoint_tuner_types::PRESCRIBE & prescriber & prescriberColId & tag & tagColId;
 		if (Internal::distributor::myPid() == 0) {
@@ -79,17 +85,20 @@ namespace CnC {
 		} else {
 			dist_context::send_msg(ser, 0);
 		}
+		_l.release();
 	}
 
 	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
 	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::put(const Tag & putter, const int putterColId, const Tag & tag, const Item & item, const int itemColId) {
-    	serializer * ser = dist_context::new_serializer( &m_communicator );
+	    mutex_t::scoped_lock _l( m_mutex );
+		serializer * ser = dist_context::new_serializer( &m_communicator );
     	(*ser) & checkpoint_tuner_types::PUT & putter & putterColId & tag & item & itemColId;
 		if (Internal::distributor::myPid() == 0) {
 			m_cmanager.processItemPut(putter, putterColId, tag, item, itemColId);
 		} else {
 			dist_context::send_msg(ser, 0);
 		}
+		_l.release();
 	}
 
 	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
@@ -102,9 +111,11 @@ namespace CnC {
 	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::restarted() {
 		std::cout << "Restarted and checking for data... " << Internal::distributor::myPid() << std::endl;
 		CnC::Internal::context_base::m_scheduler->start_dist();
+		CnC::Internal::scheduler_i::restarted_safe = false;
 		serializer * ser = dist_context::new_serializer( &m_communicator );
 		(*ser) & checkpoint_tuner_types::REQUEST_RESTART_DATA & CnC::Internal::distributor::myPid();
 		dist_context::send_msg(ser, 0);
+
 	}
 
 	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
@@ -124,12 +135,16 @@ namespace CnC {
 
 	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
 	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::restart_put(Tag key, Item value, int item_coll) {
+		//mutex_t::scoped_lock _l( m_mutex );
 		m_item_collections[item_coll]->restart_put(key, value); //TODO perhaps we should carry over the putter data... local checkpoint data might get corrupted
+		//_l.release();
 	}
 
 	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
 	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::restart_prescribe(Tag tag, int tag_coll) {
+		//mutex_t::scoped_lock _l( m_mutex );
 		m_tag_collections[tag_coll]->restart_put(tag); //TODO perhaps we should carry over the putter data... local checkpoint data might get corrupted
+		//_l.release();
 	}
 
 	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
@@ -157,11 +172,15 @@ namespace CnC {
 
 	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
 	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::add_checkpoint_data_locally() {
+
+		// We need a lock, the addition of data can launch new steps.
+		//mutex_t::scoped_lock _l( m_mutex );
+
+
 		//First calculate checkpoint
 		m_cmanager.calculateCheckpoint();
 		m_cmanager.printCheckpoint();
 
-		//Put Items from back to forth: , this solution might not keep working if we have smaller checkpoint sizes...
 		for ( typename std::vector< ItemCollectionType * >::reverse_iterator it = m_item_collections.rbegin(); it != m_item_collections.rend(); ++it ) {
 			int crrId = (*it)->getId();
 			std::tr1::unordered_map<Tag, Item>& map = m_cmanager.getItemCheckpoint( crrId );
@@ -189,6 +208,8 @@ namespace CnC {
 				restart_prescribe(*itt, crrId);
 			}
 		}
+
+		//_l.release();
 
 
 	}
@@ -251,6 +272,8 @@ namespace CnC {
 		m_resilientContext.unsubscribe(this);
 	}
 
+	static bool _yield() { tbb::this_tbb_thread::sleep(tbb::tick_count::interval_t(0.0005)); return true; }
+
 	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
 	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::communicator::recv_msg( serializer * ser ) {
 		//if everybody sends to the main one then this one will have a reference to the actual checkpoint
@@ -299,8 +322,12 @@ namespace CnC {
 				(* ser) & requester;
 				//m_resilientContext.init_restart(requester);
 				//m_resilientContext.sendPing(10);
-				m_resilientContext.remote_wait_init( requester );
 				m_resilientContext.add_checkpoint_data_locally();
+
+//				int _tmp = 100;
+//				do {} while (_yield() && --_tmp > 0);
+
+				m_resilientContext.remote_wait_init( requester );
 				//m_resilientContext.reset_suspended_steps();
 				break;
 			}

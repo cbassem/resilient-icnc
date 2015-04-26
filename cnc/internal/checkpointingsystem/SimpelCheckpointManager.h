@@ -65,7 +65,7 @@ private:
 
 template<class Tag, class Item>
 SimpelCheckpointManager<Tag, Item>::SimpelCheckpointManager(int step_collections, int tag_collections, int item_collections):
-	tag_collections_(tag_collections), item_collections_(item_collections), tag_log_(step_collections), tag_checkpoint_( tag_collections ), item_checkpoint_( item_collections ) {};
+	tag_collections_(tag_collections), item_collections_(item_collections), tag_log_(step_collections), tag_checkpoint_( tag_collections ), item_checkpoint_( item_collections ), m_mutex() {};
 
 
 template<class Tag, class Item>
@@ -73,6 +73,7 @@ void SimpelCheckpointManager<Tag, Item>::processStepPrescribe(Tag prescriber, in
     mutex_t::scoped_lock _l( m_mutex );
 	getTagLog(prescriberColId, prescriber).processPrescribe(tag, tagCollectionId);
 	tag_checkpoint_[tagCollectionId].insert(tag);
+	_l.release();
 }
 
 template<class Tag, class Item>
@@ -84,16 +85,19 @@ void SimpelCheckpointManager<Tag, Item>::processItemPut(Tag producer, int stepPr
 	} else {
 		std::cout << "Warning, attempting to register item put for unknown collection..." << std::endl;
 	}
+	_l.release();
 }
 
 template<class Tag, class Item>
 void SimpelCheckpointManager<Tag, Item>::processStepDone(Tag step, int stepColId, int puts, int prescribes) {
     mutex_t::scoped_lock _l( m_mutex );
 	getTagLog(stepColId, step).processDone(puts, prescribes);
+	_l.release();
 }
 
 template<class Tag, class Item>
 void SimpelCheckpointManager<Tag, Item>::printCheckpoint() {
+	mutex_t::scoped_lock _l( m_mutex );
 	std::cout << "Tags:" << std::endl;
 
 	int currCol(0);
@@ -116,6 +120,7 @@ void SimpelCheckpointManager<Tag, Item>::printCheckpoint() {
 		}
 	}
 	std::cout << std::endl;
+	_l.release();
 }
 
 template<class Tag, class Item>
@@ -131,6 +136,7 @@ std::set< Tag >& SimpelCheckpointManager<Tag, Item>::getTagCheckpoint( int tag_c
 
 template<class Tag, class Item>
 void SimpelCheckpointManager<Tag, Item>::calculateCheckpoint() {
+	mutex_t::scoped_lock _l( m_mutex );
 	int crrCol(0);
 	for( typename std::vector<hmap>::iterator it = ++tag_log_.begin(); it != tag_log_.end(); ++it) { // Start from second, dirst is env, not sure what to do about this one yet
 		for( typename hmap::const_iterator itt = it->begin(); itt != it->end(); ++itt) {
@@ -142,6 +148,7 @@ void SimpelCheckpointManager<Tag, Item>::calculateCheckpoint() {
 		}
 		crrCol++;
 	}
+	_l.release();
 }
 template<class Tag, class Item>
 void SimpelCheckpointManager<Tag, Item>::removeTagFromCheckpoint(Tag tag, int collection) {

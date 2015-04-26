@@ -42,6 +42,7 @@
 #include <tbb/atomic.h>
 #include <tbb/concurrent_hash_map.h>
 #include <tbb/concurrent_queue.h>
+#include <tbb/spin_mutex.h>
 
 
 namespace CnC {
@@ -161,6 +162,7 @@ namespace CnC {
             bool                 m_distEnv;
             static distributor  * theDistributor;
             static communicator * m_communicator;
+            tbb::spin_mutex m_mutex;
 
             template< class C1, class C2, class C3, class C4, class C5 > friend struct dist_init;
         };

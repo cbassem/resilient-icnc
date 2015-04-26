@@ -733,6 +733,9 @@ namespace CnC {
     	void sendPing(int nr_of_pings_to_go);
     	void sendPong(int nr_of_pings_to_go);
 
+    	typedef tbb::spin_mutex mutex_t;
+    	mutex_t                                m_mutex;
+
     	friend class communicator;
     	typedef CnC::Internal::distributable_context dist_context;
 

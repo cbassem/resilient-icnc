@@ -52,7 +52,8 @@ namespace CnC {
               m_sync(),
               m_flushCount( 0 ),
               m_nMsgsRecvd(),
-              m_distEnv( false )
+              m_distEnv( false ),
+			  m_mutex()
         {
         }
 
@@ -210,6 +211,7 @@ namespace CnC {
         /// any communicator calls this for incoming messages
         void distributor::recv_msg( serializer * serlzr , int pid )
         {
+        	//tbb::spin_mutex::scoped_lock _l( m_mutex );
             BufferAccess::initUnpack( *serlzr );
             int _dctxtId;
             (*serlzr) & _dctxtId;
@@ -279,7 +281,7 @@ namespace CnC {
                     	if( ! _inserted ) {
                     		distributable_context * _dctxt = _accr->second;
                     		int _tid = _dctxt->factory_id();
-                    		(*_serlzr) & RESTART & ctxtid & _tid & (*_dctxt); //FIXME order of things are messed up
+                    		(*_serlzr) & RESTART & _tid & ctxtid  & (*_dctxt);
                     		send_msg( _serlzr, senderPid );
                     	}
                     	break;
@@ -287,25 +289,22 @@ namespace CnC {
                     case RESTART: {
                     	// reset the semaphores
                     	CnC::Internal::scheduler_i::restarted = false;
-                    	CnC::Internal::scheduler_i::restarted_safe = false;
 
                     	std::cout << "Restarting... " << myPid() << std::endl;
                     	int _typeId, ctxtid;
-                    	(*serlzr) & ctxtid & _typeId;
+                    	(*serlzr) & _typeId & ctxtid;
                         my_map::accessor _accr;
                         bool _inserted = theDistributor->m_distContexts[pid].insert( _accr, ctxtid );
-                        if ( _inserted ) {
-                        	std::cout << "Recreating context... " << myPid() << std::endl;
-                        	creatable * _crtbl = factory::create( _typeId );
-                        	CNC_ASSERT( dynamic_cast< distributable_context * >( _crtbl ) );
-                        	distributable_context * _dctxt = static_cast< distributable_context * >( _crtbl );
-                        	_dctxt->set_gid( ctxtid );
-                        	_accr->second = _dctxt;
-                        	(*serlzr) & (*_dctxt);
-                        	_dctxt->set_distributionReady();
-                        	_dctxt->restarted();
-                        }
-
+                        std::cout << "Recreating context... " << myPid() << std::endl;
+                        creatable * _crtbl = factory::create( _typeId );
+                        CNC_ASSERT( dynamic_cast< distributable_context * >( _crtbl ) );
+                        distributable_context * _dctxt = static_cast< distributable_context * >( _crtbl );
+                        _dctxt->set_gid( ctxtid );
+                        _accr->second = _dctxt;
+                        (*serlzr) & (*_dctxt);
+                        theDistributor->m_state = distributor::DIST_ON;
+                        _dctxt->set_distributionReady();
+                        _dctxt->restarted();
                     	break;
                     }
                     case CRASH: {
@@ -345,7 +344,7 @@ namespace CnC {
                 my_map::const_accessor _accr;
                 bool _inTable = theDistributor->m_distContexts[pid].find( _accr, _dctxtId );
                 CNC_ASSERT_MSG( _inTable, "Received message for not (yet) existing context\n" );
-                if( _inTable && !CnC::Internal::scheduler_i::restarted) {
+                if( _inTable && !CnC::Internal::scheduler_i::restarted_safe && !CnC::Internal::scheduler_i::restarted) {
                     distributable_context * _dctxt = _accr->second;
                     //If (1) is called before (2) no segmentation fault, but else is not called (i.e. _dctixt does not get deleted... deadlock)
                     //If (2) is called before (1) seg fault sometimes, but else is called...
@@ -415,7 +414,7 @@ namespace CnC {
         	send_msg(_serlzr, processtocrash);
         }
 
-        static bool _yield() { tbb::this_tbb_thread::sleep(tbb::tick_count::interval_t(0.0002)); return true; }
+        static bool _yield() { tbb::this_tbb_thread::sleep(tbb::tick_count::interval_t(0.05)); return true; }
 
         void distributor::remove_local( int gid )
 		{
@@ -424,6 +423,7 @@ namespace CnC {
         	if ( ! _inserted ) {
                 distributable_context * _dctxt = _accr->second;
                 CnC::Internal::scheduler_i::restarted = true;
+                theDistributor->m_state = distributor::DIST_INITING;
                 std::cout << "destructing..." << CnC::Internal::scheduler_i::restarted << "|" << CnC::Internal::scheduler_i::restarted_safe << "|" << std::endl;
                 do {} while (_yield() && !CnC::Internal::scheduler_i::restarted_safe);
                 do {} while (_yield() && has_pending_messages());

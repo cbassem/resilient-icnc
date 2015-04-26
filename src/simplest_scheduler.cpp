@@ -92,6 +92,7 @@ namespace CnC {
 
         simplest_scheduler::~simplest_scheduler()
         {
+        	m_rootTask->cancel_group_execution();
             m_rootTask->decrement_ref_count();
             m_rootTask->destroy( *m_rootTask );
         }

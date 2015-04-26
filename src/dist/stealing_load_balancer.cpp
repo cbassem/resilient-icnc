@@ -57,7 +57,7 @@ namespace CnC {
             m_last = 0;
             int numProcs = distributor::numProcs();
             m_clientRequests = new tbb::atomic<int>[numProcs];
-            m_sentRequests = new tbb::atomic<int>[1];
+            m_sentRequests = new tbb::atomic<int>[numProcs];
             for (int i = 0; i < numProcs; i++) m_clientRequests[i] = 0;
             for (int i = 0; i < numProcs; i++) m_sentRequests[i] = 0;
             //            progress();

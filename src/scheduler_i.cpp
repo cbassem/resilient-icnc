@@ -156,6 +156,7 @@ namespace CnC {
         {
             m_context.print_scheduler_statistics();
             delete m_barrier;
+            delete m_balancer; // FIXME, why wasn't this one included?
             set_current( const_cast< schedulable * >( m_step ) );
             if( subscribed() ) {
                 m_context.unsubscribe( this );
@@ -474,6 +475,8 @@ namespace CnC {
                     wait( m_userStepsInFlight ); // first wait for scheduler (executing steps)
                 } while( m_activeGraphs > 0 ); // loop until all hidden graphs entered quiescent state
 
+                if (!restarted) {
+
                 // at this point we can assume that no worker is running fs: really? what about distcnc?
                 // let's first "lock" the schedulables by an additional call to suspend. No item-put can then trigger execution of a pending step
                 for( pending_list_type::iterator i = m_pendingSteps.begin(); i != m_pendingSteps.end(); ++i ) { 
@@ -521,6 +524,7 @@ namespace CnC {
                         delete _s;
                     }
                 }
+                }
             }
         }
 
@@ -554,7 +558,7 @@ namespace CnC {
                 // we need the loop because potentially wait() missed the messages received between reset_recvd_msg_count and flush
                 CNC_ASSERT( m_userStepsInFlight == 1 || m_root != distributor::myPid() );
                 // root sends done flag in distributed env setup
-                if( distributor::distributed_env() && m_root == distributor::myPid() && !restarted) {
+                if( distributor::distributed_env() && m_root == distributor::myPid()) {
                     serializer * _ser = m_context.new_serializer( this );
                     (*_ser) & DONE;
                     m_context.bcast_msg( _ser );
@@ -575,13 +579,14 @@ namespace CnC {
         /// Distributed systems require communication flushing and barriers. See \ref scheduler_i::init_wait for details.
         void scheduler_i::wait_loop_clone( bool from_schedulable )
         {
+        	if( ! from_schedulable ) ++m_userStepsInFlight;
 
-        	do{
         		do {
         			wait_all();
         		} while ((!restarted /**| distributor::has_pending_messages() **/) && _yield());
-        	} while (fini_wait());
-           restarted_safe = true;
+        		wait_all();
+                if( ! from_schedulable ) --m_userStepsInFlight;
+        		restarted_safe = true;
 
         }
 
