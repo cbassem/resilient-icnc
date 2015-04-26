@@ -392,7 +392,7 @@ namespace CnC {
                 if( m_tagColl == NULL ) {
                     tagged_step_instance< Tag > * _si = create_step_instance( user_tag, this->context(), false );
                 } else {
-                    m_tagColl->Put( user_tag, this->id() );
+                    m_tagColl->Put( user_tag, this->id(), false );
                 }
                 //                m_scheduler->prepare( _si, false );
                 serializer _clser;

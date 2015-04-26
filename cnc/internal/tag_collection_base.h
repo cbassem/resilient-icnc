@@ -307,8 +307,8 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         template< class Tag, class Tuner, class CheckpointTuner >
         void tag_collection_base< Tag, Tuner, CheckpointTuner >::Put( const Tag & prescriber, const int & prescriberColId, const Tag & user_tag) {
-        	my_mutex_type::scoped_lock _lock( m_putMutex );
         	m_ctuner.prescribe(prescriber, prescriberColId, user_tag, m_id);
+        	my_mutex_type::scoped_lock _lock( m_putMutex );
         	Put( user_tag, -1, false ); //TODO I thing that it is possible that the tag is already here, in this case the tuner is called to many times.
         	_lock.release();
         }
