@@ -132,10 +132,10 @@ namespace CnC {
             void for_all( Func & f, Arg & a );
 
         private:
-            //            typedef tbb::spin_mutex mutex_type;
+                        typedef tbb::spin_mutex mutex_type;
             map_t                 m_map;
             tbb::atomic< size_t > m_size;
-            //            mutable mutex_type    m_mutex;
+                        mutable mutex_type    m_mutex;
         };
 
 
@@ -258,7 +258,7 @@ namespace CnC {
         hash_item_table< Tag, ItemT, Coll >::hash_item_table( const Coll *, size_t )
         : m_map(),
           m_size()
-          // , m_mutex()
+           , m_mutex()
         {
             m_size = 0;
         }
@@ -268,7 +268,7 @@ namespace CnC {
         template< typename Tag, typename ItemT, typename Coll >
         bool hash_item_table< Tag, ItemT, Coll >::put_item( const Tag & t, const ItemT * item, const int getcount, const int owner, accessor & a )
         {
-            //            typename mutex_type::scoped_lock _lock( m_mutex );
+                        typename mutex_type::scoped_lock _lock( m_mutex );
             m_map.insert( a.acc(), t );
             if( a.item() != NULL ) return false;
             a.acc()->second.m_item = item;
@@ -288,7 +288,7 @@ namespace CnC {
         template< typename Tag, typename ItemT, typename Coll >
         const ItemT * hash_item_table< Tag, ItemT, Coll >::get_item( const Tag & t ) const
         {
-            //            typename mutex_type::scoped_lock _lock( m_mutex );
+                        typename mutex_type::scoped_lock _lock( m_mutex );
             typename map_t::const_accessor a;
             return m_map.find( a, t ) ? a->second.m_item : NULL;
         }
@@ -299,7 +299,7 @@ namespace CnC {
         typename hash_item_table< Tag, ItemT, Coll >::item_and_gc_type
         hash_item_table< Tag, ItemT, Coll >::get_item_and_accessor( const Tag & t, accessor & a )
         {
-            //            typename mutex_type::scoped_lock _lock( m_mutex );
+                        typename mutex_type::scoped_lock _lock( m_mutex );
             {
                 if( m_map.find( a.acc(), t ) ) {
                     const ItemT * _i = a.acc()->second.m_item;
@@ -323,7 +323,7 @@ namespace CnC {
         typename hash_item_table< Tag, ItemT, Coll >::item_and_gc_type
         hash_item_table< Tag, ItemT, Coll >::get_item_or_accessor( const Tag & t, accessor & a )
         {
-            //            typename mutex_type::scoped_lock _lock( m_mutex );
+                        typename mutex_type::scoped_lock _lock( m_mutex );
             {
                 typename map_t::const_accessor ar;
                 if( m_map.find( ar, t ) ) {
@@ -348,7 +348,7 @@ namespace CnC {
         template< typename Tag, typename ItemT, typename Coll >
         bool hash_item_table< Tag, ItemT, Coll >::get_accessor( const Tag & t, accessor & a )
         {
-            //            typename mutex_type::scoped_lock _lock( m_mutex );
+                        typename mutex_type::scoped_lock _lock( m_mutex );
             return m_map.find( a.acc(), t );
         }
                 
@@ -357,7 +357,7 @@ namespace CnC {
         template< typename Tag, typename ItemT, typename Coll >
         ItemT * hash_item_table< Tag, ItemT, Coll >::erase( accessor & a )
         {
-            //            typename mutex_type::scoped_lock _lock( m_mutex );
+                        typename mutex_type::scoped_lock _lock( m_mutex );
             // we can have an entry because of a local get or a remote request!
             const ItemT * _item = a.item();
             if( _item != NULL ) {
@@ -373,7 +373,7 @@ namespace CnC {
         template< typename Tag, typename ItemT, typename Coll >
         size_t hash_item_table< Tag, ItemT, Coll >::size() const
         {
-            //            typename mutex_type::scoped_lock _lock( m_mutex );
+                        typename mutex_type::scoped_lock _lock( m_mutex );
             return m_size;
         }
         
@@ -382,7 +382,7 @@ namespace CnC {
         template< typename Tag, typename ItemT, typename Coll >
         bool hash_item_table< Tag, ItemT, Coll >::empty() const
         {
-            //            typename mutex_type::scoped_lock _lock( m_mutex );
+                        typename mutex_type::scoped_lock _lock( m_mutex );
             return m_map.empty();
         }
         
@@ -392,7 +392,7 @@ namespace CnC {
         template< class DA >
         void hash_item_table< Tag, ItemT, Coll >::clear( const DA & da )
         {
-            //            typename mutex_type::scoped_lock _lock( m_mutex );
+                        typename mutex_type::scoped_lock _lock( m_mutex );
             for( typename map_t::iterator i = m_map.begin(), e = m_map.end(); i != e; ++i )
                 if( i->second.m_item ) da.uncreate( const_cast< ItemT * >( i->second.m_item ) );
             m_map.clear();
@@ -404,7 +404,7 @@ namespace CnC {
         template< typename Tag, typename ItemT, typename Coll >
         typename hash_item_table< Tag, ItemT, Coll >::const_iterator hash_item_table< Tag, ItemT, Coll >::begin() const
         {
-            //            typename mutex_type::scoped_lock _lock( m_mutex );
+                        typename mutex_type::scoped_lock _lock( m_mutex );
             return const_iterator( m_map.begin() );
         }
 
@@ -413,7 +413,7 @@ namespace CnC {
         template< typename Tag, typename ItemT, typename Coll >
         typename hash_item_table< Tag, ItemT, Coll >::const_iterator hash_item_table< Tag, ItemT, Coll >::end() const
         {
-            //            typename mutex_type::scoped_lock _lock( m_mutex );
+                        typename mutex_type::scoped_lock _lock( m_mutex );
             return const_iterator( m_map.end() );
         }  
 
@@ -423,7 +423,7 @@ namespace CnC {
         template< typename Func, typename Arg >
         void hash_item_table< Tag, ItemT, Coll >::for_all( Func & f, Arg & arg )
         {
-            //            typename mutex_type::scoped_lock _lock( m_mutex );
+                        typename mutex_type::scoped_lock _lock( m_mutex );
 
             for( typename map_t::iterator i = m_map.begin(), e = m_map.end(); i != e; ++i ) {
                 //                if( i->second.m_item != NULL ) {
