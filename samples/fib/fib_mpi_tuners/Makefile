@@ -12,7 +12,7 @@ $(error CNCROOT is not set)
 endif
 
 #CXX=icpc
-OPT := -pthread $(OPTS) -O3
+OPT := -pthread $(OPTS) -O0 -g
 
 APPNAME = fib
 

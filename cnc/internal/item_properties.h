@@ -58,6 +58,14 @@ namespace CnC {
                 m_getCount = getcount;
             }
 
+            ~item_properties() {
+#ifdef _DIST_CNC_
+            	if (m_subscribers != NULL) {
+            		m_subscribers;
+            	}
+#endif
+            }
+
             int get_count() const
             {
                 return m_getCount;

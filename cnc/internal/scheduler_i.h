@@ -172,7 +172,7 @@ namespace CnC {
 
 			void stop_wait_task();
 
-			void re_init_wati(int recvr);
+			void re_init_wait(int recvr);
 
 
         protected:

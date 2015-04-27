@@ -77,7 +77,7 @@ namespace CnC {
 
             step_launcher( context_base & ctxt, Arg & arg, const step_collection< Step, StepTuner, CheckpointTuner > & sc, const TagTuner & tt, scheduler_i & sched );
             step_launcher( tag_coll_type * tc, Arg & arg, const step_collection< Step, StepTuner, CheckpointTuner > & sc ) ;
-            ~step_launcher();
+            virtual ~step_launcher();
             virtual tagged_step_instance< tag_type > * create_step_instance( const Tag & tag, context_base & ctxt, bool compute_on ) const;
             virtual tagged_step_instance< range_type > * create_range_step_instance( const range_type & range, context_base & ctxt ) const;
             virtual bool timing() const;

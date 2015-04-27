@@ -174,7 +174,7 @@ namespace CnC {
 	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::add_checkpoint_data_locally() {
 
 		// We need a lock, the addition of data can launch new steps.
-		//mutex_t::scoped_lock _l( m_mutex );
+		//mutex_t::scoped_lock _l( m_mutex ); //FIXME, we realy, realy need a lock here
 
 
 		//First calculate checkpoint
@@ -252,7 +252,7 @@ namespace CnC {
 
 	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
 	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::remote_wait_init( int recvr ) {
-		CnC::Internal::context_base::m_scheduler->re_init_wati( recvr );
+		CnC::Internal::context_base::m_scheduler->re_init_wait( recvr );
 	}
 
 
@@ -322,12 +322,14 @@ namespace CnC {
 				(* ser) & requester;
 				//m_resilientContext.init_restart(requester);
 				//m_resilientContext.sendPing(10);
+
 				m_resilientContext.add_checkpoint_data_locally();
 
 //				int _tmp = 100;
 //				do {} while (_yield() && --_tmp > 0);
 
-				m_resilientContext.remote_wait_init( requester );
+				//m_resilientContext.remote_wait_init( requester );
+
 				//m_resilientContext.reset_suspended_steps();
 				break;
 			}

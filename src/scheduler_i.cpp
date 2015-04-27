@@ -449,7 +449,7 @@ namespace CnC {
             }
         }
 
-        void scheduler_i::re_init_wati(int recvr)
+        void scheduler_i::re_init_wait(int recvr)
         {
         		serializer * _ser = m_context.new_serializer( this );
         	   (*_ser) & PING & m_root;
@@ -588,12 +588,12 @@ namespace CnC {
         		wait_all();
                 if( ! from_schedulable ) --m_userStepsInFlight;
 
-                for( pending_list_type::iterator i = m_pendingSteps.begin(); i != m_pendingSteps.end(); ++i ) {
-                    delete *i;
-                }
-                for( pending_list_type::iterator i = m_seqSteps.begin(); i != m_seqSteps.end(); ++i ) {
-                    delete *i;
-                }
+//                for( pending_list_type::iterator i = m_pendingSteps.begin(); i != m_pendingSteps.end(); ++i ) {
+//                    delete *i;
+//                }
+//                for( pending_list_type::iterator i = m_seqSteps.begin(); i != m_seqSteps.end(); ++i ) {
+//                    delete *i;
+//                }
         		restarted_safe = true;
 
         }

@@ -59,6 +59,8 @@ endif(CMAKE_SYSTEM_NAME STREQUAL Windows)
 
 set(CMAKE_DEBUG_POSTFIX "_debug")
 
+set(-g -o0)
+
 
 ################################################################################
 # TBB deps

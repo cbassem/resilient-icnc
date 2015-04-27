@@ -310,7 +310,9 @@ namespace CnC {
                     case CRASH: {
                     	int ctxtid;
                     	(*serlzr) & ctxtid;
-                    	remove_local(ctxtid);
+                    	if (!CnC::Internal::scheduler_i::restarted_safe && !CnC::Internal::scheduler_i::restarted) {
+                        	remove_local(ctxtid);
+                    	}
                     	break;
                     }
                     default : {

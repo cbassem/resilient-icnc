@@ -55,6 +55,7 @@ namespace CnC {
             typedef typename StepLauncher::checkpoint_tuner_type checkpoint_tuner_type;
 
             step_instance( const tag_type & tag, context_base & ctxt, const StepLauncher * step_launcher );
+
             virtual int affinity() const;
             virtual CnC::Internal::StepReturnValue_t execute();
             virtual char prepare( step_delayer &, int &, const schedulable * );
