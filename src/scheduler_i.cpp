@@ -157,6 +157,7 @@ namespace CnC {
             m_context.print_scheduler_statistics();
             delete m_barrier;
             delete m_balancer; // FIXME, why wasn't this one included?
+
             set_current( const_cast< schedulable * >( m_step ) );
             if( subscribed() ) {
                 m_context.unsubscribe( this );
@@ -579,13 +580,20 @@ namespace CnC {
         /// Distributed systems require communication flushing and barriers. See \ref scheduler_i::init_wait for details.
         void scheduler_i::wait_loop_clone( bool from_schedulable )
         {
-        	if( ! from_schedulable ) ++m_userStepsInFlight;
+        		if( ! from_schedulable ) ++m_userStepsInFlight;
 
         		do {
         			wait_all();
         		} while ((!restarted /**| distributor::has_pending_messages() **/) && _yield());
         		wait_all();
                 if( ! from_schedulable ) --m_userStepsInFlight;
+
+                for( pending_list_type::iterator i = m_pendingSteps.begin(); i != m_pendingSteps.end(); ++i ) {
+                    delete *i;
+                }
+                for( pending_list_type::iterator i = m_seqSteps.begin(); i != m_seqSteps.end(); ++i ) {
+                    delete *i;
+                }
         		restarted_safe = true;
 
         }

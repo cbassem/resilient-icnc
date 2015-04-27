@@ -711,7 +711,7 @@ namespace CnC {
 	private:
 
     	SimpelCheckpointManager< Tag, Item > m_cmanager; //atm they all have an instance but only the "main" context uses one.
-    	const communicator m_communicator;
+    	communicator m_communicator;
     	int m_countdown_to_crash;
     	int m_process_to_crash;
     	std::vector< StepCollectionType * > m_step_collections;

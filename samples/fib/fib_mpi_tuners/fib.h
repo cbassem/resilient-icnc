@@ -85,7 +85,7 @@ struct fib_context : public CnC::resilientContext< fib_context, int, fib_type, s
         CnC::resilientContext< fib_context, int, fib_type, step_type, tag_type, item_type>::registerTagCollection(m_tags);
         CnC::resilientContext< fib_context, int, fib_type, step_type, tag_type, item_type>::registerItemCollection(m_fibs);
 
-        //CnC::debug::trace_all(*this, 3);
+        CnC::debug::trace_all(*this, 1);
 
 
     }
