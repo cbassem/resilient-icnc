@@ -72,126 +72,29 @@ namespace CnC {
     {
     }
 
-//    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//
-//    template< typename Tag, typename Tuner, typename CheckpointTuner >
-//    void tag_collection< Tag, Tuner, CheckpointTuner >::put( const Tag & t )
-//    {
-//        m_tagCollection.Put( t );
-//    }
-//
-//    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//
-//    template< typename Tag, typename Tuner, typename CheckpointTuner >
-//    template< typename PTag, typename UserStep, typename STuner, typename SCheckpointTuner >
-//    void tag_collection< Tag, Tuner, CheckpointTuner >::put( const Tag & prescriber, const CnC::step_collection< UserStep, STuner, SCheckpointTuner> & prescriberCol , const Tag & t )
-//    {
-//        m_tagCollection.Put( prescriber, prescriberCol.getId(), t );
-//    }
-//
-//    template< typename Tag, typename Tuner, typename CheckpointTuner >
-//    void tag_collection< Tag, Tuner, CheckpointTuner >::restart_put( const Tag & t ) {
-//    	m_tagCollection.restart_put( t );
-//    }
-//
-//    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//
-//    template< typename Tag, typename Tuner, typename CheckpointTuner >
-//    void tag_collection< Tag, Tuner, CheckpointTuner >::put_range( const Internal::no_range & ) const
-//    {
-//        CNC_ABORT( "You need to specify a range type to put a range" );
-//    }
-//
-//    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//
-//    template< typename Tag, typename Tuner, typename CheckpointTuner >
-//    void tag_collection< Tag, Tuner, CheckpointTuner >::put_range( const typename Tuner::range_type & r )
-//    {
-//        if( r.size() > 0 ) {
-//            m_tagCollection.create_range_instances( r );
-//        }
-//    }
-//
-//    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//
-//    template< typename Tag, typename Tuner, typename CheckpointTuner >
-//    typename tag_collection< Tag, Tuner, CheckpointTuner >::const_iterator tag_collection< Tag, Tuner, CheckpointTuner >::begin() const
-//    {
-//        return m_tagCollection.begin();
-//    }
-//
-//    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//
-//    template< typename Tag, typename Tuner, typename CheckpointTuner >
-//    typename tag_collection< Tag, Tuner, CheckpointTuner >::const_iterator tag_collection< Tag, Tuner, CheckpointTuner >::end() const
-//    {
-//        return m_tagCollection.end();
-//    }
-//
-//    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//
-//    template< typename Tag, typename Tuner, typename CheckpointTuner >
-//    void tag_collection< Tag, Tuner, CheckpointTuner >::unsafe_reset()
-//    {
-//        m_tagCollection.unsafe_reset( Internal::distributor::numProcs() > 1 && m_tagCollection.get_context().subscribed() );
-//    }
-//
-//    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//
-//    template< typename Tag, typename Tuner, typename CheckpointTuner >
-//    size_t tag_collection< Tag, Tuner, CheckpointTuner >::size()
-//    {
-//        return m_tagCollection.size();
-//    }
-//
-//    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//
-//    template< typename Tag, typename Tuner, typename CheckpointTuner >
-//    bool tag_collection< Tag, Tuner, CheckpointTuner >::empty()
-//    {
-//        return m_tagCollection.empty();
-//    }
-//    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//
-//    template< typename Tag, typename Tuner, typename CheckpointTuner >
-//    template< typename Step, typename STuner, typename Arg, typename SCheckpointTuner >
-//    error_type tag_collection< Tag, Tuner, CheckpointTuner >::prescribes( const step_collection< Step, STuner, SCheckpointTuner > & sc, Arg & arg )
-//    {
-//        typedef Internal::step_launcher< Tag, Step, Arg, Tuner, STuner, SCheckpointTuner > the_step_launcher;
-//        the_step_launcher * _sl = new the_step_launcher( &m_tagCollection, arg, sc );
-//        m_tagCollection.addPrescribedCollection( _sl );
-//        return 0;
-//    }
-//
-//    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//
-//    template< typename Tag, typename Tuner, typename CheckpointTuner >
-//    void tag_collection< Tag, Tuner, CheckpointTuner >::on_put( callback_type * cb )
-//    {
-//        m_tagCollection.on_put( cb );
-//    }
-//
-//    template< typename Tag, typename Tuner, typename CheckpointTuner >
-//    int tag_collection< Tag, Tuner, CheckpointTuner >::getId()
-//    {
-//        return m_tagCollection.getId();
-//    }
-//
-//    template< typename Tag, typename Tuner, typename CheckpointTuner >
-//    void tag_collection< Tag, Tuner, CheckpointTuner >::reset_for_restart()
-//    {
-//        m_tagCollection.do_reset();
-//    }
+    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    template< typename Tag, typename Tuner, typename CheckpointTuner >
+    void resilient_tag_collection< Tag, Tuner, CheckpointTuner >::put( const Tag & t )
+    {
+        tag_collection< Tag, Tuner, CheckpointTuner >::put( t );
+    }
+
+    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    template< typename Tag, typename Tuner, typename CheckpointTuner >
+    template< typename PTag, typename UserStep, typename STuner, typename SCheckpointTuner >
+    void resilient_tag_collection< Tag, Tuner, CheckpointTuner >::put( const Tag & prescriber, const CnC::step_collection< UserStep, STuner, SCheckpointTuner> & prescriberCol , const Tag & t )
+    {
+    	tag_collection< Tag, Tuner, CheckpointTuner >::put( prescriber, prescriberCol.getId(), t );
+    }
+
+    template< typename Tag, typename Tuner, typename CheckpointTuner >
+    void resilient_tag_collection< Tag, Tuner, CheckpointTuner >::restart_put( const Tag & t ) {
+    	tag_collection< Tag, Tuner, CheckpointTuner >::restart_put( t );
+    }
 
 
 
