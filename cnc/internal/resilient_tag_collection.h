@@ -78,6 +78,8 @@ namespace CnC {
     template< typename Tag, typename Tuner, typename CheckpointTuner >
     void resilient_tag_collection< Tag, Tuner, CheckpointTuner >::put( const Tag & t )
     {
+    	//m_ctuner.prescribe(0, 0, user_tag, m_id);
+    	void * id = m_tag_checkpoint.put( t );
         tag_collection< Tag, Tuner, CheckpointTuner >::put( t );
     }
 
@@ -88,6 +90,8 @@ namespace CnC {
     template< typename PTag, typename UserStep, typename STuner, typename SCheckpointTuner >
     void resilient_tag_collection< Tag, Tuner, CheckpointTuner >::put( const Tag & prescriber, const CnC::step_collection< UserStep, STuner, SCheckpointTuner> & prescriberCol , const Tag & t )
     {
+    	//m_ctuner.prescribe(prescriber, prescriberColId, user_tag, m_id);
+    	void * id = m_tag_checkpoint.put( t );
     	tag_collection< Tag, Tuner, CheckpointTuner >::put( prescriber, prescriberCol, t );
     }
 

@@ -105,7 +105,7 @@ namespace CnC {
             typedef std::vector< callback_type * > callback_vec;
             callback_vec m_onPuts;
             int m_allMask;
-            const CheckpointTuner & m_ctuner; //The checkpoint tuner
+            //const CheckpointTuner & m_ctuner; //The checkpoint tuner
 
             const int m_id;
         }; // class tag_collection_base
@@ -136,7 +136,7 @@ namespace CnC {
               m_tagTable(),
               m_onPuts(),
               m_allMask( 0 ),
-              m_ctuner(get_default_checkpoint_tuner< CheckpointTuner >(g) ),
+              //m_ctuner(get_default_checkpoint_tuner< CheckpointTuner >(g) ),
               m_id(g.get_next_tag_col_id())
         {
             traceable::set_name( name );
@@ -152,7 +152,7 @@ namespace CnC {
               m_tagTable(),
               m_onPuts(),
               m_allMask( 0 ),
-              m_ctuner(get_default_checkpoint_tuner< CheckpointTuner >(g)),
+              //m_ctuner(get_default_checkpoint_tuner< CheckpointTuner >(g)),
               m_id(g.get_next_tag_col_id())
         {
             traceable::set_name( name );
@@ -255,7 +255,7 @@ namespace CnC {
         template< class Tag, class Tuner, class CheckpointTuner >
         void tag_collection_base< Tag, Tuner, CheckpointTuner >::Put( const Tag & user_tag, const int mask, const bool from_env )
         {
-        	if (from_env) m_ctuner.prescribe(0, 0, user_tag, m_id); // If this call comes from the env then we need to make sure this gets registered as such 0 0 is the env
+        	//if (from_env) m_ctuner.prescribe(0, 0, user_tag, m_id); // If this call comes from the env then we need to make sure this gets registered as such 0 0 is the env
         	//std::cout << "Put "  << " by " << mask << '\n';
             int _lmask = mask & m_allMask;
 
@@ -307,7 +307,7 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         template< class Tag, class Tuner, class CheckpointTuner >
         void tag_collection_base< Tag, Tuner, CheckpointTuner >::Put( const Tag & prescriber, const int & prescriberColId, const Tag & user_tag) {
-        	m_ctuner.prescribe(prescriber, prescriberColId, user_tag, m_id);
+        	//m_ctuner.prescribe(prescriber, prescriberColId, user_tag, m_id);
         	my_mutex_type::scoped_lock _lock( m_putMutex );
         	Put( user_tag, -1, false ); //TODO I thing that it is possible that the tag is already here, in this case the tuner is called to many times.
         	_lock.release();
