@@ -65,6 +65,11 @@ namespace CnC {
     template< typename Tag, typename Item, typename Tuner, typename CheckpointTuner > class item_collection;
     template< typename UserStep, typename Tuner, typename CheckpointTuner> class step_collection;
 
+    template< typename Tag, typename Tuner, typename CheckpointTuner > class resilient_tag_collection;
+    template< typename Tag, typename Item, typename Tuner, typename CheckpointTuner > class resilient_item_collection;
+    template< typename UserStep, typename Tuner, typename CheckpointTuner> class resilient_step_collection;
+
+
     /// Steps return CNC_Success if execution was successful
     const int CNC_Success = 0;
     /// Steps return CNC_Failure if execution failed
@@ -742,6 +747,81 @@ namespace CnC {
 
 	};
 
+    template< typename UserStep, typename Tuner = step_tuner<>, typename CheckpointTuner = checkpoint_tuner_nop<int, int> >
+    class resilient_step_collection : public step_collection< UserStep, Tuner, CheckpointTuner > , public virtual Internal::traceable
+    {
+    public:
+        /// the type of the step as provided by the user
+        typedef UserStep step_type;
+        /// the type of the tuner as provided by the user
+        typedef Tuner tuner_type;
+        // the type of the checkpoint tuner as provided by the user
+        typedef CheckpointTuner checkpoint_tuner_type;
+
+        template< typename Derived >
+        resilient_step_collection( context< Derived > & ctxt, const std::string & name, const step_type & userStep, const tuner_type & tnr );
+        template< typename Derived >
+        resilient_step_collection( context< Derived > & ctxt );
+        template< typename Derived >
+        resilient_step_collection( context< Derived > & ctxt, const std::string & name );
+        template< typename Derived >
+        resilient_step_collection( context< Derived > & ctxt, const tuner_type & tnr, const std::string & name = std::string() );
+        template< typename Derived >
+        resilient_step_collection( context< Derived > & ctxt, const std::string & name, const step_type & userStep );
+
+        ~resilient_step_collection();
+
+
+    };
+
+    template< typename Tag, typename Tuner = tag_tuner<>, typename CheckpointTuner = checkpoint_tuner_nop< Tag, int > >
+    class /*CNC_API*/ resilient_tag_collection: public tag_collection< Tag, Tuner, CheckpointTuner >
+    {
+    public:
+        /// the tag type
+        typedef Tag tag_type;
+
+        template< class Derived >
+        resilient_tag_collection( context< Derived > & ctxt, const std::string & name, const Tuner & tnr );
+        template< class Derived >
+        resilient_tag_collection( context< Derived > & ctxt, const std::string & name = std::string() );
+        template< class Derived >
+        resilient_tag_collection( context< Derived > & ctxt, const Tuner & tnr );
+
+        ~resilient_tag_collection();
+
+        void put( const Tag & t );
+
+        template< typename PTag, typename UserStep, typename STuner, typename SCheckpointTuner >
+        void put( const Tag & prescriber, const CnC::step_collection< UserStep, STuner, SCheckpointTuner> & prescriberColId, const Tag & tag ); //TODO change to template val
+
+        void restart_put( const Tag & t );
+
+    };
+
+    template< typename Tag, typename Item, typename Tuner = hashmap_tuner, typename CheckpointTuner = checkpoint_tuner_nop<Tag , Item>  >
+    class /*CNC_API*/ resilient_item_collection: public item_collection< Tag, Item, Tuner, CheckpointTuner >
+    {
+
+    public:
+
+        template< class Derived >
+        resilient_item_collection( context< Derived > & ctxt, const std::string & name, const Tuner & tnr );
+        template< class Derived >
+        resilient_item_collection( context< Derived > & ctxt, const std::string & name = std::string() );
+        template< class Derived >
+        resilient_item_collection( context< Derived > & ctxt, const Tuner & tnr );
+
+        ~resilient_item_collection();
+
+        void put( const Tag & tag, const Item & item );
+
+        template< typename PTag, typename UserStep, typename STuner, typename SCheckpointTuner >
+        void put( const PTag & putter, const CnC::step_collection< UserStep, STuner, SCheckpointTuner> & putterColl, const Tag & tag, const Item & item );
+
+        void restart_put(const Tag & user_tag, const Item & item);
+
+    };
 
     /// \brief Execute f( i ) for every i in {first <= i=first+step*x < last and 0 <= x}.
     ///
@@ -764,6 +844,12 @@ namespace CnC {
 #include <cnc/internal/step_collection.h>
 #include <cnc/internal/tag_collection.h>
 #include <cnc/internal/item_collection.h>
+
+#include <cnc/internal/resilient_step_collection.h>
+#include <cnc/internal/resilient_tag_collection.h>
+#include <cnc/internal/resilient_item_collection.h>
+
+
 #include <cnc/internal/graph.h>
 #include <cnc/internal/context.h>
 #include <cnc/internal/resilientContext.h>
