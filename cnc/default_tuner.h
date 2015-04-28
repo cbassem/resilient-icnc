@@ -630,7 +630,7 @@ namespace CnC {
     struct checkpoint_tuner_nop: public virtual tuner_base {
     	typedef Internal::distributable_context distcontext;
 
-    	checkpoint_tuner_nop(distcontext & context) {};
+    	checkpoint_tuner_nop() {};
 
     	void done(const Tag & tag, const int tagColId) const {}
     	void prescribe(const Tag & prescriber, const int prescriberColId, const Tag & tag, const int tagColId) const {}
@@ -645,26 +645,27 @@ namespace CnC {
     	typedef CnC::resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType > resCtxt;
 
     	// This reinterpret_cast is 'safe' since we only use this tuner in combination with the resilienceContext.
-    	checkpoint_tuner(distcontext & context): m_context(reinterpret_cast< CnC::resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType > & > (context)) {}
+    	checkpoint_tuner() {}
+    	//: m_context(reinterpret_cast< CnC::resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType > & > (context)) {}
     	virtual ~checkpoint_tuner() {}
 
     	virtual int getNrOfPuts() const = 0;
     	virtual int getNrOfPrescribes() const = 0;
 
     	void done(const Tag & tag, const int tagColId) const {
-    		m_context.done( tag, tagColId, getNrOfPuts(), getNrOfPrescribes() );
+    		//m_context.done( tag, tagColId, getNrOfPuts(), getNrOfPrescribes() );
     	}
 
     	void prescribe(const Tag & prescriber, const int prescriberColId, const Tag & tag, const int tagColId) const {
-    		m_context.prescribe( prescriber, prescriberColId, tag, tagColId);
+    		//m_context.prescribe( prescriber, prescriberColId, tag, tagColId);
     	}
 
     	void put(const Tag & putter, const int putterColId, const Tag & tag, const Item & item, const int itemColId) const {
-    		m_context.put( putter, putterColId, tag, item, itemColId);
+    		//m_context.put( putter, putterColId, tag, item, itemColId);
     	}
 
     private:
-    	CnC::resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType > & m_context;
+    	//CnC::resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType > & m_context;
     };
 
 
@@ -690,7 +691,7 @@ namespace CnC {
         {
             static tbb::atomic< CheckpointTuner * > cs_tuner;
             if( cs_tuner == NULL ) {
-            	CheckpointTuner * _tmp = new CheckpointTuner(context);
+            	CheckpointTuner * _tmp = new CheckpointTuner();//context);
                 if( cs_tuner.compare_and_swap( _tmp, NULL ) != NULL ) delete _tmp;
             }
             return *cs_tuner;

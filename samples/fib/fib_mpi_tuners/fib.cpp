@@ -42,8 +42,6 @@ typedef unsigned long long fib_type;
 #include <unistd.h>
 
 
-fib_cr_tuner::fib_cr_tuner(CnC::Internal::distributable_context& context ): checkpoint_tuner(context) {};
-
 int fib_cr_tuner::getNrOfPrescribes() const {
 	return 0;
 };

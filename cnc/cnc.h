@@ -45,6 +45,7 @@
 #include <cnc/internal/context_base.h>
 #include <cnc/internal/no_range.h>
 #include <cnc/internal/checkpointingsystem/SimpelCheckpointManager.h>
+#include <cnc/internal/checkpointingsystem/ItemCheckpoint.h>
 #include <vector>
 #include <set>
 #include <tr1/unordered_map>
@@ -820,6 +821,11 @@ namespace CnC {
         void put( const PTag & putter, const CnC::step_collection< UserStep, STuner, SCheckpointTuner> & putterColl, const Tag & tag, const Item & item );
 
         void restart_put(const Tag & user_tag, const Item & item);
+
+    private:
+    	typedef item_collection< Tag, Item, Tuner, CheckpointTuner > super_type;
+
+        ItemCheckpoint< Tag, Item, Tuner > m_item_checkpoint;
 
     };
 

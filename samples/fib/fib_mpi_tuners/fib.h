@@ -47,8 +47,6 @@ typedef CnC::tag_collection< int, CnC::tag_tuner<>, fib_cr_tuner > tag_type;
 // let's use a tuner to pre-declare dependencies
 struct fib_cr_tuner: public CnC::checkpoint_tuner<fib_context, int, fib_type, step_type, tag_type, item_type>
 {
-	fib_cr_tuner(CnC::Internal::distributable_context&);
-
 	int getNrOfPuts() const;
 	int getNrOfPrescribes() const;
 };
