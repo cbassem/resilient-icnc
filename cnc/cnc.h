@@ -46,6 +46,7 @@
 #include <cnc/internal/no_range.h>
 #include <cnc/internal/checkpointingsystem/SimpelCheckpointManager.h>
 #include <cnc/internal/checkpointingsystem/ItemCheckpoint.h>
+#include <cnc/internal/checkpointingsystem/TagCheckpoint.h>
 #include <vector>
 #include <set>
 #include <tr1/unordered_map>
@@ -798,6 +799,9 @@ namespace CnC {
 
         void restart_put( const Tag & t );
 
+    private:
+    	typedef tag_collection< Tag, Tuner, CheckpointTuner > super_type;
+        TagCheckpoint< Tag > m_tag_checkpoint;
     };
 
     template< typename Tag, typename Item, typename Tuner = hashmap_tuner, typename CheckpointTuner = checkpoint_tuner_nop<Tag , Item>  >
@@ -824,9 +828,7 @@ namespace CnC {
 
     private:
     	typedef item_collection< Tag, Item, Tuner, CheckpointTuner > super_type;
-
-        ItemCheckpoint< Tag, Item, Tuner > m_item_checkpoint;
-
+        ItemCheckpoint< Tag, Item > m_item_checkpoint;
     };
 
     /// \brief Execute f( i ) for every i in {first <= i=first+step*x < last and 0 <= x}.

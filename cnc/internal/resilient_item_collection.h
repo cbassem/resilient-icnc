@@ -74,7 +74,7 @@ namespace CnC {
     void resilient_item_collection< Tag, Item, Tuner, CheckpointTuner >::put( const Tag & t, const Item & i )
     {
     	//m_item_checkpoint.put(0, 0, t, i, super_type::m_id); // The env put the item
-    	m_item_checkpoint.put( t, i );
+    	void * id = m_item_checkpoint.put( t, i );
     	super_type::put( t, i );
     }
 
@@ -82,7 +82,7 @@ namespace CnC {
     template< typename PTag, typename UserStep, typename STuner, typename SCheckpointTuner >
     void resilient_item_collection< Tag, Item, Tuner, CheckpointTuner >::put(const PTag & putter, const CnC::step_collection<UserStep, STuner, SCheckpointTuner>& putterColl, const Tag & t, const Item & i)
     {
-    	m_item_checkpoint.put( t, i );
+    	void * id = m_item_checkpoint.put( t, i );
     	//putterColl.processPut(putter, putterCollectionId, )
     	item_collection< Tag, Item, Tuner, CheckpointTuner >::put( putter, putterColl, t, i );
     }
