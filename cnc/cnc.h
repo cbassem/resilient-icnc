@@ -44,9 +44,13 @@
 #include <cnc/internal/item_collection_base.h>
 #include <cnc/internal/context_base.h>
 #include <cnc/internal/no_range.h>
-#include <cnc/internal/checkpointingsystem/SimpelCheckpointManager.h>
 #include <cnc/internal/checkpointingsystem/ItemCheckpoint.h>
 #include <cnc/internal/checkpointingsystem/TagCheckpoint.h>
+#include <cnc/internal/checkpointingsystem/StepCheckpoint.h>
+#include <cnc/internal/checkpointingsystem/ItemCheckpoint_i.h>
+#include <cnc/internal/checkpointingsystem/TagCheckpoint_i.h>
+#include <cnc/internal/checkpointingsystem/StepCheckpoint_i.h>
+
 #include <vector>
 #include <set>
 #include <tr1/unordered_map>
@@ -60,16 +64,16 @@ namespace CnC {
 
     // forward declarations
     template< class T > class context;
-    template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType, class ItemCollectionType > class resilientContext;
+    template< class Derived > class resilientContext;
 
     struct debug;
     template< typename Tag, typename Tuner, typename CheckpointTuner > class tag_collection;
     template< typename Tag, typename Item, typename Tuner, typename CheckpointTuner > class item_collection;
     template< typename UserStep, typename Tuner, typename CheckpointTuner> class step_collection;
 
-    template< typename Tag, typename Tuner, typename CheckpointTuner > class resilient_tag_collection;
-    template< typename Tag, typename Item, typename Tuner, typename CheckpointTuner > class resilient_item_collection;
-    template< typename UserStep, typename Tuner, typename CheckpointTuner> class resilient_step_collection;
+    template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner > class resilient_tag_collection;
+    template< typename Derived, typename Tag, typename Item, typename Tuner, typename CheckpointTuner > class resilient_item_collection;
+    template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner> class resilient_step_collection;
 
 
     /// Steps return CNC_Success if execution was successful
@@ -656,7 +660,7 @@ namespace CnC {
 		static const char KEEP_ALIVE_PONG = 8;
     }
 
-    template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType>
+    template< class Derived >
     class resilientContext : public context< Derived >
 	{
 	public:
@@ -673,83 +677,87 @@ namespace CnC {
     	/// (distCnC) overload this if default construction on remote processes is not enough.
     	virtual void serialize( serializer & ){}
 
-    	void registerStepCollection( StepCollectionType & step_col );
+    	void registerStepCheckPoint( StepCheckpoint_i & step_col );
 
-    	void registerTagCollection( TagCollectionType & tag_col );
+    	void registerTagCheckpoint( TagCheckpoint_i & tag_col );
 
-    	void registerItemCollection( ItemCollectionType & item_col );
-
-    	void done(const Tag & tag, const int tagColId, const int nrOfPuts, const int nrOfPrescribes);
-
-    	void prescribe(const Tag & prescriber, const int prescriberColId, const Tag & tag, const int tagColId);
-
-    	void put(const Tag & putter, const int putterColId, const Tag & tag, const Item & item, const int itemColId);
-
-    	void printCheckpoint();
-
-    	void restarted();
-
-    	void stop_wait_loop();
-
-    	/// Override wait() to add the restart process
-    	//error_type wait();
-
-	protected:
-    	//Since contexts already have their own implementations of send and receive, lets make our own communicator to handle the resilience stuff
-    	class communicator : public virtual CnC::Internal::distributable
-		{
-		public:
-    	    //communicator();
-    	    communicator(resilientContext<Derived, Tag, Item, StepCollectionType, TagCollectionType , ItemCollectionType> & rctxt);
-    	    virtual ~communicator();
-
-
-        	//Implementing the distributable interface
-        	void recv_msg( serializer * ser );
-        	void unsafe_reset( bool dist );
-
-        	friend resilientContext<Derived, Tag, Item, StepCollectionType, TagCollectionType , ItemCollectionType>;
-
-		private:
-        	resilientContext<Derived, Tag, Item, StepCollectionType, TagCollectionType , ItemCollectionType> & m_resilientContext;
-
-		};
-
+    	void registerItemCheckpoint( ItemCheckpoint_i & item_col );
+//
+//    	void done(const Tag & tag, const int tagColId, const int nrOfPuts, const int nrOfPrescribes);
+//
+//    	void prescribe(const Tag & prescriber, const int prescriberColId, const Tag & tag, const int tagColId);
+//
+//    	void put(const Tag & putter, const int putterColId, const Tag & tag, const Item & item, const int itemColId);
+//
+//    	void printCheckpoint();
+//
+//    	void restarted();
+//
+//    	void stop_wait_loop();
+//
+//    	/// Override wait() to add the restart process
+//    	//error_type wait();
+//
+//	protected:
+//    	//Since contexts already have their own implementations of send and receive, lets make our own communicator to handle the resilience stuff
+//    	class communicator : public virtual CnC::Internal::distributable
+//		{
+//		public:
+//    	    //communicator();
+//    	    communicator(resilientContext<Derived, Tag, Item, StepCollectionType, TagCollectionType , ItemCollectionType> & rctxt);
+//    	    virtual ~communicator();
+//
+//
+//        	//Implementing the distributable interface
+//        	void recv_msg( serializer * ser );
+//        	void unsafe_reset( bool dist );
+//
+//        	friend resilientContext<Derived, Tag, Item, StepCollectionType, TagCollectionType , ItemCollectionType>;
+//
+//		private:
+//        	resilientContext<Derived, Tag, Item, StepCollectionType, TagCollectionType , ItemCollectionType> & m_resilientContext;
+//
+//		};
+//
 	private:
+    	std::vector< ItemCheckpoint_i * > m_item_checkpoints;
+    	std::vector< TagCheckpoint_i * > m_tag_checkpoints;
+    	std::vector< StepCheckpoint_i * > m_step_checkpoints;
 
-    	SimpelCheckpointManager< Tag, Item > m_cmanager; //atm they all have an instance but only the "main" context uses one.
-    	communicator m_communicator;
-    	int m_countdown_to_crash;
-    	int m_process_to_crash;
-    	std::vector< StepCollectionType * > m_step_collections;
-    	std::vector< TagCollectionType * > m_tag_collections;
-    	std::vector< ItemCollectionType * > m_item_collections;
-
-    	void checkForCrash();
-    	void crash() const;
-    	void init_restart(int requester_pid);
-    	void add_checkpoint_data_locally();
-    	void sendItem(Tag key, Item value, int item_coll, int receiver_pid);
-    	void sendTag(Tag tag, int tag_coll, int receiver_pid);
-
-    	void restart_put(Tag key, Item value, int item_coll);
-    	void restart_prescribe(Tag tag, int tag_coll);
-
-    	void remote_wait_init( int recvr );
-
-    	void sendPing(int nr_of_pings_to_go);
-    	void sendPong(int nr_of_pings_to_go);
-
-    	typedef tbb::spin_mutex mutex_t;
-    	mutex_t                                m_mutex;
-
-    	friend class communicator;
-    	typedef CnC::Internal::distributable_context dist_context;
+//
+//    	SimpelCheckpointManager< Tag, Item > m_cmanager; //atm they all have an instance but only the "main" context uses one.
+//    	communicator m_communicator;
+//    	int m_countdown_to_crash;
+//    	int m_process_to_crash;
+//    	std::vector< StepCollectionType * > m_step_collections;
+//    	std::vector< TagCollectionType * > m_tag_collections;
+//    	std::vector< ItemCollectionType * > m_item_collections;
+//
+//    	void checkForCrash();
+//    	void crash() const;
+//    	void init_restart(int requester_pid);
+//    	void add_checkpoint_data_locally();
+//    	void sendItem(Tag key, Item value, int item_coll, int receiver_pid);
+//    	void sendTag(Tag tag, int tag_coll, int receiver_pid);
+//
+//    	void restart_put(Tag key, Item value, int item_coll);
+//    	void restart_prescribe(Tag tag, int tag_coll);
+//
+//    	void remote_wait_init( int recvr );
+//
+//    	void sendPing(int nr_of_pings_to_go);
+//    	void sendPong(int nr_of_pings_to_go);
+//
+//    	typedef tbb::spin_mutex mutex_t;
+//    	mutex_t                                m_mutex;
+//
+//    	friend class communicator;
+//    	typedef CnC::Internal::distributable_context dist_context;
 
 
 	};
 
-    template< typename UserStep, typename Tuner = step_tuner<>, typename CheckpointTuner = checkpoint_tuner_nop<int, int> >
+    template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner = step_tuner<>, typename CheckpointTuner = checkpoint_tuner_nop<int, int> >
     class resilient_step_collection : public step_collection< UserStep, Tuner, CheckpointTuner > , public virtual Internal::traceable
     {
     public:
@@ -760,35 +768,30 @@ namespace CnC {
         // the type of the checkpoint tuner as provided by the user
         typedef CheckpointTuner checkpoint_tuner_type;
 
-        template< typename Derived >
-        resilient_step_collection( context< Derived > & ctxt, const std::string & name, const step_type & userStep, const tuner_type & tnr );
-        template< typename Derived >
-        resilient_step_collection( context< Derived > & ctxt );
-        template< typename Derived >
-        resilient_step_collection( context< Derived > & ctxt, const std::string & name );
-        template< typename Derived >
-        resilient_step_collection( context< Derived > & ctxt, const tuner_type & tnr, const std::string & name = std::string() );
-        template< typename Derived >
-        resilient_step_collection( context< Derived > & ctxt, const std::string & name, const step_type & userStep );
+        resilient_step_collection( resilientContext< Derived > & ctxt, const std::string & name, const step_type & userStep, const tuner_type & tnr );
+        resilient_step_collection( resilientContext< Derived > & ctxt );
+        resilient_step_collection( resilientContext< Derived > & ctxt, const std::string & name );
+        resilient_step_collection( resilientContext< Derived > & ctxt, const tuner_type & tnr, const std::string & name = std::string() );
+        resilient_step_collection( resilientContext< Derived > & ctxt, const std::string & name, const step_type & userStep );
 
         ~resilient_step_collection();
 
-
+    private:
+    	typedef step_collection< UserStep, Tuner, CheckpointTuner > super_type;
+    	StepCheckpoint< UserStepTag > m_step_checkpoint;
+        resilientContext< Derived > & m_resilient_contex;
     };
 
-    template< typename Tag, typename Tuner = tag_tuner<>, typename CheckpointTuner = checkpoint_tuner_nop< Tag, int > >
+    template< typename Derived, typename Tag, typename Tuner = tag_tuner<>, typename CheckpointTuner = checkpoint_tuner_nop< Tag, int > >
     class /*CNC_API*/ resilient_tag_collection: public tag_collection< Tag, Tuner, CheckpointTuner >
     {
     public:
         /// the tag type
         typedef Tag tag_type;
 
-        template< class Derived >
-        resilient_tag_collection( context< Derived > & ctxt, const std::string & name, const Tuner & tnr );
-        template< class Derived >
-        resilient_tag_collection( context< Derived > & ctxt, const std::string & name = std::string() );
-        template< class Derived >
-        resilient_tag_collection( context< Derived > & ctxt, const Tuner & tnr );
+        resilient_tag_collection( resilientContext< Derived > & ctxt, const std::string & name, const Tuner & tnr );
+        resilient_tag_collection( resilientContext< Derived > & ctxt, const std::string & name = std::string() );
+        resilient_tag_collection( resilientContext< Derived > & ctxt, const Tuner & tnr );
 
         ~resilient_tag_collection();
 
@@ -802,20 +805,18 @@ namespace CnC {
     private:
     	typedef tag_collection< Tag, Tuner, CheckpointTuner > super_type;
         TagCheckpoint< Tag > m_tag_checkpoint;
+        resilientContext< Derived > & m_resilient_contex;
     };
 
-    template< typename Tag, typename Item, typename Tuner = hashmap_tuner, typename CheckpointTuner = checkpoint_tuner_nop<Tag , Item>  >
+    template< typename Derived, typename Tag, typename Item, typename Tuner = hashmap_tuner, typename CheckpointTuner = checkpoint_tuner_nop<Tag , Item>  >
     class /*CNC_API*/ resilient_item_collection: public item_collection< Tag, Item, Tuner, CheckpointTuner >
     {
 
     public:
 
-        template< class Derived >
-        resilient_item_collection( context< Derived > & ctxt, const std::string & name, const Tuner & tnr );
-        template< class Derived >
-        resilient_item_collection( context< Derived > & ctxt, const std::string & name = std::string() );
-        template< class Derived >
-        resilient_item_collection( context< Derived > & ctxt, const Tuner & tnr );
+        resilient_item_collection( resilientContext< Derived > & ctxt, const std::string & name, const Tuner & tnr );
+        resilient_item_collection( resilientContext< Derived > & ctxt, const std::string & name = std::string() );
+        resilient_item_collection( resilientContext< Derived > & ctxt, const Tuner & tnr );
 
         ~resilient_item_collection();
 
@@ -829,6 +830,7 @@ namespace CnC {
     private:
     	typedef item_collection< Tag, Item, Tuner, CheckpointTuner > super_type;
         ItemCheckpoint< Tag, Item > m_item_checkpoint;
+        resilientContext< Derived > & m_resilient_contex;
     };
 
     /// \brief Execute f( i ) for every i in {first <= i=first+step*x < last and 0 <= x}.

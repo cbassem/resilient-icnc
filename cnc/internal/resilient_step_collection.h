@@ -35,86 +35,55 @@
 namespace CnC {
 
 
-    template< typename UserStep, typename Tuner, typename CheckpointTuner >
-    template< typename Derived >
-    resilient_step_collection< UserStep, Tuner, CheckpointTuner >::resilient_step_collection( context< Derived > & ctxt )
-        : step_collection< UserStep, Tuner, CheckpointTuner >( ctxt )
+    template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner >
+    resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::resilient_step_collection( resilientContext< Derived > & ctxt )
+        : step_collection< UserStep, Tuner, CheckpointTuner >( ctxt ), m_step_checkpoint(), m_resilient_contex(ctxt)
     {
         // FIXME register with context
     }
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    template< typename UserStep, typename Tuner, typename CheckpointTuner >
-    template< typename Derived >
-    resilient_step_collection< UserStep, Tuner, CheckpointTuner >::resilient_step_collection( context< Derived > & ctxt, const std::string & name )
-        : step_collection< UserStep, Tuner, CheckpointTuner >( ctxt, name)
+    template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner >
+    resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::resilient_step_collection( resilientContext< Derived > & ctxt, const std::string & name )
+        : step_collection< UserStep, Tuner, CheckpointTuner >( ctxt, name), m_step_checkpoint(), m_resilient_contex(ctxt)
     {
         // FIXME register with context
     }
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    template< typename UserStep, typename Tuner, typename CheckpointTuner >
-    template< typename Derived >
-    resilient_step_collection< UserStep, Tuner, CheckpointTuner >::resilient_step_collection( context< Derived > & ctxt, const std::string & name, const step_type & userStep )
-        : step_collection< UserStep, Tuner, CheckpointTuner >( ctxt, name, userStep )
-    {
-        // FIXME register with context
-    }
-
-    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-    template< typename UserStep, typename Tuner, typename CheckpointTuner >
-    template< typename Derived >
-    resilient_step_collection< UserStep, Tuner, CheckpointTuner >::resilient_step_collection( context< Derived > & ctxt, const tuner_type & tnr, const std::string & name )
-        : step_collection< UserStep, Tuner, CheckpointTuner >( ctxt, tnr, name )
+    template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner >
+    resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::resilient_step_collection( resilientContext< Derived > & ctxt, const std::string & name, const step_type & userStep )
+        : step_collection< UserStep, Tuner, CheckpointTuner >( ctxt, name, userStep ), m_step_checkpoint(), m_resilient_contex(ctxt)
     {
         // FIXME register with context
     }
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    template< typename UserStep, typename Tuner, typename CheckpointTuner >
-    template< typename Derived >
-    resilient_step_collection< UserStep, Tuner, CheckpointTuner >::resilient_step_collection( context< Derived > & ctxt, const std::string & name,
+    template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner >
+    resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::resilient_step_collection( resilientContext< Derived > & ctxt, const tuner_type & tnr, const std::string & name )
+        : step_collection< UserStep, Tuner, CheckpointTuner >( ctxt, tnr, name ), m_step_checkpoint(), m_resilient_contex(ctxt)
+    {
+        // FIXME register with context
+    }
+
+    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner >
+    resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::resilient_step_collection( resilientContext< Derived > & ctxt, const std::string & name,
                                                          const step_type & userStep, const tuner_type & tnr )
-        : step_collection< UserStep, Tuner, CheckpointTuner >( ctxt, name, userStep, tnr )
+        : step_collection< UserStep, Tuner, CheckpointTuner >( ctxt, name, userStep, tnr ), m_step_checkpoint(), m_resilient_contex(ctxt)
     {
     }
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    template< typename UserStep, typename Tuner, typename CheckpointTuner >
-    resilient_step_collection< UserStep, Tuner, CheckpointTuner >::~resilient_step_collection()
+    template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner >
+    resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::~resilient_step_collection()
     {
     }
 
-//    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//
-//    template< typename UserStep, typename tuner, typename CheckpointTuner >
-//    template< typename DataTag, typename Item, typename ITuner, typename ICheckpointTuner >
-//    void step_collection< UserStep, tuner, CheckpointTuner >:: consumes( CnC::item_collection< DataTag, Item, ITuner, ICheckpointTuner > & )
-//    {
-//        // currently doing nothing
-//    }
-//
-//    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//
-//    template< typename UserStep, typename tuner, typename CheckpointTuner >
-//    template< typename DataTag, typename Item, typename ITuner, typename ICheckpointTuner >
-//    void step_collection< UserStep, tuner, CheckpointTuner >::produces( CnC::item_collection< DataTag, Item, ITuner, ICheckpointTuner > & )
-//    {
-//        // currently doing nothing
-//    }
-//
-//    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//
-//    template< typename UserStep, typename tuner, typename CheckpointTuner >
-//    template< typename ControlTag, typename TTuner, typename TCheckpointTuner >
-//    void step_collection< UserStep, tuner, CheckpointTuner >::controls( CnC::tag_collection< ControlTag, TTuner, TCheckpointTuner > & )
-//    {
-//        // currently doing nothing
-//    }
 
 } // end namespace CnC
 

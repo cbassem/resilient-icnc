@@ -9,12 +9,12 @@
 #define SIMPELCHECKPOINTMANAGER_H_
 
 #include "CheckpointManager.h"
-#include "TagLog.h"
 #include <vector>
 #include <set>
 #include <tr1/unordered_map>
 #include <tbb/spin_mutex.h>
 #include <tbb/tbb_thread.h>
+#include "SimpleTagLog.h"
 
 
 /*

@@ -53,18 +53,18 @@ struct fib_cr_tuner: public CnC::checkpoint_tuner<fib_context, int, fib_type, st
 
 
 // The context class
-struct fib_context : public CnC::resilientContext< fib_context, int, fib_type, step_type, tag_type, item_type>
+struct fib_context : public CnC::resilientContext< fib_context >
 {
     // step collections
-    CnC::resilient_step_collection< fib_step, CnC::step_tuner<>, fib_cr_tuner > m_steps;
+    CnC::resilient_step_collection< fib_context, int, fib_step, CnC::step_tuner<>, fib_cr_tuner > m_steps;
     // Item collections
-    CnC::resilient_item_collection< int, fib_type, CnC::hashmap_tuner, fib_cr_tuner> m_fibs;
+    CnC::resilient_item_collection< fib_context, int, fib_type, CnC::hashmap_tuner, fib_cr_tuner> m_fibs;
     // Tag collections
-    CnC::resilient_tag_collection< int, CnC::tag_tuner<>, fib_cr_tuner > m_tags;
+    CnC::resilient_tag_collection< fib_context, int, CnC::tag_tuner<>, fib_cr_tuner > m_tags;
 
     // The context class constructor
     fib_context()
-        : CnC::resilientContext< fib_context, int, fib_type, step_type, tag_type, item_type >(1, 1, 1, 20, 1),
+        : CnC::resilientContext< fib_context >(1, 1, 1, 20, 1),
           // Initialize each step collection
           m_steps( *this ),
           // Initialize each item collection
@@ -78,10 +78,6 @@ struct fib_context : public CnC::resilientContext< fib_context, int, fib_type, s
         m_steps.consumes( m_fibs );
         // Producer relations
         m_steps.produces( m_fibs );
-
-        CnC::resilientContext< fib_context, int, fib_type, step_type, tag_type, item_type>::registerStepCollection(m_steps);
-        CnC::resilientContext< fib_context, int, fib_type, step_type, tag_type, item_type>::registerTagCollection(m_tags);
-        CnC::resilientContext< fib_context, int, fib_type, step_type, tag_type, item_type>::registerItemCollection(m_fibs);
 
         CnC::debug::trace_all(*this, 1);
 

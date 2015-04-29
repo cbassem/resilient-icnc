@@ -37,58 +37,56 @@
 namespace CnC {
 
 
-    template< typename Tag, typename Item, typename Tuner, typename CheckpointTuner >
-    template< class Derived >
-    resilient_item_collection< Tag, Item, Tuner, CheckpointTuner >::resilient_item_collection( context< Derived > & context, const std::string & name )
-        : item_collection< Tag, Item, Tuner, CheckpointTuner >( context, name ), m_item_checkpoint()
+    template< typename Derived, typename Tag, typename Item, typename Tuner, typename CheckpointTuner >
+    resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >::resilient_item_collection( resilientContext< Derived > & context, const std::string & name )
+        : item_collection< Tag, Item, Tuner, CheckpointTuner >( context, name ), m_item_checkpoint(), m_resilient_contex(context)
     {
     }
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    template< typename Tag, typename Item, typename Tuner, typename CheckpointTuner >
-    template< class Derived >
-    resilient_item_collection< Tag, Item, Tuner, CheckpointTuner >::resilient_item_collection( context< Derived > & context, const std::string & name, const Tuner & tnr )
-        : item_collection< Tag, Item, Tuner, CheckpointTuner >( context, name, tnr ), m_item_checkpoint()
+    template< typename Derived, typename Tag, typename Item, typename Tuner, typename CheckpointTuner >
+    resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >::resilient_item_collection( resilientContext< Derived > & context, const std::string & name, const Tuner & tnr )
+        : item_collection< Tag, Item, Tuner, CheckpointTuner >( context, name, tnr ), m_item_checkpoint(), m_resilient_contex(context)
     {
     } 
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    template< typename Tag, typename Item, typename Tuner, typename CheckpointTuner >
-    template< class Derived >
-    resilient_item_collection< Tag, Item, Tuner, CheckpointTuner >::resilient_item_collection( context< Derived > & context, const Tuner & tnr )
-        : item_collection< Tag, Item, Tuner, CheckpointTuner >( context, tnr ), m_item_checkpoint()
+    template< typename Derived, typename Tag, typename Item, typename Tuner, typename CheckpointTuner >
+    resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >::resilient_item_collection( resilientContext< Derived > & context, const Tuner & tnr )
+        : item_collection< Tag, Item, Tuner, CheckpointTuner >( context, tnr ), m_item_checkpoint(), m_resilient_contex(context)
     {
     } 
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    template< typename Tag, typename Item, typename Tuner, typename CheckpointTuner >
-    resilient_item_collection< Tag, Item, Tuner, CheckpointTuner >::~resilient_item_collection()
+    template< typename Derived, typename Tag, typename Item, typename Tuner, typename CheckpointTuner >
+    resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >::~resilient_item_collection()
     {
     }
 
 
-    template< typename Tag, typename Item, typename Tuner, typename CheckpointTuner >
-    void resilient_item_collection< Tag, Item, Tuner, CheckpointTuner >::put( const Tag & t, const Item & i )
+    template< typename Derived, typename Tag, typename Item, typename Tuner, typename CheckpointTuner >
+    void resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >::put( const Tag & t, const Item & i )
     {
     	//m_item_checkpoint.put(0, 0, t, i, super_type::m_id); // The env put the item
     	void * id = m_item_checkpoint.put( t, i );
+    	m_resilient_contex.processEnvItemPut(id, super_type::m_id);
     	super_type::put( t, i );
     }
 
-    template< typename Tag, typename Item, typename Tuner, typename CheckpointTuner >
+    template< typename Derived, typename Tag, typename Item, typename Tuner, typename CheckpointTuner >
     template< typename PTag, typename UserStep, typename STuner, typename SCheckpointTuner >
-    void resilient_item_collection< Tag, Item, Tuner, CheckpointTuner >::put(const PTag & putter, const CnC::step_collection<UserStep, STuner, SCheckpointTuner>& putterColl, const Tag & t, const Item & i)
+    void resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >::put(const PTag & putter, const CnC::step_collection<UserStep, STuner, SCheckpointTuner>& putterColl, const Tag & t, const Item & i)
     {
-    	void * id = m_item_checkpoint.put( t, i );
-    	//putterColl.processPut(putter, putterCollectionId, )
+    	void * itemid = m_item_checkpoint.put( t, i );
+    	putterColl.processPut(putter, itemid, super_type::m_id);
     	item_collection< Tag, Item, Tuner, CheckpointTuner >::put( putter, putterColl, t, i );
     }
 
-    template< typename Tag, typename Item, typename Tuner, typename CheckpointTuner >
-    void resilient_item_collection< Tag, Item, Tuner, CheckpointTuner >::restart_put(const Tag & user_tag, const Item & item)
+    template< typename Derived, typename Tag, typename Item, typename Tuner, typename CheckpointTuner >
+    void resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >::restart_put(const Tag & user_tag, const Item & item)
     {
     	item_collection< Tag, Item, Tuner, CheckpointTuner >::restart_put( user_tag, item);
     }

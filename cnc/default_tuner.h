@@ -51,7 +51,7 @@
 namespace CnC {
 
 	// forward declarations, break cyclic dependency with <cnc/cnc.h>
-	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType, class ItemCollectionType  > class resilientContext;
+	template< class Derived > class resilientContext;
 
 
 
@@ -642,7 +642,7 @@ namespace CnC {
     struct checkpoint_tuner: public virtual tuner_base {
     	typedef Internal::distributable_context distcontext;
 
-    	typedef CnC::resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType > resCtxt;
+    	typedef CnC::resilientContext< Derived > resCtxt;
 
     	// This reinterpret_cast is 'safe' since we only use this tuner in combination with the resilienceContext.
     	checkpoint_tuner() {}

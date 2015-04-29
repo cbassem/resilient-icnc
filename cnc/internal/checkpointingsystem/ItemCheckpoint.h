@@ -8,11 +8,12 @@
 #ifndef ITEMCHECKPOINT_H_
 #define ITEMCHECKPOINT_H_
 
-#include <tbb/concurrent_hash_map.h>
+#include "ItemCheckpoint_i.h"
+#include <tr1/unordered_map>
 
 
 template< class Key, class Item >
-class ItemCheckpoint {
+class ItemCheckpoint: public ItemCheckpoint_i {
 public:
 	ItemCheckpoint();
 	virtual ~ItemCheckpoint();

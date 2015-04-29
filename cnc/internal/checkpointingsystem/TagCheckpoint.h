@@ -8,10 +8,12 @@
 #ifndef TAGCHECKPOINT_H_
 #define TAGCHECKPOINT_H_
 
-#include <set>
+#include "TagCheckpoint_i.h"
+#include <tr1/unordered_map>
+
 
 template< class Tag >
-class TagCheckpoint {
+class TagCheckpoint: public TagCheckpoint_i {
 public:
 	TagCheckpoint();
 	virtual ~TagCheckpoint();
