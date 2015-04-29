@@ -39,7 +39,7 @@ namespace CnC {
     resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::resilient_step_collection( resilientContext< Derived > & ctxt )
         : step_collection< UserStep, Tuner, CheckpointTuner >( ctxt ), m_step_checkpoint(), m_resilient_contex(ctxt)
     {
-        // FIXME register with context
+        m_resilient_contex.registerStepCheckPoint( &m_step_checkpoint );
     }
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -48,7 +48,7 @@ namespace CnC {
     resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::resilient_step_collection( resilientContext< Derived > & ctxt, const std::string & name )
         : step_collection< UserStep, Tuner, CheckpointTuner >( ctxt, name), m_step_checkpoint(), m_resilient_contex(ctxt)
     {
-        // FIXME register with context
+        m_resilient_contex.registerStepCheckPoint( &m_step_checkpoint );
     }
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -56,7 +56,7 @@ namespace CnC {
     resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::resilient_step_collection( resilientContext< Derived > & ctxt, const std::string & name, const step_type & userStep )
         : step_collection< UserStep, Tuner, CheckpointTuner >( ctxt, name, userStep ), m_step_checkpoint(), m_resilient_contex(ctxt)
     {
-        // FIXME register with context
+        m_resilient_contex.registerStepCheckPoint( &m_step_checkpoint );
     }
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -65,7 +65,7 @@ namespace CnC {
     resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::resilient_step_collection( resilientContext< Derived > & ctxt, const tuner_type & tnr, const std::string & name )
         : step_collection< UserStep, Tuner, CheckpointTuner >( ctxt, tnr, name ), m_step_checkpoint(), m_resilient_contex(ctxt)
     {
-        // FIXME register with context
+        m_resilient_contex.registerStepCheckPoint( &m_step_checkpoint );
     }
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

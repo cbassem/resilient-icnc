@@ -41,6 +41,7 @@ namespace CnC {
     resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >::resilient_item_collection( resilientContext< Derived > & context, const std::string & name )
         : item_collection< Tag, Item, Tuner, CheckpointTuner >( context, name ), m_item_checkpoint(), m_resilient_contex(context)
     {
+    	m_resilient_contex.registerItemCheckpoint( &m_item_checkpoint );
     }
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -49,6 +50,7 @@ namespace CnC {
     resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >::resilient_item_collection( resilientContext< Derived > & context, const std::string & name, const Tuner & tnr )
         : item_collection< Tag, Item, Tuner, CheckpointTuner >( context, name, tnr ), m_item_checkpoint(), m_resilient_contex(context)
     {
+    	m_resilient_contex.registerItemCheckpoint( &m_item_checkpoint );
     } 
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -57,6 +59,7 @@ namespace CnC {
     resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >::resilient_item_collection( resilientContext< Derived > & context, const Tuner & tnr )
         : item_collection< Tag, Item, Tuner, CheckpointTuner >( context, tnr ), m_item_checkpoint(), m_resilient_contex(context)
     {
+    	m_resilient_contex.registerItemCheckpoint( &m_item_checkpoint );
     } 
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -64,6 +67,7 @@ namespace CnC {
     template< typename Derived, typename Tag, typename Item, typename Tuner, typename CheckpointTuner >
     resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >::~resilient_item_collection()
     {
+    	m_resilient_contex.registerItemCheckpoint( &m_item_checkpoint );
     }
 
 

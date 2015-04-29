@@ -48,18 +48,18 @@ namespace CnC {
 	};
 
 	template< class Derived >
-	void resilientContext< Derived >::registerStepCheckPoint( StepCheckpoint_i & step_col ) {
-		m_step_checkpoints.push_back(&step_col);
+	void resilientContext< Derived >::registerStepCheckPoint( StepCheckpoint_i*  step_col ) {
+		m_step_checkpoints.push_back(step_col);
 	};
 
 	template< class Derived >
-	void resilientContext< Derived >::registerTagCheckpoint( TagCheckpoint_i & tag_col ) {
-		m_tag_checkpoints.push_back(&tag_col);
+	void resilientContext< Derived >::registerTagCheckpoint( TagCheckpoint_i* tag_col ) {
+		m_tag_checkpoints.push_back(tag_col);
 	};
 
 	template< class Derived >
-	void resilientContext< Derived >::registerItemCheckpoint( ItemCheckpoint_i & item_col ) {
-		m_item_checkpoints.push_back(&item_col);
+	void resilientContext< Derived >::registerItemCheckpoint( ItemCheckpoint_i* item_col ) {
+		m_item_checkpoints.push_back(item_col);
 	};
 //
 //	template< class Derived >

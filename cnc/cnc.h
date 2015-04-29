@@ -677,11 +677,11 @@ namespace CnC {
     	/// (distCnC) overload this if default construction on remote processes is not enough.
     	virtual void serialize( serializer & ){}
 
-    	void registerStepCheckPoint( StepCheckpoint_i & step_col );
+    	void registerStepCheckPoint( StepCheckpoint_i* step_col );
 
-    	void registerTagCheckpoint( TagCheckpoint_i & tag_col );
+    	void registerTagCheckpoint( TagCheckpoint_i* tag_col );
 
-    	void registerItemCheckpoint( ItemCheckpoint_i & item_col );
+    	void registerItemCheckpoint( ItemCheckpoint_i* item_col );
 
 
 
@@ -724,9 +724,9 @@ namespace CnC {
 //		};
 //
 	private:
-    	std::vector< ItemCheckpoint_i * > m_item_checkpoints;
-    	std::vector< TagCheckpoint_i * > m_tag_checkpoints;
-    	std::vector< StepCheckpoint_i * > m_step_checkpoints;
+    	std::vector< ItemCheckpoint_i* > m_item_checkpoints;
+    	std::vector< TagCheckpoint_i* > m_tag_checkpoints;
+    	std::vector< StepCheckpoint_i* > m_step_checkpoints;
 
 //
 //    	SimpelCheckpointManager< Tag, Item > m_cmanager; //atm they all have an instance but only the "main" context uses one.
