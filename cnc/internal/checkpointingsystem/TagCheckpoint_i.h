@@ -11,7 +11,7 @@
 
 class TagCheckpoint_i {
 public:
-	virtual ~TagCheckpoint_i();
+	virtual ~TagCheckpoint_i() {};
 
 };
 

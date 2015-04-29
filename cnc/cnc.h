@@ -806,7 +806,9 @@ namespace CnC {
         void put( const Tag & t );
 
         template< typename UserStepTag, typename UserStep, typename STuner, typename SCheckpointTuner >
-        void put( const UserStepTag & prescriber, const CnC::resilient_step_collection< Derived, UserStepTag, UserStep, STuner, SCheckpointTuner> & prescriberColId, const Tag & tag ); //TODO change to template val
+        void put( const UserStepTag & prescriber,
+        		CnC::resilient_step_collection< Derived, UserStepTag, UserStep, STuner, SCheckpointTuner> & prescriberColId,
+        		const Tag & tag );
 
         void restart_put( const Tag & t );
 
@@ -831,7 +833,9 @@ namespace CnC {
         void put( const Tag & tag, const Item & item );
 
         template< typename UserStepTag, typename UserStep, typename STuner, typename SCheckpointTuner >
-        void put( const UserStepTag & putter, const CnC::resilient_step_collection< Derived, UserStepTag, UserStep, STuner, SCheckpointTuner> & putterColl, const Tag & tag, const Item & item );
+        void put( const UserStepTag & putter,
+        		CnC::resilient_step_collection< Derived, UserStepTag, UserStep, STuner, SCheckpointTuner> & putterColl,
+        		const Tag & tag, const Item & item );
 
         void restart_put(const Tag & user_tag, const Item & item);
 

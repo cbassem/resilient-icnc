@@ -10,7 +10,7 @@
 
 class StepCheckpoint_i {
 public:
-	virtual ~StepCheckpoint_i();
+	virtual ~StepCheckpoint_i() {};
 
 };
 

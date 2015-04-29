@@ -80,8 +80,25 @@ namespace CnC {
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner >
-    resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::~resilient_step_collection()
+    resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::~resilient_step_collection() {}
+
+
+    template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner >
+    void resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::processPut( UserStepTag putter, void * itemid, int itemCollectionId)
     {
+    	m_step_checkpoint.processItemPut( putter, super_type::getId(), itemid, itemCollectionId);
+    }
+
+    template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner >
+    void resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::processPrescribe( UserStepTag prescriber, void * tagid, int tagCollectionId)
+    {
+    	m_step_checkpoint.processStepPrescribe( prescriber, super_type::getId(), tagid , tagCollectionId);
+    }
+
+    template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner >
+    void resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::processDone( UserStepTag step, int stepColId, int puts, int prescribes )
+    {
+    	m_step_checkpoint.processStepDone( step,  stepColId, puts, prescribes);
     }
 
 

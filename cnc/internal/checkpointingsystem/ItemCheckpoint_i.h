@@ -11,7 +11,7 @@
 
 class ItemCheckpoint_i {
 public:
-	virtual ~ItemCheckpoint_i();
+	virtual ~ItemCheckpoint_i() {};
 };
 
 

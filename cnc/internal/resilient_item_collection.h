@@ -76,7 +76,11 @@ namespace CnC {
 
     template< typename Derived, typename Tag, typename Item, typename Tuner, typename CheckpointTuner >
     template< typename UserStepTag, typename UserStep, typename STuner, typename SCheckpointTuner >
-    void resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >::put(const UserStepTag & putter, const CnC::resilient_step_collection< Derived, UserStepTag, UserStep, STuner, SCheckpointTuner>& putterColl, const Tag & t, const Item & i)
+    void resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >::put(
+    		const UserStepTag & putter,
+    		CnC::resilient_step_collection< Derived, UserStepTag, UserStep, STuner, SCheckpointTuner>& putterColl,
+    		const Tag & t,
+    		const Item & i)
     {
     	void * itemid = m_item_checkpoint.put( t, i );
     	putterColl.processPut(putter, itemid, super_type::getId());
