@@ -682,6 +682,10 @@ namespace CnC {
     	void registerTagCheckpoint( TagCheckpoint_i & tag_col );
 
     	void registerItemCheckpoint( ItemCheckpoint_i & item_col );
+
+
+
+
 //
 //    	void done(const Tag & tag, const int tagColId, const int nrOfPuts, const int nrOfPrescribes);
 //
@@ -776,6 +780,10 @@ namespace CnC {
 
         ~resilient_step_collection();
 
+        void processPut( UserStepTag putter, void * itemid, int itemCollectionId);
+        void processPrescribe( UserStepTag prescriber, void * tagid, int tagCollectionId);
+        void processDone( UserStepTag step, int stepColId, int puts, int prescribes );
+
     private:
     	typedef step_collection< UserStep, Tuner, CheckpointTuner > super_type;
     	StepCheckpoint< UserStepTag > m_step_checkpoint;
@@ -797,8 +805,8 @@ namespace CnC {
 
         void put( const Tag & t );
 
-        template< typename PTag, typename UserStep, typename STuner, typename SCheckpointTuner >
-        void put( const Tag & prescriber, const CnC::step_collection< UserStep, STuner, SCheckpointTuner> & prescriberColId, const Tag & tag ); //TODO change to template val
+        template< typename UserStepTag, typename UserStep, typename STuner, typename SCheckpointTuner >
+        void put( const UserStepTag & prescriber, const CnC::resilient_step_collection< Derived, UserStepTag, UserStep, STuner, SCheckpointTuner> & prescriberColId, const Tag & tag ); //TODO change to template val
 
         void restart_put( const Tag & t );
 
@@ -822,8 +830,8 @@ namespace CnC {
 
         void put( const Tag & tag, const Item & item );
 
-        template< typename PTag, typename UserStep, typename STuner, typename SCheckpointTuner >
-        void put( const PTag & putter, const CnC::step_collection< UserStep, STuner, SCheckpointTuner> & putterColl, const Tag & tag, const Item & item );
+        template< typename UserStepTag, typename UserStep, typename STuner, typename SCheckpointTuner >
+        void put( const UserStepTag & putter, const CnC::resilient_step_collection< Derived, UserStepTag, UserStep, STuner, SCheckpointTuner> & putterColl, const Tag & tag, const Item & item );
 
         void restart_put(const Tag & user_tag, const Item & item);
 

@@ -75,7 +75,6 @@ namespace CnC {
     template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner >
     void resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >::put( const Tag & t )
     {
-    	//m_ctuner.prescribe(0, 0, user_tag, m_id);
     	void * id = m_tag_checkpoint.put( t );
         tag_collection< Tag, Tuner, CheckpointTuner >::put( t );
     }
@@ -84,11 +83,11 @@ namespace CnC {
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner >
-    template< typename PTag, typename UserStep, typename STuner, typename SCheckpointTuner >
-    void resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >::put( const Tag & prescriber, const CnC::step_collection< UserStep, STuner, SCheckpointTuner> & prescriberCol , const Tag & t )
+    template< typename UserStepTag, typename UserStep, typename STuner, typename SCheckpointTuner >
+    void resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >::put( const UserStepTag & prescriber, const CnC::resilient_step_collection< Derived, UserStepTag, UserStep, STuner, SCheckpointTuner> & prescriberCol , const Tag & t )
     {
-    	//m_ctuner.prescribe(prescriber, prescriberColId, user_tag, m_id);
-    	void * id = m_tag_checkpoint.put( t );
+    	void * tagid = m_tag_checkpoint.put( t );
+    	prescriberCol.processPrescribe( prescriber, tagid, super_type::getId());
     	tag_collection< Tag, Tuner, CheckpointTuner >::put( prescriber, prescriberCol, t );
     }
 

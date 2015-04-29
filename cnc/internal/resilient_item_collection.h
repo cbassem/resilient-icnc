@@ -70,18 +70,16 @@ namespace CnC {
     template< typename Derived, typename Tag, typename Item, typename Tuner, typename CheckpointTuner >
     void resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >::put( const Tag & t, const Item & i )
     {
-    	//m_item_checkpoint.put(0, 0, t, i, super_type::m_id); // The env put the item
     	void * id = m_item_checkpoint.put( t, i );
-    	m_resilient_contex.processEnvItemPut(id, super_type::m_id);
     	super_type::put( t, i );
     }
 
     template< typename Derived, typename Tag, typename Item, typename Tuner, typename CheckpointTuner >
-    template< typename PTag, typename UserStep, typename STuner, typename SCheckpointTuner >
-    void resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >::put(const PTag & putter, const CnC::step_collection<UserStep, STuner, SCheckpointTuner>& putterColl, const Tag & t, const Item & i)
+    template< typename UserStepTag, typename UserStep, typename STuner, typename SCheckpointTuner >
+    void resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >::put(const UserStepTag & putter, const CnC::resilient_step_collection< Derived, UserStepTag, UserStep, STuner, SCheckpointTuner>& putterColl, const Tag & t, const Item & i)
     {
     	void * itemid = m_item_checkpoint.put( t, i );
-    	putterColl.processPut(putter, itemid, super_type::m_id);
+    	putterColl.processPut(putter, itemid, super_type::getId());
     	item_collection< Tag, Item, Tuner, CheckpointTuner >::put( putter, putterColl, t, i );
     }
 
