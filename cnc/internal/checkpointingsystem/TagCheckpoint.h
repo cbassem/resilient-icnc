@@ -28,13 +28,15 @@ private:
 
 	Tag * create( const Tag & org ) const;
 	void uncreate( Tag * item ) const;
+
+	void cleanup();
 };
 
 template< class Tag >
 TagCheckpoint< Tag >::TagCheckpoint(): m_tag_map(), m_allocator() {};
 
 template< class Tag >
-TagCheckpoint< Tag >::~TagCheckpoint() {};
+TagCheckpoint< Tag >::~TagCheckpoint() { cleanup(); };
 
 template< class Tag >
 void * TagCheckpoint< Tag >::put( const Tag & tag ) {
@@ -64,6 +66,14 @@ void TagCheckpoint< Tag >::uncreate( Tag * tag ) const
         m_allocator.destroy( tag );
         m_allocator.deallocate( tag, 1 );
     }
+}
+
+template< class Tag >
+void TagCheckpoint< Tag >::cleanup()
+{
+	for( typename tagMap::const_iterator it = m_tag_map.begin(); it != m_tag_map.end(); ++it) {
+		uncreate( it->second );
+	}
 }
 
 #endif /* TAGCHECKPOINT_H_ */

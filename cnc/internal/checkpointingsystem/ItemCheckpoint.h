@@ -29,13 +29,15 @@ private:
 
 	Item * create( const Item & org ) const;
 	void uncreate( Item * item ) const;
+
+	void cleanup();
 };
 
 template< class Key, class Item >
 ItemCheckpoint< Key, Item >::ItemCheckpoint(): m_item_map(), m_allocator() {};
 
 template< class Key, class Item >
-ItemCheckpoint< Key, Item >::~ItemCheckpoint() {};
+ItemCheckpoint< Key, Item >::~ItemCheckpoint() { cleanup(); };
 
 template< class Key, class Item >
 void * ItemCheckpoint< Key, Item >::put( const Key & tag, const Item & item ) {
@@ -65,6 +67,14 @@ void ItemCheckpoint< Key, Item >::uncreate( Item * item ) const
         m_allocator.destroy( item );
         m_allocator.deallocate( item, 1 );
     }
+}
+
+template< class Key, class Item >
+void ItemCheckpoint< Key, Item >::cleanup()
+{
+	for( typename itemMap::const_iterator it = m_item_map.begin(); it != m_item_map.end(); ++it) {
+		uncreate( it->second );
+	}
 }
 
 #endif /* ITEMCHECKPOINT_H_ */
