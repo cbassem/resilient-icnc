@@ -5,8 +5,8 @@
  *      Author: root
  */
 
-#ifndef TAGLOG_H_
-#define TAGLOG_H_
+#ifndef SIMPLETAGLOG_H_
+#define SIMPLETAGLOG_H_
 
 #include <vector>
 #include <set>
@@ -15,7 +15,7 @@
 
 
 template< class Tag, class Item>
-class TagLog {
+class SimpleTagLog {
 	int currentPuts_;
 	int currentPrescribes_;
 	int totalPuts_;
@@ -30,9 +30,9 @@ class TagLog {
 	std::vector< itemMap > items_;
 
 public:
-	TagLog();
-	TagLog(int tag_collections, int item_collections);
-	virtual ~TagLog();
+	SimpleTagLog();
+	SimpleTagLog(int tag_collections, int item_collections);
+	virtual ~SimpleTagLog();
 
 	void processPut(Tag key, Item item, int collId);
 	void processPrescribe(Tag tag, int collId);
@@ -42,12 +42,12 @@ public:
 };
 
 template< class Tag, class Item >
-TagLog<Tag, Item>::TagLog() :
+SimpleTagLog<Tag, Item>::SimpleTagLog() :
 		currentPuts_(0), currentPrescribes_(0), totalPuts_(-1), totalPrescribes_(-1), markedDone_(false) {
 }
 
 template< class Tag, class Item >
-TagLog<Tag, Item>::TagLog(int tag_collections, int item_collections) :
+SimpleTagLog<Tag, Item>::SimpleTagLog(int tag_collections, int item_collections) :
 		currentPuts_(0),
 		currentPrescribes_(0),
 		totalPuts_(-1),
@@ -58,11 +58,11 @@ TagLog<Tag, Item>::TagLog(int tag_collections, int item_collections) :
 		{}
 
 template<class Tag, class Item>
-inline TagLog<Tag, Item>::~TagLog() {
+inline SimpleTagLog<Tag, Item>::~SimpleTagLog() {
 }
 
 template<class Tag, class Item>
-void TagLog<Tag, Item>::processPut(Tag key, Item item, int collId) {
+void SimpleTagLog<Tag, Item>::processPut(Tag key, Item item, int collId) {
 	typename itemMap::iterator it = items_[collId].find(key);
 	if (it == items_[collId].end()) {
 		currentPuts_++;
@@ -71,7 +71,7 @@ void TagLog<Tag, Item>::processPut(Tag key, Item item, int collId) {
 }
 
 template<class Tag, class Item>
-void TagLog<Tag, Item>::processPrescribe(Tag tag, int collId) {
+void SimpleTagLog<Tag, Item>::processPrescribe(Tag tag, int collId) {
 	const bool is_in = prescribes_[collId].find(tag) != prescribes_[collId].end();
 	if ( ! is_in ) {
 		currentPrescribes_++;
@@ -80,16 +80,16 @@ void TagLog<Tag, Item>::processPrescribe(Tag tag, int collId) {
 }
 
 template<class Tag, class Item>
-void TagLog<Tag, Item>::processDone(int totalPuts, int totalPrescribes) {
+void SimpleTagLog<Tag, Item>::processDone(int totalPuts, int totalPrescribes) {
 	markedDone_ = true;
 	totalPrescribes_ = totalPrescribes;
 	totalPuts_ = totalPuts;
 }
 
 template<class Tag, class Item>
-bool TagLog<Tag, Item>::isDone() const {
+bool SimpleTagLog<Tag, Item>::isDone() const {
 	return ( markedDone_ && currentPrescribes_ == totalPrescribes_ && currentPuts_ == totalPuts_ );
 }
 
 
-#endif /* TAGLOG_H_ */
+#endif /* SIMPLETAGLOG_H_ */

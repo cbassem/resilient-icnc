@@ -683,16 +683,6 @@ namespace CnC {
 
     	void registerItemCheckpoint( ItemCheckpoint_i* item_col );
 
-
-
-
-//
-//    	void done(const Tag & tag, const int tagColId, const int nrOfPuts, const int nrOfPrescribes);
-//
-//    	void prescribe(const Tag & prescriber, const int prescriberColId, const Tag & tag, const int tagColId);
-//
-//    	void put(const Tag & putter, const int putterColId, const Tag & tag, const Item & item, const int itemColId);
-//
 //    	void printCheckpoint();
 //
 //    	void restarted();
@@ -722,7 +712,7 @@ namespace CnC {
 //        	resilientContext<Derived, Tag, Item, StepCollectionType, TagCollectionType , ItemCollectionType> & m_resilientContext;
 //
 //		};
-//
+
 	private:
     	std::vector< ItemCheckpoint_i* > m_item_checkpoints;
     	std::vector< TagCheckpoint_i* > m_tag_checkpoints;
