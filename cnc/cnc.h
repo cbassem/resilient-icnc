@@ -686,68 +686,44 @@ namespace CnC {
 //    	void printCheckpoint();
 //
 //    	void restarted();
-//
-//    	void stop_wait_loop();
-//
-//    	/// Override wait() to add the restart process
-//    	//error_type wait();
-//
-//	protected:
-//    	//Since contexts already have their own implementations of send and receive, lets make our own communicator to handle the resilience stuff
-//    	class communicator : public virtual CnC::Internal::distributable
-//		{
-//		public:
-//    	    //communicator();
-//    	    communicator(resilientContext<Derived, Tag, Item, StepCollectionType, TagCollectionType , ItemCollectionType> & rctxt);
-//    	    virtual ~communicator();
-//
-//
-//        	//Implementing the distributable interface
-//        	void recv_msg( serializer * ser );
-//        	void unsafe_reset( bool dist );
-//
-//        	friend resilientContext<Derived, Tag, Item, StepCollectionType, TagCollectionType , ItemCollectionType>;
-//
-//		private:
-//        	resilientContext<Derived, Tag, Item, StepCollectionType, TagCollectionType , ItemCollectionType> & m_resilientContext;
-//
-//		};
+
+	protected:
+    	//Since contexts already have their own implementations of send and receive, lets make our own communicator to handle the resilience stuff
+    	class communicator : public virtual CnC::Internal::distributable
+		{
+		public:
+    	    //communicator();
+    	    communicator(resilientContext< Derived > & rctxt);
+    	    virtual ~communicator();
+
+        	//Implementing the distributable interface
+        	void recv_msg( serializer * ser );
+        	void unsafe_reset( bool dist );
+
+		private:
+        	resilientContext< Derived >& m_resilientContext;
+
+		};
 
 	private:
     	std::vector< ItemCheckpoint_i* > m_item_checkpoints;
     	std::vector< TagCheckpoint_i* > m_tag_checkpoints;
     	std::vector< StepCheckpoint_i* > m_step_checkpoints;
 
-//
-//    	SimpelCheckpointManager< Tag, Item > m_cmanager; //atm they all have an instance but only the "main" context uses one.
-//    	communicator m_communicator;
-//    	int m_countdown_to_crash;
-//    	int m_process_to_crash;
-//    	std::vector< StepCollectionType * > m_step_collections;
-//    	std::vector< TagCollectionType * > m_tag_collections;
-//    	std::vector< ItemCollectionType * > m_item_collections;
-//
-//    	void checkForCrash();
-//    	void crash() const;
-//    	void init_restart(int requester_pid);
-//    	void add_checkpoint_data_locally();
-//    	void sendItem(Tag key, Item value, int item_coll, int receiver_pid);
-//    	void sendTag(Tag tag, int tag_coll, int receiver_pid);
-//
-//    	void restart_put(Tag key, Item value, int item_coll);
-//    	void restart_prescribe(Tag tag, int tag_coll);
-//
-//    	void remote_wait_init( int recvr );
-//
-//    	void sendPing(int nr_of_pings_to_go);
-//    	void sendPong(int nr_of_pings_to_go);
+    	resilientContext::communicator m_communicator;
+    	int m_countdown_to_crash;
+    	int m_process_to_crash;
+
+    	void checkForCrash();
+    	void crash() const;
+
+    	void remote_wait_init( int recvr );
+
+    	void add_checkpoint_data_locally();
+
 //
 //    	typedef tbb::spin_mutex mutex_t;
-//    	mutex_t                                m_mutex;
-//
-//    	friend class communicator;
-//    	typedef CnC::Internal::distributable_context dist_context;
-
+//    	mutex_t m_mutex;
 
 	};
 
@@ -773,6 +749,24 @@ namespace CnC {
         void processPut( UserStepTag putter, void * itemid, int itemCollectionId);
         void processPrescribe( UserStepTag prescriber, void * tagid, int tagCollectionId);
         void processDone( UserStepTag step, int stepColId, int puts, int prescribes );
+
+	protected:
+    	//Since contexts already have their own implementations of send and receive, lets make our own communicator to handle the resilience stuff
+    	class communicator : public virtual CnC::Internal::distributable
+		{
+		public:
+    	    communicator(resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner > & rctxt);
+    	    virtual ~communicator();
+
+
+        	//Implementing the distributable interface
+        	void recv_msg( serializer * ser );
+        	void unsafe_reset( bool dist );
+
+		private:
+        	resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >& m_resilient_step_collection;
+
+		};
 
     private:
     	typedef step_collection< UserStep, Tuner, CheckpointTuner > super_type;
@@ -802,6 +796,24 @@ namespace CnC {
 
         void restart_put( const Tag & t );
 
+	protected:
+    	//Since contexts already have their own implementations of send and receive, lets make our own communicator to handle the resilience stuff
+    	class communicator : public virtual CnC::Internal::distributable
+		{
+		public:
+    	    communicator(resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner > & rctxt);
+    	    virtual ~communicator();
+
+
+        	//Implementing the distributable interface
+        	void recv_msg( serializer * ser );
+        	void unsafe_reset( bool dist );
+
+		private:
+        	resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >& m_resilient_tag_collection;
+
+		};
+
     private:
     	typedef tag_collection< Tag, Tuner, CheckpointTuner > super_type;
         TagCheckpoint< Tag > m_tag_checkpoint;
@@ -828,6 +840,24 @@ namespace CnC {
         		const Tag & tag, const Item & item );
 
         void restart_put(const Tag & user_tag, const Item & item);
+
+	protected:
+    	//Since contexts already have their own implementations of send and receive, lets make our own communicator to handle the resilience stuff
+    	class communicator : public virtual CnC::Internal::distributable
+		{
+		public:
+    	    communicator(resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner > & rctxt);
+    	    virtual ~communicator();
+
+
+        	//Implementing the distributable interface
+        	void recv_msg( serializer * ser );
+        	void unsafe_reset( bool dist );
+
+		private:
+        	resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >& m_resilient_item_collection;
+
+		};
 
     private:
     	typedef item_collection< Tag, Item, Tuner, CheckpointTuner > super_type;

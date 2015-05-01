@@ -104,6 +104,41 @@ namespace CnC {
     }
 
 
+	//////////////////////////////////////////////////////////////////////
+	/// Implementation of CnC::resilient_tag_collection::communicator ////
+    //////////////////////////////////////////////////////////////////////
+
+    template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner >
+    resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >::communicator::communicator(resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner > & r): m_resilient_tag_collection(r) {
+    	m_resilient_tag_collection.m_resilient_contex.subscribe(this);
+		std::cout << " creating res ctxt comm " << std::endl;
+	}
+
+    template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner >
+    resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >::communicator::~communicator() {
+    	m_resilient_tag_collection.m_resilient_contex.unsubscribe(this);
+	}
+
+    template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner >
+	void resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >::communicator::recv_msg( serializer * ser ) {
+		char msg_tag;
+		(* ser) & msg_tag;
+
+		switch (msg_tag) {
+//			case ???:
+//			{
+//
+//			}
+
+			default:
+				CNC_ABORT( "Protocol error: unexpected message tag." );
+			}
+		}
+
+    template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner >
+	void resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >::communicator::unsafe_reset( bool dist ) {}
+
+
 
 } // namespace CnC
 

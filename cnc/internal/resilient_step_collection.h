@@ -101,6 +101,41 @@ namespace CnC {
     	m_step_checkpoint.processStepDone( step,  stepColId, puts, prescribes);
     }
 
+	///////////////////////////////////////////////////////////////////////
+	/// Implementation of CnC::resilient_step_collection::communicator ////
+    ///////////////////////////////////////////////////////////////////////
+
+    template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner >
+    resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::communicator::communicator(resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner > & r): m_resilient_step_collection(r) {
+    	m_resilient_step_collection.m_resilient_contex.subscribe(this);
+		std::cout << " creating res ctxt comm " << std::endl;
+	}
+
+    template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner >
+    resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::communicator::~communicator() {
+    	m_resilient_step_collection.m_resilient_contex.unsubscribe(this);
+	}
+
+    template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner >
+	void resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::communicator::recv_msg( serializer * ser ) {
+		char msg_tag;
+		(* ser) & msg_tag;
+
+		switch (msg_tag) {
+//			case ???:
+//			{
+//
+//			}
+
+			default:
+				CNC_ABORT( "Protocol error: unexpected message tag." );
+			}
+		}
+
+    template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner >
+	void resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::communicator::unsafe_reset( bool dist ) {}
+
+
 
 } // end namespace CnC
 
