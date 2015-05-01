@@ -154,7 +154,12 @@ namespace CnC {
 
 	template< class Derived >
 	void resilientContext< Derived >::printCheckpoint() {
-
+		for( typename std::vector< TagCheckpoint_i * >::const_iterator it = m_tag_checkpoints.begin(); it != m_tag_checkpoints.end(); ++it) {
+			(*it)->print();
+		}
+//		for( typename std::vector< ItemCheckpoint_i * >::const_iterator it = m_item_checkpoints.begin(); it != m_item_checkpoints.end(); ++it) {
+//			(*it)->print();
+//		}
 	}
 
 	template< class Derived >
@@ -165,8 +170,9 @@ namespace CnC {
 		}
 
 		//loop over all item checkpoints & call restart
-
+		//TODO
 		//loop over stepcheckpoints & remove all done taglogs
+		//TODO
 	}
 
 

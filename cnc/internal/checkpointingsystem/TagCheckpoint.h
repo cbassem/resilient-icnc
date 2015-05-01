@@ -28,6 +28,8 @@ public:
 
 	void calculate_checkpoint();
 
+	void print();
+
 private:
 	typedef std::tr1::unordered_map< Tag, Tag * > tagMap;
     typedef tbb::scalable_allocator< Tag > tag_allocator_type;
@@ -107,6 +109,17 @@ void TagCheckpoint< Tag >::calculate_checkpoint()
 	}
 
 }
+
+template< class Tag >
+void TagCheckpoint< Tag >::print()
+{
+	std::cout << "Printing tag checkpoint [" << m_col_id << "]" << std::endl;
+	for(typename tagMap::const_iterator it = m_tag_map.begin(); it != m_tag_map.end(); ++it)
+	{
+		std::cout << it->first << std::endl;
+	}
+}
+
 
 template< class Tag >
 Tag * TagCheckpoint< Tag >::create( const Tag & org ) const
