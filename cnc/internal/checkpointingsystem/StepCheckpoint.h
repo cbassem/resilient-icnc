@@ -11,29 +11,40 @@
 #include "TagLog.h"
 #include "StepCheckpoint_i.h"
 #include <tr1/unordered_map>
-
+//#include <cnc/serializer.h>
 
 template< class StepTag >
 class StepCheckpoint: public StepCheckpoint_i {
 public:
-	StepCheckpoint();
+	StepCheckpoint(int col_);
 	virtual ~StepCheckpoint();
 
 	void processStepPrescribe(StepTag prescriber, int prescriberColId, void * prescribedTagId, int tagCollectionId);
 	void processStepDone(StepTag step, int stepColId, int puts, int prescribes);
 	void processItemPut(StepTag producer, int stepProducerColId, void * itemId, int itemColId);
 
-	TagLog& getTagLog(int colid, StepTag tag);
+	//The serializer still contains the responsible one's tag, but this is ok since we know its type! :D
+	void processStepPrescribe(CnC::serializer * ser, void * prescribedTagId);
+	void processStepDone(CnC::serializer * ser, int puts, int prescribes);
+	void processItemPut(CnC::serializer * ser, void * itemId);
+
+
+	TagLog& getTagLog( StepTag tag );
+
+	int getId();
 
 
 private:
 	typedef std::tr1::unordered_map< StepTag, TagLog > tagMap_t;
 	tagMap_t tagMap;
 
+	int m_col_id;
+
+
 };
 
 template< class StepTag >
-StepCheckpoint< StepTag >::StepCheckpoint(): tagMap() {};
+StepCheckpoint< StepTag >::StepCheckpoint(int col_id): tagMap(), m_col_id(col_id) {};
 
 template< class StepTag >
 StepCheckpoint< StepTag >::~StepCheckpoint() {};
@@ -41,26 +52,60 @@ StepCheckpoint< StepTag >::~StepCheckpoint() {};
 template< class StepTag >
 void StepCheckpoint< StepTag >::processStepPrescribe(StepTag prescriber, int prescriberColId, void * prescribedTagId, int tagCollectionId)
 {
-	TagLog& l_ = getTagLog(prescriberColId, prescriber);
-	l_.processPrescribe(prescribedTagId);
+	TagLog& l_ = getTagLog( prescriber );
+	l_.processPrescribe( prescribedTagId );
 }
 
 template< class StepTag >
 void StepCheckpoint< StepTag >::processStepDone(StepTag step, int stepColId, int puts, int prescribes)
 {
-	TagLog& l_ = getTagLog(stepColId, step);
-	l_.processDone(puts, prescribes);
+	TagLog& l_ = getTagLog( step );
+	l_.processDone( puts, prescribes );
 }
 
 template< class StepTag >
 void StepCheckpoint< StepTag >::processItemPut(StepTag producer, int stepProducerColId, void * itemId, int itemColId)
 {
-	TagLog& l_ = getTagLog(stepProducerColId, producer);
-	l_.processPut(itemId);
+	TagLog& l_ = getTagLog( producer );
+	l_.processPut( itemId );
+}
+
+template< class StepTag >
+void StepCheckpoint< StepTag >::processStepPrescribe(CnC::serializer * ser, void * prescribedTagId)
+{
+	StepTag prescriber;
+	(* ser) & prescriber;
+	TagLog& l_ = getTagLog( prescriber );
+	l_.processPrescribe( prescribedTagId );
+}
+
+template< class StepTag >
+void StepCheckpoint< StepTag >::processStepDone(CnC::serializer * ser, int puts, int prescribes)
+{
+	StepTag step;
+	(* ser) & step;
+	TagLog& l_ = getTagLog( step );
+	l_.processDone( puts, prescribes );
+}
+
+template< class StepTag >
+void StepCheckpoint< StepTag >::processItemPut(CnC::serializer * ser, void * itemId)
+{
+	StepTag producer;
+	(* ser) & producer;
+	TagLog& l_ = getTagLog( producer );
+	l_.processPut( itemId );
+}
+
+
+template< class StepTag >
+int StepCheckpoint< StepTag >::getId()
+{
+	return m_col_id;
 }
 
 template<class StepTag >
-TagLog& StepCheckpoint< StepTag >::getTagLog(int colid, StepTag tag) {
+TagLog& StepCheckpoint< StepTag >::getTagLog( StepTag tag ) {
 	typename tagMap_t::iterator it = tagMap.find(tag);
 	if (it == tagMap.end()) {
 		TagLog & l_ = tagMap[tag] = TagLog();

@@ -605,7 +605,7 @@ namespace CnC {
        This yields more maintanable code and future versions of CnC may require this convention. 
     **/
     template< class Derived >
-    class /*CNC_API*/ context : protected Internal::context_base
+    class /*CNC_API*/ context : public Internal::context_base
     {
     public:
         /// default constructor
@@ -682,6 +682,10 @@ namespace CnC {
     	void registerTagCheckpoint( TagCheckpoint_i* tag_col );
 
     	void registerItemCheckpoint( ItemCheckpoint_i* item_col );
+
+    	StepCheckpoint_i* getStepCheckPoint( int id );
+    	TagCheckpoint_i* getTagCheckpoint( int id );
+		ItemCheckpoint_i* getItemCheckpoint( int id );
 
 //    	void printCheckpoint();
 //
@@ -769,9 +773,12 @@ namespace CnC {
 		};
 
     private:
+    	typedef Internal::distributable_context dist_context;
     	typedef step_collection< UserStep, Tuner, CheckpointTuner > super_type;
     	StepCheckpoint< UserStepTag > m_step_checkpoint;
         resilientContext< Derived > & m_resilient_contex;
+    	resilient_step_collection::communicator m_communicator;
+
     };
 
     template< typename Derived, typename Tag, typename Tuner = tag_tuner<>, typename CheckpointTuner = checkpoint_tuner_nop< Tag, int > >
@@ -815,9 +822,11 @@ namespace CnC {
 		};
 
     private:
+    	typedef Internal::distributable_context dist_context;
     	typedef tag_collection< Tag, Tuner, CheckpointTuner > super_type;
         TagCheckpoint< Tag > m_tag_checkpoint;
         resilientContext< Derived > & m_resilient_contex;
+    	resilient_tag_collection::communicator m_communicator;
     };
 
     template< typename Derived, typename Tag, typename Item, typename Tuner = hashmap_tuner, typename CheckpointTuner = checkpoint_tuner_nop<Tag , Item>  >
@@ -860,9 +869,11 @@ namespace CnC {
 		};
 
     private:
+    	typedef Internal::distributable_context dist_context;
     	typedef item_collection< Tag, Item, Tuner, CheckpointTuner > super_type;
         ItemCheckpoint< Tag, Item > m_item_checkpoint;
         resilientContext< Derived > & m_resilient_contex;
+    	resilient_item_collection::communicator m_communicator;
     };
 
     /// \brief Execute f( i ) for every i in {first <= i=first+step*x < last and 0 <= x}.

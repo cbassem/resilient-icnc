@@ -15,10 +15,12 @@
 template< class Tag >
 class TagCheckpoint: public TagCheckpoint_i {
 public:
-	TagCheckpoint();
+	TagCheckpoint(int col_id);
 	virtual ~TagCheckpoint();
 
 	void * put(const Tag & tag);
+
+	int getId();
 
 private:
 	typedef std::tr1::unordered_map< Tag, Tag * > tagMap;
@@ -28,6 +30,8 @@ private:
     tagMap m_tag_map;
 	mutable tag_allocator_type m_allocator;
 
+	int m_col_id;
+
 	Tag * create( const Tag & org ) const;
 	void uncreate( Tag * item ) const;
 
@@ -35,7 +39,7 @@ private:
 };
 
 template< class Tag >
-TagCheckpoint< Tag >::TagCheckpoint(): m_tag_map(), m_allocator() {};
+TagCheckpoint< Tag >::TagCheckpoint(int col_id): m_tag_map(), m_allocator(), m_col_id(col_id) {};
 
 template< class Tag >
 TagCheckpoint< Tag >::~TagCheckpoint() { cleanup(); };
@@ -51,6 +55,12 @@ void * TagCheckpoint< Tag >::put( const Tag & tag ) {
 		Tag * tmp = it->second;
 		return static_cast<void*>(tmp);
 	}
+}
+
+template< class Tag >
+int TagCheckpoint< Tag >::getId()
+{
+	return m_col_id;
 }
 
 template< class Tag >

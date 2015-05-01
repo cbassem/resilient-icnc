@@ -15,10 +15,12 @@
 template< class Key, class Item >
 class ItemCheckpoint: public ItemCheckpoint_i {
 public:
-	ItemCheckpoint();
+	ItemCheckpoint(int col_id);
 	virtual ~ItemCheckpoint();
 
 	void * put(const Key & tag, const Item & item);
+
+	int getId();
 
 private:
 	typedef std::tr1::unordered_map< Key, Item * > itemMap;
@@ -28,6 +30,8 @@ private:
 	itemMap m_item_map;
 	mutable item_allocator_type m_allocator;
 
+	int m_coll_id;
+
 	Item * create( const Item & org ) const;
 	void uncreate( Item * item ) const;
 
@@ -35,7 +39,7 @@ private:
 };
 
 template< class Key, class Item >
-ItemCheckpoint< Key, Item >::ItemCheckpoint(): m_item_map(), m_allocator() {};
+ItemCheckpoint< Key, Item >::ItemCheckpoint(int col_id): m_item_map(), m_allocator(), m_coll_id(col_id) {};
 
 template< class Key, class Item >
 ItemCheckpoint< Key, Item >::~ItemCheckpoint() { cleanup(); };
@@ -51,6 +55,12 @@ void * ItemCheckpoint< Key, Item >::put( const Key & tag, const Item & item ) {
 		Item * tmp = it->second;
 		return static_cast<void*>(tmp);
 	}
+}
+
+template< class Key, class Item >
+int ItemCheckpoint< Key, Item >::getId()
+{
+	return m_coll_id;
 }
 
 template< class Key, class Item >

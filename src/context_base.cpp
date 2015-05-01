@@ -57,7 +57,7 @@ namespace CnC {
               m_scheduler( NULL ),
               m_envIsWaiting(),
               m_stepInstanceCount(),
-              m_next_step_col_id(1),
+              m_next_step_col_id(0),
               m_next_tag_col_id(0),
               m_next_item_col_id(0)
         {
@@ -256,13 +256,13 @@ namespace CnC {
         }
 
         const int context_base::get_next_step_col_id() {
-        	return m_next_step_col_id;
+        	return m_next_step_col_id++;
         }
         const int context_base::get_next_tag_col_id() {
-        	return m_next_tag_col_id;
+        	return m_next_tag_col_id++;
         }
         const int context_base::get_next_item_col_id() {
-        	return m_next_item_col_id;
+        	return m_next_item_col_id++;
         }
 
     } // namespace Internal

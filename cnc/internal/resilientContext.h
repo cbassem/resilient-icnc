@@ -20,16 +20,19 @@ namespace CnC {
 		m_countdown_to_crash( -1 ),
 		m_process_to_crash( -1 )
 //		m_mutex()
-		{ std::cout << " creating res ctxt " << std::endl; };
+		{ std::cout << " creating res ctxt " << std::endl; }
 
 	template< class Derived >
 	resilientContext< Derived >::resilientContext(int stepColls, int tagColls, int itemColls):
 		context< Derived >(),
 		m_communicator( *this ),
+		m_step_checkpoints(stepColls),
+		m_tag_checkpoints(tagColls),
+		m_item_checkpoints(itemColls),
 		m_countdown_to_crash( -1 ),
 		m_process_to_crash( -1 )
 //		m_mutex()
-		{  std::cout << " creating res ctxt " << std::endl; };
+		{  std::cout << " creating res ctxt " << std::endl; }
 
 	template< class Derived >
 	resilientContext< Derived >::resilientContext(int stepColls, int tagColls, int itemColls, int countdown, int processId):
@@ -38,26 +41,47 @@ namespace CnC {
 		m_countdown_to_crash( countdown ),
 		m_process_to_crash( processId )
 //		m_mutex()
-		{  std::cout << " creating res ctxt " << std::endl; };
+		{  std::cout << " creating res ctxt " << std::endl; }
 
 	template< class Derived >
 	resilientContext< Derived >::~resilientContext() {
-	};
+	}
 
 	template< class Derived >
-	void resilientContext< Derived >::registerStepCheckPoint( StepCheckpoint_i*  step_col ) {
-		m_step_checkpoints.push_back(step_col);
-	};
+	void resilientContext< Derived >::registerStepCheckPoint( StepCheckpoint_i*  step_col )
+	{
+		m_step_checkpoints[step_col->getId()] = step_col;
+	}
 
 	template< class Derived >
-	void resilientContext< Derived >::registerTagCheckpoint( TagCheckpoint_i* tag_col ) {
-		m_tag_checkpoints.push_back(tag_col);
-	};
+	void resilientContext< Derived >::registerTagCheckpoint( TagCheckpoint_i* tag_col )
+	{
+		m_tag_checkpoints[tag_col->getId()] = tag_col;
+	}
 
 	template< class Derived >
-	void resilientContext< Derived >::registerItemCheckpoint( ItemCheckpoint_i* item_col ) {
-		m_item_checkpoints.push_back(item_col);
-	};
+	void resilientContext< Derived >::registerItemCheckpoint( ItemCheckpoint_i* item_col )
+	{
+		m_item_checkpoints[item_col->getId()] = item_col;
+	}
+
+	template< class Derived >
+	StepCheckpoint_i* resilientContext< Derived >::getStepCheckPoint( int id )
+	{
+		return m_step_checkpoints[id];
+	}
+
+	template< class Derived >
+	TagCheckpoint_i* resilientContext< Derived >::getTagCheckpoint( int id )
+	{
+		return m_tag_checkpoints[id];
+	}
+
+	template< class Derived >
+	ItemCheckpoint_i* resilientContext< Derived >::getItemCheckpoint( int id )
+	{
+		return m_item_checkpoints[id];
+	}
 
 	template< class Derived >
 	void resilientContext< Derived >::add_checkpoint_data_locally() {

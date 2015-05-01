@@ -12,6 +12,8 @@
 class ItemCheckpoint_i {
 public:
 	virtual ~ItemCheckpoint_i() {};
+	virtual int getId() = 0;
+
 };
 
 
