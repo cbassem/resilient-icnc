@@ -149,6 +149,12 @@ namespace CnC {
         // currently doing nothing
     }
 
+    template< typename UserStep, typename tuner, typename CheckpointTuner >
+    template< typename StepTag >
+    void  step_collection< UserStep, tuner, CheckpointTuner >::processDone( StepTag step, int stepColId, int puts, int prescribes ) const {
+       // Should do nothing
+    }
+
     template< typename UserStep, typename Tuner, typename CheckpointTuner >
     const int step_collection< UserStep, Tuner, CheckpointTuner >::getId() const
 	{

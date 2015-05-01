@@ -124,7 +124,8 @@ namespace CnC {
                         m_stepLauncher->itacid() );
 
             	if (res == CNC_Success){
-            		_tuner.done(_tag, m_stepLauncher->get_step_col_id());
+            		m_stepLauncher->get_step_col().processDone( _tag, m_stepLauncher->get_step_col_id(), _tuner.getNrOfPuts(), _tuner.getNrOfPrescribes());
+
             	}
 
                 return res;
@@ -133,7 +134,7 @@ namespace CnC {
                 oss << "Canceled step ";
                 format( oss );
             }
-            _tuner.done(_tag, m_stepLauncher->get_step_col_id());
+    		m_stepLauncher->get_step_col().processDone( _tag, m_stepLauncher->get_step_col_id(), _tuner.getNrOfPuts(), _tuner.getNrOfPrescribes());
             return CNC_Success;
         }
         
@@ -170,7 +171,7 @@ namespace CnC {
                                                                      m_stepLauncher->m_stepColl.name(),
                                                                      m_stepLauncher->itacid() );
             	if(res == CNC_Success) {
-                	_tuner.done(tag, m_stepLauncher->get_step_col_id());
+            		m_stepLauncher->get_step_col().processDone( tag, m_stepLauncher->get_step_col_id(), _tuner.getNrOfPuts(), _tuner.getNrOfPrescribes());
             	}
 
             	return res;
@@ -179,7 +180,7 @@ namespace CnC {
                         oss << "Canceled step ";
                         format( oss );
             }
-        	_tuner.done( tag, m_stepLauncher->get_step_col_id() );
+    		m_stepLauncher->get_step_col().processDone( tag, m_stepLauncher->get_step_col_id(), _tuner.getNrOfPuts(), _tuner.getNrOfPrescribes());
             return CNC_Success;
         }
 

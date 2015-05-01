@@ -14,7 +14,7 @@ public:
 	virtual int getId() = 0;
 
 	virtual void processStepPrescribe(CnC::serializer * ser, void * prescribedTagId) = 0;
-	virtual void processStepDone(CnC::serializer * ser, int puts, int prescribes) = 0;
+	virtual void processStepDone(CnC::serializer * ser) = 0;
 	virtual void processItemPut(CnC::serializer * ser, void * itemId) = 0;
 
 };

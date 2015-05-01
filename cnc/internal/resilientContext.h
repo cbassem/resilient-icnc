@@ -17,27 +17,21 @@ namespace CnC {
 	resilientContext< Derived >::resilientContext():
 		context< Derived >(),
 		m_communicator( *this ),
+		m_step_checkpoints(1),
+		m_item_checkpoints(1),
+		m_tag_checkpoints(1),
 		m_countdown_to_crash( -1 ),
 		m_process_to_crash( -1 )
 //		m_mutex()
 		{ std::cout << " creating res ctxt " << std::endl; }
 
 	template< class Derived >
-	resilientContext< Derived >::resilientContext(int stepColls, int tagColls, int itemColls):
+	resilientContext< Derived >::resilientContext(int countdown, int processId):
 		context< Derived >(),
 		m_communicator( *this ),
-		m_step_checkpoints(stepColls),
-		m_tag_checkpoints(tagColls),
-		m_item_checkpoints(itemColls),
-		m_countdown_to_crash( -1 ),
-		m_process_to_crash( -1 )
-//		m_mutex()
-		{  std::cout << " creating res ctxt " << std::endl; }
-
-	template< class Derived >
-	resilientContext< Derived >::resilientContext(int stepColls, int tagColls, int itemColls, int countdown, int processId):
-		context< Derived >(),
-		m_communicator( *this ),
+		m_step_checkpoints(1),
+		m_item_checkpoints(1),
+		m_tag_checkpoints(1),
 		m_countdown_to_crash( countdown ),
 		m_process_to_crash( processId )
 //		m_mutex()
@@ -48,21 +42,34 @@ namespace CnC {
 	}
 
 	template< class Derived >
-	void resilientContext< Derived >::registerStepCheckPoint( StepCheckpoint_i*  step_col )
+	void resilientContext< Derived >::registerStepCheckPoint( StepCheckpoint_i*  step_cp )
 	{
-		m_step_checkpoints[step_col->getId()] = step_col;
+		std::cout << "Registering step cp " << step_cp->getId();
+
+		if (m_step_checkpoints.size() - 1 < step_cp->getId()){
+			m_step_checkpoints.resize(step_cp->getId() + 1);
+		}
+		m_step_checkpoints[step_cp->getId()] = step_cp;
 	}
 
 	template< class Derived >
-	void resilientContext< Derived >::registerTagCheckpoint( TagCheckpoint_i* tag_col )
+	void resilientContext< Derived >::registerTagCheckpoint( TagCheckpoint_i* tag_cp )
 	{
-		m_tag_checkpoints[tag_col->getId()] = tag_col;
+		std::cout << "Registering tag cp " << tag_cp->getId();
+		if (m_tag_checkpoints.size() - 1 < tag_cp->getId()){
+			m_tag_checkpoints.resize(tag_cp->getId() + 1);
+		}
+		m_tag_checkpoints[tag_cp->getId()] = tag_cp;
 	}
 
 	template< class Derived >
-	void resilientContext< Derived >::registerItemCheckpoint( ItemCheckpoint_i* item_col )
+	void resilientContext< Derived >::registerItemCheckpoint( ItemCheckpoint_i* item_cp)
 	{
-		m_item_checkpoints[item_col->getId()] = item_col;
+		std::cout << "Registering item cp " << item_cp->getId();
+		if (m_item_checkpoints.size() - 1 < item_cp->getId()){
+			m_item_checkpoints.resize(item_cp->getId() + 1);
+		}
+		m_item_checkpoints[item_cp->getId()] = item_cp;
 	}
 
 	template< class Derived >
@@ -145,6 +152,11 @@ namespace CnC {
 		Internal::distributor::send_crash_msg(this->gid(), m_process_to_crash);
 	}
 
+	template< class Derived >
+	void resilientContext< Derived >::printCheckpoint() {
+
+	}
+
 
 	template< class Derived >
 	void resilientContext< Derived >::remote_wait_init( int recvr ) {
@@ -191,77 +203,6 @@ namespace CnC {
 
 	template< class Derived >
 	void resilientContext< Derived >::communicator::unsafe_reset( bool dist ) {}
-
-
-
-
-
-//
-//	template< class Derived, class Tag, class Item, class StepCollectionType, class TagCollectionType , class ItemCollectionType >
-//	void resilientContext< Derived, Tag, Item, StepCollectionType, TagCollectionType, ItemCollectionType >::communicator::recv_msg( serializer * ser ) {
-//		//if everybody sends to the main one then this one will have a reference to the actual checkpoint
-//		char msg_tag;
-//		(* ser) & msg_tag;
-//
-//		switch (msg_tag) {
-//			case checkpoint_tuner_types::PUT:
-//			{
-//				Tag putter;
-//				int putterColId;
-//				Tag tag;
-//				Item item;
-//				int itemCollectionUID;
-//				(* ser) & putter & putterColId & tag & item & itemCollectionUID;
-//				m_resilientContext.m_cmanager.processItemPut(putter, putterColId, tag, item, itemCollectionUID); //TODO refactor
-//				break;
-//			}
-//			case checkpoint_tuner_types::PRESCRIBE:
-//			{
-//				Tag prescriber;
-//				int prescriberColId;
-//				Tag tag;
-//				int tagCollectionUID;
-//				(* ser) & prescriber & prescriberColId & tag & tagCollectionUID;
-//				m_resilientContext.m_cmanager.processStepPrescribe(prescriber, prescriberColId, tag, tagCollectionUID); //TODO refactor
-//				break;
-//			}
-//			case checkpoint_tuner_types::DONE:
-//			{
-//				Tag tag;
-//				int stepCollectionUID, nr_of_puts, nr_of_prescribes;
-//				(* ser) & tag & stepCollectionUID & nr_of_puts & nr_of_prescribes;
-//				if (stepCollectionUID != 0) {
-//					m_resilientContext.m_cmanager.processStepDone( tag, stepCollectionUID, nr_of_puts, nr_of_prescribes);//TODO refactor
-//					if ( m_resilientContext.gid() == 0) {
-//						m_resilientContext.checkForCrash();
-//					}
-//				}
-//				break;
-//			}
-//			case checkpoint_tuner_types::REQUEST_RESTART_DATA:
-//			{
-//				std::cout << "Sending Restart Data " << Internal::distributor::myPid() << std::endl;
-//				int requester;
-//				(* ser) & requester;
-//				//m_resilientContext.init_restart(requester);
-//				//m_resilientContext.sendPing(10);
-//
-//				m_resilientContext.add_checkpoint_data_locally();
-//
-////				int _tmp = 100;
-////				do {} while (_yield() && --_tmp > 0);
-//
-//				//m_resilientContext.remote_wait_init( requester );
-//
-//				//m_resilientContext.reset_suspended_steps();
-//				break;
-//			}
-
-//			default:
-//				CNC_ABORT( "Protocol error: unexpected message tag." );
-//		}
-//	}
-
 
 
 } // namespace CnC

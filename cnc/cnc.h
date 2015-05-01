@@ -132,6 +132,11 @@ namespace CnC {
         template< typename ControlTag, typename TTuner, typename TCheckpointTuner >
         void controls( CnC::tag_collection< ControlTag, TTuner, TCheckpointTuner > & );
 
+
+        //Dummy fcts, otherwise we need bigger refactoring....
+        template< typename StepTag >
+        void processDone( StepTag step, int stepColId, int puts, int prescribes ) const;
+
         const int getId() const;
 
     private:
@@ -667,10 +672,8 @@ namespace CnC {
     	/// default constructor
     	resilientContext();
 
-    	resilientContext(int stepColls, int tagColls, int itemColls);
-
     	/// Specify-when-to-crash-constructor
-    	resilientContext(int stepColls, int tagColls, int itemColls, int countdown, int processId); //since the user has to call register coll fcts we could refactor the quantities out
+    	resilientContext(int countdown, int processId); //since the user has to call register coll fcts we could refactor the quantities out
 
     	/// destructor
     	virtual ~resilientContext();
@@ -687,7 +690,9 @@ namespace CnC {
     	TagCheckpoint_i* getTagCheckpoint( int id );
 		ItemCheckpoint_i* getItemCheckpoint( int id );
 
-//    	void printCheckpoint();
+    	void checkForCrash();
+
+    	void printCheckpoint();
 //
 //    	void restarted();
 
@@ -718,7 +723,6 @@ namespace CnC {
     	int m_countdown_to_crash;
     	int m_process_to_crash;
 
-    	void checkForCrash();
     	void crash() const;
 
     	void remote_wait_init( int recvr );
@@ -752,7 +756,7 @@ namespace CnC {
 
         void processPut( UserStepTag putter, void * itemid, int itemCollectionId);
         void processPrescribe( UserStepTag prescriber, void * tagid, int tagCollectionId);
-        void processDone( UserStepTag step, int stepColId, int puts, int prescribes );
+        void processDone( UserStepTag step, int stepColId, int puts, int prescribes ) const;
 
 	protected:
     	//Since contexts already have their own implementations of send and receive, lets make our own communicator to handle the resilience stuff

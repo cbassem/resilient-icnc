@@ -25,7 +25,7 @@ public:
 
 	//The serializer still contains the responsible one's tag, but this is ok since we know its type! :D
 	void processStepPrescribe(CnC::serializer * ser, void * prescribedTagId);
-	void processStepDone(CnC::serializer * ser, int puts, int prescribes);
+	void processStepDone(CnC::serializer * ser);
 	void processItemPut(CnC::serializer * ser, void * itemId);
 
 
@@ -80,10 +80,11 @@ void StepCheckpoint< StepTag >::processStepPrescribe(CnC::serializer * ser, void
 }
 
 template< class StepTag >
-void StepCheckpoint< StepTag >::processStepDone(CnC::serializer * ser, int puts, int prescribes)
+void StepCheckpoint< StepTag >::processStepDone(CnC::serializer * ser)
 {
 	StepTag step;
-	(* ser) & step;
+	int puts, prescribes;
+	(* ser) & step & puts & prescribes;
 	TagLog& l_ = getTagLog( step );
 	l_.processDone( puts, prescribes );
 }

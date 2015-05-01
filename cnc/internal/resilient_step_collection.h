@@ -96,9 +96,16 @@ namespace CnC {
     }
 
     template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner >
-    void resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::processDone( UserStepTag step, int stepColId, int puts, int prescribes )
+    void resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::processDone( UserStepTag step, int stepColId, int puts, int prescribes ) const
     {
-    	m_step_checkpoint.processStepDone( step,  stepColId, puts, prescribes);
+    	if ( Internal::distributor::myPid() == 0) {
+        	m_step_checkpoint.processStepDone( step, stepColId, puts, prescribes);
+    	} else {
+    	    serializer * ser = m_resilient_contex.dist_context::new_serializer( &m_communicator );
+    	    //Order is very important since we pass the serialized datastrc to the remote checkpoint object!
+    	    (*ser) & checkpoint_tuner_types::DONE & stepColId & step & puts & prescribes;
+    	    m_resilient_contex.dist_context::send_msg(ser, 0);
+    	}
     }
 
 	///////////////////////////////////////////////////////////////////////
@@ -122,10 +129,17 @@ namespace CnC {
 		(* ser) & msg_tag;
 
 		switch (msg_tag) {
-//			case ???:
-//			{
-//
-//			}
+			case checkpoint_tuner_types::DONE:
+			{
+				int step_collection_id;
+				(* ser) & step_collection_id;
+				StepCheckpoint_i& i_ = m_resilient_step_collection.m_step_checkpoint;
+				i_.processStepDone(ser);
+				if ( Internal::distributor::myPid() == 0) {
+					m_resilient_step_collection.m_resilient_contex.checkForCrash();
+				}
+				break;
+			}
 
 			default:
 				CNC_ABORT( "Protocol error: unexpected message tag." );

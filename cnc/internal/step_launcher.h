@@ -100,6 +100,8 @@ namespace CnC {
 
             const int get_step_col_id() const { return m_stepColl.getId(); }
 
+            const step_coll_type & get_step_col() const { return m_stepColl; }
+
             int itacid() const
 #ifdef CNC_WITH_ITAC
             { return m_itacid; }
