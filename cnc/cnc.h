@@ -118,7 +118,7 @@ namespace CnC {
         template< typename Derived >
         step_collection( context< Derived > & ctxt, const std::string & name, const step_type & userStep );
         
-        ~step_collection();
+        virtual ~step_collection();
 
         /// Declare this step-collecation as consumer of given item-collection
         template< typename DataTag, typename Item, typename ITuner, typename ICheckpointTuner >
@@ -181,7 +181,7 @@ namespace CnC {
         template< class Derived >
         tag_collection( context< Derived > & ctxt, const Tuner & tnr );
 
-        ~tag_collection();
+        virtual ~tag_collection();
 
         /// \brief Declare the prescription relationship between the tag collection
         /// and a step collection.
@@ -333,7 +333,7 @@ namespace CnC {
         template< class Derived >
         item_collection( context< Derived > & ctxt, const Tuner & tnr );
 
-        ~item_collection();
+        virtual ~item_collection();
 
         /// \brief Declares the maxium tag value.
         ///
@@ -693,6 +693,8 @@ namespace CnC {
     	void checkForCrash();
 
     	void printCheckpoint();
+
+    	void calculate_checkpoint();
 //
 //    	void restarted();
 
@@ -752,11 +754,13 @@ namespace CnC {
         resilient_step_collection( resilientContext< Derived > & ctxt, const tuner_type & tnr, const std::string & name = std::string() );
         resilient_step_collection( resilientContext< Derived > & ctxt, const std::string & name, const step_type & userStep );
 
-        ~resilient_step_collection();
+        virtual ~resilient_step_collection();
 
         void processPut( UserStepTag putter, void * itemid, int itemCollectionId);
         void processPrescribe( UserStepTag prescriber, void * tagid, int tagCollectionId);
         void processDone( UserStepTag step, int stepColId, int puts, int prescribes ) const;
+
+        StepCheckpoint<UserStepTag> * getStepCheckpoint() {return &m_step_checkpoint;}
 
 	protected:
     	//Since contexts already have their own implementations of send and receive, lets make our own communicator to handle the resilience stuff
@@ -796,7 +800,7 @@ namespace CnC {
         resilient_tag_collection( resilientContext< Derived > & ctxt, const std::string & name = std::string() );
         resilient_tag_collection( resilientContext< Derived > & ctxt, const Tuner & tnr );
 
-        ~resilient_tag_collection();
+        virtual ~resilient_tag_collection();
 
         void put( const Tag & t );
 
@@ -806,6 +810,9 @@ namespace CnC {
         		const Tag & tag );
 
         void restart_put( const Tag & t );
+
+        template< typename SDerived, typename UserStepTag, typename UserStep, typename STuner, typename Arg, typename SCheckpointTuner >
+        error_type prescribes( resilient_step_collection< SDerived, UserStepTag, UserStep, STuner, SCheckpointTuner > & s, Arg & arg );
 
 	protected:
     	//Since contexts already have their own implementations of send and receive, lets make our own communicator to handle the resilience stuff
@@ -843,7 +850,7 @@ namespace CnC {
         resilient_item_collection( resilientContext< Derived > & ctxt, const std::string & name = std::string() );
         resilient_item_collection( resilientContext< Derived > & ctxt, const Tuner & tnr );
 
-        ~resilient_item_collection();
+        virtual ~resilient_item_collection();
 
         void put( const Tag & tag, const Item & item );
 

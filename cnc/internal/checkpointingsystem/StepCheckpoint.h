@@ -28,8 +28,9 @@ public:
 	void processStepDone(CnC::serializer * ser);
 	void processItemPut(CnC::serializer * ser, void * itemId);
 
-
 	TagLog& getTagLog( StepTag tag );
+
+	bool isDone(StepTag tag);
 
 	int getId();
 
@@ -37,7 +38,6 @@ public:
 private:
 	typedef std::tr1::unordered_map< StepTag, TagLog > tagMap_t;
 	tagMap_t tagMap;
-
 	int m_col_id;
 
 
@@ -98,12 +98,21 @@ void StepCheckpoint< StepTag >::processItemPut(CnC::serializer * ser, void * ite
 	l_.processPut( itemId );
 }
 
+template< class StepTag >
+bool StepCheckpoint< StepTag >::isDone(StepTag tag)
+{
+	TagLog& l_ = getTagLog( tag );
+	return l_.isDone();
+}
+
+
 
 template< class StepTag >
 int StepCheckpoint< StepTag >::getId()
 {
 	return m_col_id;
 }
+
 
 template<class StepTag >
 TagLog& StepCheckpoint< StepTag >::getTagLog( StepTag tag ) {

@@ -110,6 +110,15 @@ namespace CnC {
     	tag_collection< Tag, Tuner, CheckpointTuner >::restart_put( t );
     }
 
+    template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner >
+    template< typename SDerived, typename UserStepTag, typename UserStep, typename STuner, typename Arg, typename SCheckpointTuner >
+    error_type resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >::prescribes( resilient_step_collection< SDerived, UserStepTag, UserStep, STuner, SCheckpointTuner > & s, Arg & arg )
+	{
+    	super_type::prescribes(s, arg);
+    	StepCheckpoint<Tag> * cp_= s.getStepCheckpoint();
+    	m_tag_checkpoint.prescribeStepCheckpoint(cp_);
+	}
+
 
 	//////////////////////////////////////////////////////////////////////
 	/// Implementation of CnC::resilient_tag_collection::communicator ////

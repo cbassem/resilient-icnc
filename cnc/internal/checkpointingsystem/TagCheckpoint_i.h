@@ -14,6 +14,7 @@ public:
 	virtual ~TagCheckpoint_i() {};
 
 	virtual int getId() = 0;
+	virtual void calculate_checkpoint() = 0;
 };
 
 #endif /* TAGCHECKPOINT_I_H_ */

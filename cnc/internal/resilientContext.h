@@ -157,6 +157,18 @@ namespace CnC {
 
 	}
 
+	template< class Derived >
+	void resilientContext< Derived >::calculate_checkpoint() {
+		//loop over all tag checkpoints & call restart
+		for( typename std::vector< TagCheckpoint_i * >::const_iterator it = m_tag_checkpoints.begin(); it != m_tag_checkpoints.end(); ++it) {
+			(*it)->calculate_checkpoint();
+		}
+
+		//loop over all item checkpoints & call restart
+
+		//loop over stepcheckpoints & remove all done taglogs
+	}
+
 
 	template< class Derived >
 	void resilientContext< Derived >::remote_wait_init( int recvr ) {

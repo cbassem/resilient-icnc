@@ -9,6 +9,8 @@
 #define TAGCHECKPOINT_H_
 
 #include "TagCheckpoint_i.h"
+#include "StepCheckpoint_i.h"
+#include "StepCheckpoint.h"
 #include <tr1/unordered_map>
 
 
@@ -22,13 +24,18 @@ public:
 
 	int getId();
 
+	void prescribeStepCheckpoint( StepCheckpoint<Tag> * cp);
+
+	void calculate_checkpoint();
+
 private:
 	typedef std::tr1::unordered_map< Tag, Tag * > tagMap;
-
     typedef tbb::scalable_allocator< Tag > tag_allocator_type;
+    typedef std::vector< StepCheckpoint< Tag > * > step_checkpoints_type;
 
     tagMap m_tag_map;
 	mutable tag_allocator_type m_allocator;
+	step_checkpoints_type m_step_checkpoints;
 
 	int m_col_id;
 
@@ -39,7 +46,7 @@ private:
 };
 
 template< class Tag >
-TagCheckpoint< Tag >::TagCheckpoint(int col_id): m_tag_map(), m_allocator(), m_col_id(col_id) {};
+TagCheckpoint< Tag >::TagCheckpoint(int col_id): m_tag_map(), m_allocator(), m_col_id(col_id), m_step_checkpoints() {};
 
 template< class Tag >
 TagCheckpoint< Tag >::~TagCheckpoint() { cleanup(); };
@@ -61,6 +68,44 @@ template< class Tag >
 int TagCheckpoint< Tag >::getId()
 {
 	return m_col_id;
+}
+
+template< class Tag >
+void TagCheckpoint< Tag >::prescribeStepCheckpoint( StepCheckpoint<Tag> * cp)
+{
+	m_step_checkpoints.push_back(cp);
+}
+
+//
+//std::list<item*>::iterator i = items.begin();
+//while (i != items.end())
+//{
+//    bool isActive = (*i)->update();
+//    if (!isActive)
+//    {
+//        items.erase(i++);  // alternatively, i = items.erase(i);
+//    }
+//    else
+//    {
+//        other_code_involving(*i);
+//        ++i;
+//    }
+//}
+
+template< class Tag >
+void TagCheckpoint< Tag >::calculate_checkpoint()
+{
+	for( typename step_checkpoints_type::const_iterator it = m_step_checkpoints.begin(); it != m_step_checkpoints.end(); ++it) {
+		typename tagMap::const_iterator itt = m_tag_map.begin();
+		while ( itt != m_tag_map.end() )
+		{
+			if (! (*it)->isDone(itt->first)) {
+				m_tag_map.erase(itt++);
+			}
+			++itt;
+		}
+	}
+
 }
 
 template< class Tag >
