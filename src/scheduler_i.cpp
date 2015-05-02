@@ -451,6 +451,7 @@ namespace CnC {
 
         void scheduler_i::re_init_wait(int recvr)
         {
+        	std::cout << "Sending re_init_wait" << std::cout;
         		serializer * _ser = m_context.new_serializer( this );
         	   (*_ser) & PING & m_root;
         	   m_context.send_msg( _ser, recvr );

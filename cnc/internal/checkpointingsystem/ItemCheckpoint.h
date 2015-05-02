@@ -28,6 +28,8 @@ public:
 
 	int getId();
 
+	void print();
+
 private:
 	typedef std::tr1::unordered_map< Key, Item * > itemMap;
 
@@ -84,6 +86,15 @@ void ItemCheckpoint< Derived, Key, Item, Tuner, CheckpointTuner >::add_checkpoin
 	for( typename itemMap::const_iterator it = m_item_map.begin(); it != m_item_map.end(); ++it) {
 		m_owner.restart_put(it->first, *it->second);
 	}
+}
+
+template< typename Derived, typename Key, typename Item, typename Tuner, typename CheckpointTuner >
+void ItemCheckpoint< Derived, Key, Item, Tuner, CheckpointTuner >::print() {
+	std::cout << "Printing Item Checkpoint: " << std::endl;
+	for( typename itemMap::const_iterator it = m_item_map.begin(); it != m_item_map.end(); ++it) {
+		std::cout << "(" << it->first <<", " << *it->second << "), ";
+	}
+	std::cout << std::endl;
 }
 
 template< typename Derived, typename Key, typename Item, typename Tuner, typename CheckpointTuner >

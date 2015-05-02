@@ -109,34 +109,7 @@ namespace CnC {
 			(*it)->add_checkpoint_locally();
 		}
 
-//		for ( typename std::vector< ItemCollectionType * >::reverse_iterator it = m_item_collections.rbegin(); it != m_item_collections.rend(); ++it ) {
-//			int crrId = (*it)->getId();
-//			std::tr1::unordered_map<Tag, Item>& map = m_cmanager.getItemCheckpoint( crrId );
-//			std::cout << "adding items ... " << std::endl;
-//			std::vector<typename std::tr1::unordered_map< Tag, Item >::const_iterator > tmp_;
-//			for (typename std::tr1::unordered_map<Tag, Item>::const_iterator itt =map.begin(); itt != map.end(); ++itt) {
-//				tmp_.push_back(itt);
-//				//restart_put(itt->first, itt->second, crrId);
-//			}
-//
-//			for (typename std::vector<typename std::tr1::unordered_map< Tag, Item >::const_iterator >::reverse_iterator itt=tmp_.rbegin();
-//					itt != tmp_.rend();
-//					++itt ) {
-//				restart_put((*itt)->first, (*itt)->second, crrId);
-//			}
-//		}
-//
-//		//First put steps. Steps get triggered from waiting state by item puts
-//		for( typename std::vector< TagCollectionType * >::const_iterator it = m_tag_collections.begin(); it != m_tag_collections.end(); ++it ) {
-//			int crrId = (*it)->getId();
-//			std::cout << "restart... adding tags to collecton with Id "<< crrId << std::endl;
-//			std::set< Tag >& set = m_cmanager.getTagCheckpoint(crrId);
-//			std::cout <<  "adding tags ... " << std::endl;
-//			for( typename std::set< Tag >::const_iterator itt = set.begin(); itt != set.end(); ++itt) {
-//				restart_prescribe(*itt, crrId);
-//			}
-//		}
-//
+
 //		//_l.release();
 
 
@@ -174,9 +147,9 @@ namespace CnC {
 		for( typename std::vector< TagCheckpoint_i * >::const_iterator it = m_tag_checkpoints.begin(); it != m_tag_checkpoints.end(); ++it) {
 			(*it)->print();
 		}
-//		for( typename std::vector< ItemCheckpoint_i * >::const_iterator it = m_item_checkpoints.begin(); it != m_item_checkpoints.end(); ++it) {
-//			(*it)->print();
-//		}
+		for( typename std::vector< ItemCheckpoint_i * >::const_iterator it = m_item_checkpoints.begin(); it != m_item_checkpoints.end(); ++it) {
+			(*it)->print();
+		}
 	}
 
 	template< class Derived >
