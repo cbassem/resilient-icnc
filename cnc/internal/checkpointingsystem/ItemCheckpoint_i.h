@@ -13,6 +13,7 @@ class ItemCheckpoint_i {
 public:
 	virtual ~ItemCheckpoint_i() {};
 	virtual int getId() = 0;
+	virtual void add_checkpoint_locally() = 0;
 
 };
 

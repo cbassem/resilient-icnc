@@ -75,8 +75,8 @@ namespace CnC {
             typedef typename TagTuner::range_type range_type;
             typedef tag_collection_base< Tag, TagTuner, CheckpointTuner > tag_coll_type;
 
-            step_launcher( context_base & ctxt, Arg & arg, const step_collection< Step, StepTuner, CheckpointTuner > & sc, const TagTuner & tt, scheduler_i & sched );
-            step_launcher( tag_coll_type * tc, Arg & arg, const step_collection< Step, StepTuner, CheckpointTuner > & sc ) ;
+            step_launcher( context_base & ctxt, Arg & arg, step_collection< Step, StepTuner, CheckpointTuner > & sc, const TagTuner & tt, scheduler_i & sched );
+            step_launcher( tag_coll_type * tc, Arg & arg, step_collection< Step, StepTuner, CheckpointTuner > & sc ) ;
             virtual ~step_launcher();
             virtual tagged_step_instance< tag_type > * create_step_instance( const Tag & tag, context_base & ctxt, bool compute_on ) const;
             virtual tagged_step_instance< range_type > * create_range_step_instance( const range_type & range, context_base & ctxt ) const;
@@ -100,7 +100,9 @@ namespace CnC {
 
             const int get_step_col_id() const { return m_stepColl.getId(); }
 
-            const step_coll_type & get_step_col() const { return m_stepColl; }
+
+            //const step_coll_type & get_step_col() const { return m_stepColl; }
+            step_coll_type & get_step_col() { return m_stepColl; }
 
             int itacid() const
 #ifdef CNC_WITH_ITAC
@@ -117,7 +119,7 @@ namespace CnC {
             const Tag * get_tag_type() const { return NULL; } // need something to help the compiler deduce template argument type
             Arg                                        & m_arg;
             mutable tbb::atomic< step_instance_type * >  m_stepInstance; // use pointer & lazy init avoid default constructor for tags
-            const step_coll_type                       & m_stepColl;
+            step_coll_type                       & m_stepColl;
             const TagTuner                             & m_tagTuner;
             scheduler_i                                & m_scheduler;
             tag_coll_type                              * m_tagColl;
@@ -139,7 +141,7 @@ namespace CnC {
 
         template< class Tag, class Step, class Arg, class TagTuner, class StepTuner, class CheckpointTuner >
         step_launcher< Tag, Step, Arg, TagTuner, StepTuner, CheckpointTuner >::step_launcher( context_base & ctxt, Arg & arg,
-                                                                             const step_collection< Step, StepTuner, CheckpointTuner > & sc,
+                                                                             step_collection< Step, StepTuner, CheckpointTuner > & sc,
                                                                              const TagTuner & tt, scheduler_i & sched )
             : step_launcher_base< Tag, range_type >( ctxt ),
               m_arg( arg ),
@@ -165,7 +167,7 @@ namespace CnC {
         }
 
         template< class Tag, class Step, class Arg, class TagTuner, class StepTuner, class CheckpointTuner >
-        step_launcher< Tag, Step, Arg, TagTuner, StepTuner, CheckpointTuner >::step_launcher( tag_coll_type * tc, Arg & arg, const step_collection< Step, StepTuner, CheckpointTuner > & sc )
+        step_launcher< Tag, Step, Arg, TagTuner, StepTuner, CheckpointTuner >::step_launcher( tag_coll_type * tc, Arg & arg, step_collection< Step, StepTuner, CheckpointTuner > & sc )
             : step_launcher_base< Tag, range_type >( tc->get_context() ),
               m_arg( arg ),
               m_stepInstance(),

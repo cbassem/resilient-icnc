@@ -97,10 +97,18 @@ namespace CnC {
 //		//mutex_t::scoped_lock _l( m_mutex ); //FIXME, we realy, realy need a lock here
 //
 //
-//		//First calculate checkpoint
-//		m_cmanager.calculateCheckpoint();
-//		m_cmanager.printCheckpoint();
-//
+		//First calculate checkpoint
+		calculate_checkpoint();
+		print_checkpoint();
+
+		for( typename std::vector< ItemCheckpoint_i * >::const_iterator it = m_item_checkpoints.begin(); it != m_item_checkpoints.end(); ++it) {
+			(*it)->add_checkpoint_locally();
+		}
+
+		for( typename std::vector< TagCheckpoint_i * >::const_iterator it = m_tag_checkpoints.begin(); it != m_tag_checkpoints.end(); ++it) {
+			(*it)->add_checkpoint_locally();
+		}
+
 //		for ( typename std::vector< ItemCollectionType * >::reverse_iterator it = m_item_collections.rbegin(); it != m_item_collections.rend(); ++it ) {
 //			int crrId = (*it)->getId();
 //			std::tr1::unordered_map<Tag, Item>& map = m_cmanager.getItemCheckpoint( crrId );
@@ -134,9 +142,18 @@ namespace CnC {
 
 	}
 
+	template< class Derived >
+	void resilientContext< Derived >::restarted() {
+		std::cout << "Restarted and checking for data... " << Internal::distributor::myPid() << std::endl;
+		serializer * ser = dist_context::new_serializer( &m_communicator );
+		(*ser) & checkpoint_tuner_types::REQUEST_RESTART_DATA & CnC::Internal::distributor::myPid();
+		dist_context::send_msg(ser, 0);
+	}
+
 
 	template< class Derived >
 	void resilientContext< Derived >::checkForCrash() {
+		std::cout << "aa" <<std::endl;
 		if (m_countdown_to_crash >= 0) {
 			if (m_countdown_to_crash == 0) {
 				crash();
@@ -153,7 +170,7 @@ namespace CnC {
 	}
 
 	template< class Derived >
-	void resilientContext< Derived >::printCheckpoint() {
+	void resilientContext< Derived >::print_checkpoint() {
 		for( typename std::vector< TagCheckpoint_i * >::const_iterator it = m_tag_checkpoints.begin(); it != m_tag_checkpoints.end(); ++it) {
 			(*it)->print();
 		}

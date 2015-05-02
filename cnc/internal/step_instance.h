@@ -64,13 +64,13 @@ namespace CnC {
             virtual void serialize( serializer & ser );
 
             bool prepare_from_range( tagged_step_instance< range_type > * rsi, const tag_type & tag, step_delayer & sD ) const;
-            CnC::Internal::StepReturnValue_t execute_from_range( step_instance_base * rsi, const tag_type & tag ) const;
+            CnC::Internal::StepReturnValue_t execute_from_range( step_instance_base * rsi, const tag_type & tag );
             virtual std::ostream & format( std::ostream & os ) const;
 
             // name of instance, used for tracing
         private:
             CnC::Internal::StepReturnValue_t do_execute();
-            const StepLauncher * m_stepLauncher;
+            StepLauncher * m_stepLauncher;
         };
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -81,7 +81,7 @@ namespace CnC {
         template< class StepLauncher >
         step_instance< StepLauncher >::step_instance( const tag_type & tag, context_base & ctxt, const StepLauncher * sl )
             : tagged_step_instance< tag_type >( tag, ctxt, sl->get_step_tuner().priority( tag, sl->m_arg ), sl->m_scheduler ),
-              m_stepLauncher( sl )
+              m_stepLauncher( const_cast<StepLauncher *>(sl) ) //TODO FIXME BAH!
         {
             if( m_stepLauncher->timing() ) this->enable_timing();
         }
@@ -110,6 +110,7 @@ namespace CnC {
         {
         	const checkpoint_tuner_type & _tuner = m_stepLauncher->get_checkpoint_tuner();
             const tag_type & _tag = this->m_tag.Value();
+        	void * t_ = static_cast<void*>(const_cast<tag_type*>(&_tag));
             if( ! m_stepLauncher->get_step_tuner().was_canceled( _tag, m_stepLauncher->m_arg ) ) {
 
             	CnC::Internal::StepReturnValue_t res = tagged_step_instance< tag_type >::do_execute( this,
@@ -124,7 +125,7 @@ namespace CnC {
                         m_stepLauncher->itacid() );
 
             	if (res == CNC_Success){
-            		m_stepLauncher->get_step_col().processDone( _tag, m_stepLauncher->get_step_col_id(), _tuner.getNrOfPuts(), _tuner.getNrOfPrescribes());
+            		m_stepLauncher->get_step_col().processDone( t_, m_stepLauncher->get_step_col_id(), _tuner.getNrOfPuts(), _tuner.getNrOfPrescribes());
 
             	}
 
@@ -134,7 +135,7 @@ namespace CnC {
                 oss << "Canceled step ";
                 format( oss );
             }
-    		m_stepLauncher->get_step_col().processDone( _tag, m_stepLauncher->get_step_col_id(), _tuner.getNrOfPuts(), _tuner.getNrOfPrescribes());
+            m_stepLauncher->get_step_col().processDone( t_, m_stepLauncher->get_step_col_id(), _tuner.getNrOfPuts(), _tuner.getNrOfPrescribes());
             return CNC_Success;
         }
         
@@ -153,9 +154,10 @@ namespace CnC {
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
         template< class StepLauncher >
-        CnC::Internal::StepReturnValue_t step_instance< StepLauncher >::execute_from_range( step_instance_base * rsi, const tag_type & tag ) const
+        CnC::Internal::StepReturnValue_t step_instance< StepLauncher >::execute_from_range( step_instance_base * rsi, const tag_type & tag )
         {
 
+        	void * t_ = static_cast<void*>(const_cast<tag_type*>(&tag));
         	const checkpoint_tuner_type & _tuner = m_stepLauncher->get_checkpoint_tuner();
 
             if( ! m_stepLauncher->get_step_tuner().was_canceled( tag, m_stepLauncher->m_arg ) ) {
@@ -171,7 +173,7 @@ namespace CnC {
                                                                      m_stepLauncher->m_stepColl.name(),
                                                                      m_stepLauncher->itacid() );
             	if(res == CNC_Success) {
-            		m_stepLauncher->get_step_col().processDone( tag, m_stepLauncher->get_step_col_id(), _tuner.getNrOfPuts(), _tuner.getNrOfPrescribes());
+            		m_stepLauncher->get_step_col().processDone(t_ , m_stepLauncher->get_step_col_id(), _tuner.getNrOfPuts(), _tuner.getNrOfPrescribes());
             	}
 
             	return res;
@@ -180,7 +182,7 @@ namespace CnC {
                         oss << "Canceled step ";
                         format( oss );
             }
-    		m_stepLauncher->get_step_col().processDone( tag, m_stepLauncher->get_step_col_id(), _tuner.getNrOfPuts(), _tuner.getNrOfPrescribes());
+            m_stepLauncher->get_step_col().processDone( t_, m_stepLauncher->get_step_col_id(), _tuner.getNrOfPuts(), _tuner.getNrOfPrescribes());
             return CNC_Success;
         }
 

@@ -105,8 +105,6 @@ bool StepCheckpoint< StepTag >::isDone(StepTag tag)
 	return l_.isDone();
 }
 
-
-
 template< class StepTag >
 int StepCheckpoint< StepTag >::getId()
 {

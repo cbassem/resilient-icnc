@@ -96,14 +96,17 @@ namespace CnC {
     }
 
     template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner >
-    void resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::processDone( UserStepTag step, int stepColId, int puts, int prescribes ) const
+    void resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::processDone( void * step, int stepColId, int puts, int prescribes )
     {
+    	UserStepTag* s_ = static_cast<UserStepTag*>(step);
+    	std::cout <<"process done"<< std::endl;
     	if ( Internal::distributor::myPid() == 0) {
-        	m_step_checkpoint.processStepDone( step, stepColId, puts, prescribes);
+        	m_step_checkpoint.processStepDone( *s_, stepColId, puts, prescribes);
+        	m_resilient_contex.checkForCrash();
     	} else {
     	    serializer * ser = m_resilient_contex.dist_context::new_serializer( &m_communicator );
     	    //Order is very important since we pass the serialized datastrc to the remote checkpoint object!
-    	    (*ser) & checkpoint_tuner_types::DONE & stepColId & step & puts & prescribes;
+    	    (*ser) & checkpoint_tuner_types::DONE & stepColId & *s_ & puts & prescribes;
     	    m_resilient_contex.dist_context::send_msg(ser, 0);
     	}
     }

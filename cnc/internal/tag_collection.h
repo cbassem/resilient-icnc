@@ -168,7 +168,7 @@ namespace CnC {
 
     template< typename Tag, typename Tuner, typename CheckpointTuner >
     template< typename Step, typename STuner, typename Arg, typename SCheckpointTuner >
-    error_type tag_collection< Tag, Tuner, CheckpointTuner >::prescribes( const step_collection< Step, STuner, SCheckpointTuner > & sc, Arg & arg )
+    error_type tag_collection< Tag, Tuner, CheckpointTuner >::prescribes( step_collection< Step, STuner, SCheckpointTuner > & sc, Arg & arg )
     {
         typedef Internal::step_launcher< Tag, Step, Arg, Tuner, STuner, SCheckpointTuner > the_step_launcher;
         the_step_launcher * _sl = new the_step_launcher( &m_tagCollection, arg, sc );

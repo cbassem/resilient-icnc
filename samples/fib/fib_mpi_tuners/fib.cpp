@@ -108,9 +108,7 @@ int main( int argc, char* argv[] )
     // print result
     std::cout << "fib (" << n << "): " << res2 << std::endl;
 
-    //ctxt.printCheckpoint();
+    ctxt.print_checkpoint();
 
-    //const fib_cr_tuner & a = CnC::Internal::get_default_checkpoint_tuner< fib_cr_tuner >( reinterpret_cast< CnC::Internal::distributable_context & >(ctxt));
-    //fib_cr_tuner( a).printCheckpoint(); // should be empty
     return 0;
 }

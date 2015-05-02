@@ -13,11 +13,14 @@
 #include "StepCheckpoint.h"
 #include <tr1/unordered_map>
 
+namespace CnC {
 
-template< class Tag >
+template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner > class resilient_tag_collection;
+
+template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner >
 class TagCheckpoint: public TagCheckpoint_i {
 public:
-	TagCheckpoint(int col_id);
+	TagCheckpoint(CnC::resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner > & owner, int col_id);
 	virtual ~TagCheckpoint();
 
 	void * put(const Tag & tag);
@@ -27,6 +30,8 @@ public:
 	void prescribeStepCheckpoint( StepCheckpoint<Tag> * cp);
 
 	void calculate_checkpoint();
+
+	void add_checkpoint_locally();
 
 	void print();
 
@@ -40,6 +45,7 @@ private:
 	step_checkpoints_type m_step_checkpoints;
 
 	int m_col_id;
+	CnC::resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner > & m_owner;
 
 	Tag * create( const Tag & org ) const;
 	void uncreate( Tag * item ) const;
@@ -47,14 +53,15 @@ private:
 	void cleanup();
 };
 
-template< class Tag >
-TagCheckpoint< Tag >::TagCheckpoint(int col_id): m_tag_map(), m_allocator(), m_col_id(col_id), m_step_checkpoints() {};
+template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner >
+TagCheckpoint< Derived, Tag, Tuner, CheckpointTuner >::TagCheckpoint(CnC::resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner > & owner, int col_id):
+m_tag_map(), m_allocator(), m_col_id(col_id), m_step_checkpoints(), m_owner(owner) {};
 
-template< class Tag >
-TagCheckpoint< Tag >::~TagCheckpoint() { cleanup(); };
+template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner >
+TagCheckpoint< Derived, Tag, Tuner, CheckpointTuner >::~TagCheckpoint() { cleanup(); };
 
-template< class Tag >
-void * TagCheckpoint< Tag >::put( const Tag & tag ) {
+template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner >
+void * TagCheckpoint< Derived, Tag, Tuner, CheckpointTuner >::put( const Tag & tag ) {
 	typename tagMap::iterator it = m_tag_map.find(tag);
 	if (it == m_tag_map.end()) {
 		Tag * _i = create(tag);
@@ -66,71 +73,64 @@ void * TagCheckpoint< Tag >::put( const Tag & tag ) {
 	}
 }
 
-template< class Tag >
-int TagCheckpoint< Tag >::getId()
+template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner >
+int TagCheckpoint< Derived, Tag, Tuner, CheckpointTuner >::getId()
 {
 	return m_col_id;
 }
 
-template< class Tag >
-void TagCheckpoint< Tag >::prescribeStepCheckpoint( StepCheckpoint<Tag> * cp)
+template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner >
+void TagCheckpoint< Derived, Tag, Tuner, CheckpointTuner >::prescribeStepCheckpoint( StepCheckpoint<Tag> * cp)
 {
 	m_step_checkpoints.push_back(cp);
 }
 
-//
-//std::list<item*>::iterator i = items.begin();
-//while (i != items.end())
-//{
-//    bool isActive = (*i)->update();
-//    if (!isActive)
-//    {
-//        items.erase(i++);  // alternatively, i = items.erase(i);
-//    }
-//    else
-//    {
-//        other_code_involving(*i);
-//        ++i;
-//    }
-//}
+template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner >
+void TagCheckpoint< Derived, Tag, Tuner, CheckpointTuner >::add_checkpoint_locally() {
+	for( typename tagMap::const_iterator it = m_tag_map.begin(); it != m_tag_map.end(); ++it) {
+		m_owner.restart_put(it->first);
+	}
+}
 
-template< class Tag >
-void TagCheckpoint< Tag >::calculate_checkpoint()
+template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner >
+void TagCheckpoint< Derived, Tag, Tuner, CheckpointTuner >::calculate_checkpoint()
 {
 	for( typename step_checkpoints_type::const_iterator it = m_step_checkpoints.begin(); it != m_step_checkpoints.end(); ++it) {
 		typename tagMap::const_iterator itt = m_tag_map.begin();
 		while ( itt != m_tag_map.end() )
 		{
-			if (! (*it)->isDone(itt->first)) {
+			if ((*it)->isDone(itt->first)) {
 				m_tag_map.erase(itt++);
+			} else {
+				++itt;
 			}
-			++itt;
 		}
 	}
 
 }
 
-template< class Tag >
-void TagCheckpoint< Tag >::print()
+template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner >
+void TagCheckpoint< Derived, Tag, Tuner, CheckpointTuner >::print()
 {
 	std::cout << "Printing tag checkpoint [" << m_col_id << "]" << std::endl;
 	for(typename tagMap::const_iterator it = m_tag_map.begin(); it != m_tag_map.end(); ++it)
 	{
-		std::cout << it->first << std::endl;
+		std::cout << it->first << ", ";
 	}
+	std::cout << std::endl;
 }
 
 
-template< class Tag >
-Tag * TagCheckpoint< Tag >::create( const Tag & org ) const
+template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner >
+Tag * TagCheckpoint< Derived, Tag, Tuner, CheckpointTuner >::create( const Tag & org ) const
 {
     Tag * _tag = m_allocator.allocate( 1 );
     m_allocator.construct( _tag, org );
     return _tag;
 }
 
-template< class Tag >
-void TagCheckpoint< Tag >::uncreate( Tag * tag ) const
+template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner >
+void TagCheckpoint< Derived, Tag, Tuner, CheckpointTuner >::uncreate( Tag * tag ) const
 {
     if( tag ) {
         m_allocator.destroy( tag );
@@ -138,12 +138,16 @@ void TagCheckpoint< Tag >::uncreate( Tag * tag ) const
     }
 }
 
-template< class Tag >
-void TagCheckpoint< Tag >::cleanup()
+template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner >
+void TagCheckpoint< Derived, Tag, Tuner, CheckpointTuner >::cleanup()
 {
 	for( typename tagMap::const_iterator it = m_tag_map.begin(); it != m_tag_map.end(); ++it) {
 		uncreate( it->second );
 	}
 }
+
+}
+
+
 
 #endif /* TAGCHECKPOINT_H_ */

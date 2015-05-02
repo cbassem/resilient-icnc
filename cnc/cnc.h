@@ -133,9 +133,7 @@ namespace CnC {
         void controls( CnC::tag_collection< ControlTag, TTuner, TCheckpointTuner > & );
 
 
-        //Dummy fcts, otherwise we need bigger refactoring....
-        template< typename StepTag >
-        void processDone( StepTag step, int stepColId, int puts, int prescribes ) const;
+        virtual void processDone( void * step, int stepColId, int puts, int prescribes );
 
         const int getId() const;
 
@@ -201,7 +199,7 @@ namespace CnC {
         ///
         /// \return 0 if succeeded, error code otherwise
         template< typename UserStep, typename STuner, typename Arg, typename SCheckpointTuner >
-        error_type prescribes( const step_collection< UserStep, STuner, SCheckpointTuner > & s, Arg & arg );
+        error_type prescribes( step_collection< UserStep, STuner, SCheckpointTuner > & s, Arg & arg );
 
         /// \brief prescribe the associated step.  If we are preserving tags for this collection, make a copy of the tag and store it in the collection.
         /// For checkpointing the env will be assumed as prescriber
@@ -692,11 +690,11 @@ namespace CnC {
 
     	void checkForCrash();
 
-    	void printCheckpoint();
+    	void print_checkpoint();
 
     	void calculate_checkpoint();
-//
-//    	void restarted();
+
+    	void restarted();
 
 	protected:
     	//Since contexts already have their own implementations of send and receive, lets make our own communicator to handle the resilience stuff
@@ -717,6 +715,8 @@ namespace CnC {
 		};
 
 	private:
+    	typedef Internal::distributable_context dist_context;
+
     	std::vector< ItemCheckpoint_i* > m_item_checkpoints;
     	std::vector< TagCheckpoint_i* > m_tag_checkpoints;
     	std::vector< StepCheckpoint_i* > m_step_checkpoints;
@@ -758,7 +758,8 @@ namespace CnC {
 
         void processPut( UserStepTag putter, void * itemid, int itemCollectionId);
         void processPrescribe( UserStepTag prescriber, void * tagid, int tagCollectionId);
-        void processDone( UserStepTag step, int stepColId, int puts, int prescribes ) const;
+
+        void processDone( void * step, int stepColId, int puts, int prescribes );
 
         StepCheckpoint<UserStepTag> * getStepCheckpoint() {return &m_step_checkpoint;}
 
@@ -835,7 +836,7 @@ namespace CnC {
     private:
     	typedef Internal::distributable_context dist_context;
     	typedef tag_collection< Tag, Tuner, CheckpointTuner > super_type;
-        TagCheckpoint< Tag > m_tag_checkpoint;
+        TagCheckpoint< Derived, Tag, Tuner, CheckpointTuner > m_tag_checkpoint;
         resilientContext< Derived > & m_resilient_contex;
     	resilient_tag_collection::communicator m_communicator;
     };
@@ -882,7 +883,7 @@ namespace CnC {
     private:
     	typedef Internal::distributable_context dist_context;
     	typedef item_collection< Tag, Item, Tuner, CheckpointTuner > super_type;
-        ItemCheckpoint< Tag, Item > m_item_checkpoint;
+        ItemCheckpoint< Derived, Tag, Item, Tuner, CheckpointTuner > m_item_checkpoint;
         resilientContext< Derived > & m_resilient_contex;
     	resilient_item_collection::communicator m_communicator;
     };
