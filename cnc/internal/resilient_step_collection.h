@@ -99,7 +99,6 @@ namespace CnC {
     void resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::processDone( void * step, int stepColId, int puts, int prescribes )
     {
     	UserStepTag* s_ = static_cast<UserStepTag*>(step);
-    	std::cout <<"process done"<< std::endl;
     	if ( Internal::distributor::myPid() == 0) {
         	m_step_checkpoint.processStepDone( *s_, stepColId, puts, prescribes);
         	m_resilient_contex.checkForCrash();

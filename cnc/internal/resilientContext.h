@@ -126,7 +126,6 @@ namespace CnC {
 
 	template< class Derived >
 	void resilientContext< Derived >::checkForCrash() {
-		std::cout << "aa" <<std::endl;
 		if (m_countdown_to_crash >= 0) {
 			if (m_countdown_to_crash == 0) {
 				crash();

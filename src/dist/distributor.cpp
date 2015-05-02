@@ -305,6 +305,7 @@ namespace CnC {
                         theDistributor->m_state = distributor::DIST_ON;
                         _dctxt->set_distributionReady();
                         _dctxt->restarted();
+                        CnC::Internal::scheduler_i::restarted_safe = false;
                     	break;
                     }
                     case CRASH: {
