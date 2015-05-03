@@ -107,7 +107,8 @@ namespace CnC {
 
     template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner >
     void resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >::restart_put( const Tag & t ) {
-    	tag_collection< Tag, Tuner, CheckpointTuner >::restart_put( t );
+    	//tag_collection< Tag, Tuner, CheckpointTuner >::restart_put( t );
+    	tag_collection< Tag, Tuner, CheckpointTuner >::put( t );
     }
 
     template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner >
