@@ -180,7 +180,6 @@ namespace CnC {
             // let's avoid infinite recursive calls to prepare if preschedule is enabled
 			char _to_be_scheduled = stepInstance->prepare( sD, passOnTo, _tmp );
             set_current( _tmp );
-            
             // is this to be passed on to another process?
             if( passOnTo != NO_COMPUTE_ON && passOnTo != distributor::myPid() ) {
                 CNC_ASSERT( passOnTo < distributor::numProcs() && passOnTo != COMPUTE_ON_LOCAL );
@@ -334,12 +333,12 @@ namespace CnC {
         // increases the ref-count through suspend by one, execute methods must unsuspend!
         void scheduler_i::do_execute( schedulable * s )
         {
-            if( m_balancer && !s->is_service_task() && m_balancer->migrate_step( m_userStepsInFlight, s ) ) {
-                --m_userStepsInFlight;
-                delete s;
-                set_current( NULL );
-                return;
-            }
+//            if( m_balancer && !s->is_service_task() && m_balancer->migrate_step( m_userStepsInFlight, s ) ) {
+//                --m_userStepsInFlight;
+//                delete s;
+//                set_current( NULL );
+//                return;
+//            }
             do {
                 set_current( s );
                 if( s->from_pending() ) { //from_pending() ) {  
