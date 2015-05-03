@@ -96,8 +96,8 @@ namespace CnC {
         private:
             typedef tbb::concurrent_vector< step_launcher_base< Tag, typename Tuner::range_type > * >  PrescribedStepCollections_t;
             PrescribedStepCollections_t m_prescribedStepCollections;
-            typedef tbb::spin_mutex my_mutex_type;
-            my_mutex_type m_putMutex;
+            //typedef tbb::spin_mutex my_mutex_type;
+            //my_mutex_type m_putMutex;
 
             // the set of tags in the TagCollection
             const Tuner & m_tuner;
@@ -278,7 +278,6 @@ namespace CnC {
                     
                     step_launcher_base< Tag, typename Tuner::range_type > *_stepLauncher = *ci;
                     if( ( _lmask & _stepLauncher->id() ) && ! ( _found & _stepLauncher->id() ) ) {
-                        
                         // create new step_instance_base and schedule it
                         _stepLauncher->create_step_instance( user_tag, get_context(), mask == -1 );
                         
@@ -308,16 +307,16 @@ namespace CnC {
         template< class Tag, class Tuner, class CheckpointTuner >
         void tag_collection_base< Tag, Tuner, CheckpointTuner >::Put( const Tag & prescriber, const int & prescriberColId, const Tag & user_tag) {
         	//m_ctuner.prescribe(prescriber, prescriberColId, user_tag, m_id);
-        	my_mutex_type::scoped_lock _lock( m_putMutex );
+        	//my_mutex_type::scoped_lock _lock( m_putMutex );
         	Put( user_tag, -1, false ); //TODO I thing that it is possible that the tag is already here, in this case the tuner is called to many times.
-        	_lock.release();
+        	//_lock.release();
         }
 
         template< class Tag, class Tuner, class CheckpointTuner >
         void tag_collection_base< Tag, Tuner, CheckpointTuner >::restart_put( const Tag & user_tag ) {
-        	my_mutex_type::scoped_lock _lock( m_putMutex );
+        	//my_mutex_type::scoped_lock _lock( m_putMutex );
         	Put( user_tag, -1, false );
-        	_lock.release();
+        	//_lock.release();
 //        	int mask = -1;
 //        	int _lmask = mask & m_allMask;
 //

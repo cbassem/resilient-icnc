@@ -92,11 +92,6 @@ namespace CnC {
 
 	template< class Derived >
 	void resilientContext< Derived >::add_checkpoint_data_locally() {
-
-//		// We need a lock, the addition of data can launch new steps.
-//		//mutex_t::scoped_lock _l( m_mutex ); //FIXME, we realy, realy need a lock here
-//
-//
 		//First calculate checkpoint
 		calculate_checkpoint();
 		print_checkpoint();
@@ -108,11 +103,6 @@ namespace CnC {
 		for( typename std::vector< TagCheckpoint_i * >::const_iterator it = m_tag_checkpoints.begin(); it != m_tag_checkpoints.end(); ++it) {
 			(*it)->add_checkpoint_locally();
 		}
-
-
-//		//_l.release();
-
-
 	}
 
 	template< class Derived >
@@ -198,8 +188,8 @@ namespace CnC {
 				std::cout << "Adding Checkpoint data " << Internal::distributor::myPid() << std::endl;
 				int requester;
 				(* ser) & requester;
-				m_resilientContext.add_checkpoint_data_locally();
 				m_resilientContext.remote_wait_init( requester );
+				m_resilientContext.add_checkpoint_data_locally();
 				break;
 			}
 

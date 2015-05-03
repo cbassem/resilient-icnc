@@ -477,8 +477,6 @@ namespace CnC {
                     wait( m_userStepsInFlight ); // first wait for scheduler (executing steps)
                 } while( m_activeGraphs > 0 ); // loop until all hidden graphs entered quiescent state
 
-                if (!restarted) {
-
                 // at this point we can assume that no worker is running fs: really? what about distcnc?
                 // let's first "lock" the schedulables by an additional call to suspend. No item-put can then trigger execution of a pending step
                 for( pending_list_type::iterator i = m_pendingSteps.begin(); i != m_pendingSteps.end(); ++i ) { 
@@ -526,7 +524,7 @@ namespace CnC {
                         delete _s;
                     }
                 }
-                }
+
             }
         }
 

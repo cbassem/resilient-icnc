@@ -152,7 +152,7 @@ namespace CnC {
         private:
             enum { UNKNOWN_PID = 0x80000000 };
             typedef tbb::spin_mutex my_mutex_type;
-            my_mutex_type m_putMutex;
+            //my_mutex_type m_putMutex;
             typedef item_collection_base< T, item_type, Tuner, CheckpointTuner > my_type;
         public:
             typedef typename Tuner::template table_type< T, item_type, my_type > table_type;
@@ -353,8 +353,8 @@ namespace CnC {
               m_allocator(),
               m_onPuts(),
               //m_ctuner( get_default_checkpoint_tuner< CheckpointTuner >(g) ),
-              m_id(g.get_next_item_col_id()),
-			  m_putMutex()
+              m_id(g.get_next_item_col_id())
+			  //, m_putMutex()
 #ifdef _DIST_CNC_
 #ifndef  __GNUC__
 #pragma warning(suppress : 4355)
@@ -386,8 +386,8 @@ namespace CnC {
               m_allocator(),
               m_onPuts(),
               //m_ctuner( get_default_checkpoint_tuner< CheckpointTuner >(g) ),
-              m_id(g.get_next_item_col_id()),
-			  m_putMutex()
+              m_id(g.get_next_item_col_id())
+			  //, m_putMutex()
 #ifdef _DIST_CNC_
 #ifndef  __GNUC__
 #pragma warning(suppress : 4355)
@@ -718,14 +718,14 @@ namespace CnC {
         template< class T, class item_type, class Tuner, class CheckpointTuner >
         void item_collection_base< T, item_type, Tuner, CheckpointTuner >::put( const T & t, const item_type & i, const bool from_env )
         {
-        	my_mutex_type::scoped_lock _lock( m_putMutex );
+        	//my_mutex_type::scoped_lock _lock( m_putMutex );
         	//if (from_env) m_ctuner.put(0, 0, t, i, m_id);
             put_or_delete( t, create( i ) );
 #ifndef NDEBUG
             step_instance_base * _si = m_context.current_step_instance();
             if( _si ) _si->setHadPut();
 #endif
-            _lock.release();
+           // _lock.release();
         }
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -739,7 +739,7 @@ namespace CnC {
         template< class T, class item_type, class Tuner, class CheckpointTuner >
         void item_collection_base< T, item_type, Tuner, CheckpointTuner >::restart_put(const T & user_tag, const item_type & item)
         {
-        	my_mutex_type::scoped_lock _lock( m_putMutex );
+        	//my_mutex_type::scoped_lock _lock( m_putMutex );
         	put_or_delete( user_tag, create( item ), distributor::myPid());
         	//Force ownership
             typename table_type::accessor a;
@@ -751,7 +751,7 @@ namespace CnC {
             		a.properties()->set_owner(distributor::myPid());
             	}
             }
-            _lock.release();
+//            _lock.release();
 
         }
 
@@ -1389,7 +1389,7 @@ namespace CnC {
         void item_collection_base< T, item_type, Tuner, CheckpointTuner >::get_request( const T & tag, int recpnt, bool probe )
         {
 
-        	//std::cout << recpnt << " requested data fot tag = " << tag << std::endl;
+        	std::cout << recpnt << " requested data for tag = " << tag << std::endl;
             CNC_ASSERT( distributor::active() );
             typename table_type::accessor a;
             typename table_type::item_and_gc_type _tmpitem = tagItemTable.get_item_or_accessor( tag, a );
@@ -1404,7 +1404,7 @@ namespace CnC {
                 tagItemTable.get_accessor( tag, a );
             }
             bool _amowner = a.properties()->am_owner();
-            //std::cout << "Are we owner " << _amowner << std::endl;
+            std::cout << "Are we owner " << _amowner << std::endl;
             a.release();
             if( _amowner && _tmpitem.first != NULL ) {
                 this->deliver( tag, _tmpitem.first, recpnt, IC::DELIVER, distributor::myPid() );
