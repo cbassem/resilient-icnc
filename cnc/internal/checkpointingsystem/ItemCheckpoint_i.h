@@ -15,7 +15,7 @@ public:
 	virtual int getId() = 0;
 	virtual void add_checkpoint_locally() = 0;
 	virtual void print() = 0;
-	virtual void decrement_get_count(CnC::Internal::tag_base tag) = 0;
+	virtual void decrement_get_count(CnC::Internal::tag_base& tag) = 0;
 
 };
 

@@ -45,10 +45,17 @@ typedef CnC::tag_collection< int, CnC::tag_tuner<>, fib_cr_tuner > tag_type;
 
 
 // let's use a tuner to pre-declare dependencies
-struct fib_cr_tuner: public CnC::checkpoint_tuner<fib_context, int, fib_type, step_type, tag_type, item_type>
+struct fib_cr_step_tuner: public CnC::checkpoint_step_tuner
 {
 	int getNrOfPuts() const;
 	int getNrOfPrescribes() const;
+
+};
+
+struct fib_cr_item_tuner: public CnC::checkpoint_item_tuner<int>
+{
+	int getNrOfgets(int & tag) const;
+
 };
 
 
@@ -56,11 +63,11 @@ struct fib_cr_tuner: public CnC::checkpoint_tuner<fib_context, int, fib_type, st
 struct fib_context : public CnC::resilientContext< fib_context >
 {
     // step collections
-    CnC::resilient_step_collection< fib_context, int, fib_step, CnC::step_tuner<>, fib_cr_tuner > m_steps;
+    CnC::resilient_step_collection< fib_context, int, fib_step, CnC::step_tuner<>, fib_cr_step_tuner > m_steps;
     // Item collections
-    CnC::resilient_item_collection< fib_context, int, fib_type, CnC::hashmap_tuner, fib_cr_tuner> m_fibs;
+    CnC::resilient_item_collection< fib_context, int, fib_type, CnC::hashmap_tuner, fib_cr_item_tuner> m_fibs;
     // Tag collections
-    CnC::resilient_tag_collection< fib_context, int, CnC::tag_tuner<>, fib_cr_tuner > m_tags;
+    CnC::resilient_tag_collection< fib_context, int, CnC::tag_tuner<>, fib_cr_step_tuner > m_tags;
 
     // The context class constructor
     fib_context()

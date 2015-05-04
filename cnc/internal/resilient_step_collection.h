@@ -37,8 +37,10 @@ namespace CnC {
 
     template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner >
     resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::resilient_step_collection( resilientContext< Derived > & ctxt )
-        : step_collection< UserStep, Tuner, CheckpointTuner >( ctxt ), m_step_checkpoint(super_type::getId()), m_resilient_contex(ctxt), m_communicator(*this)
-    {
+        : step_collection< UserStep, Tuner, CheckpointTuner >( ctxt ),
+		  m_step_checkpoint(super_type::getId()),
+		  m_resilient_contex(ctxt),
+		  m_communicator(*this)    {
         m_resilient_contex.registerStepCheckPoint( &m_step_checkpoint );
     }
 
@@ -46,16 +48,20 @@ namespace CnC {
 
     template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner >
     resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::resilient_step_collection( resilientContext< Derived > & ctxt, const std::string & name )
-        : step_collection< UserStep, Tuner, CheckpointTuner >( ctxt, name), m_step_checkpoint(super_type::getId()), m_resilient_contex(ctxt), m_communicator(*this)
-    {
+        : step_collection< UserStep, Tuner, CheckpointTuner >( ctxt, name),
+		  m_step_checkpoint(super_type::getId()),
+		  m_resilient_contex(ctxt),
+		  m_communicator(*this)    {
         m_resilient_contex.registerStepCheckPoint( &m_step_checkpoint );
     }
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner >
     resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::resilient_step_collection( resilientContext< Derived > & ctxt, const std::string & name, const step_type & userStep )
-        : step_collection< UserStep, Tuner, CheckpointTuner >( ctxt, name, userStep ), m_step_checkpoint(super_type::getId()), m_resilient_contex(ctxt), m_communicator(*this)
-    {
+        : step_collection< UserStep, Tuner, CheckpointTuner >( ctxt, name, userStep ),
+		  m_step_checkpoint(super_type::getId()),
+		  m_resilient_contex(ctxt),
+		  m_communicator(*this)    {
         m_resilient_contex.registerStepCheckPoint( &m_step_checkpoint );
     }
 
@@ -63,8 +69,10 @@ namespace CnC {
 
     template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner >
     resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::resilient_step_collection( resilientContext< Derived > & ctxt, const tuner_type & tnr, const std::string & name )
-        : step_collection< UserStep, Tuner, CheckpointTuner >( ctxt, tnr, name ), m_step_checkpoint(super_type::getId()), m_resilient_contex(ctxt), m_communicator(*this)
-    {
+        : step_collection< UserStep, Tuner, CheckpointTuner >( ctxt, tnr, name ),
+		  m_step_checkpoint(super_type::getId()),
+		  m_resilient_contex(ctxt),
+		  m_communicator(*this)    {
         m_resilient_contex.registerStepCheckPoint( &m_step_checkpoint );
     }
 
@@ -73,8 +81,12 @@ namespace CnC {
     template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner >
     resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::resilient_step_collection( resilientContext< Derived > & ctxt, const std::string & name,
                                                          const step_type & userStep, const tuner_type & tnr )
-        : step_collection< UserStep, Tuner, CheckpointTuner >( ctxt, name, userStep, tnr ), m_step_checkpoint(), m_resilient_contex(ctxt), m_communicator(*this)
+        : step_collection< UserStep, Tuner, CheckpointTuner >( ctxt, name, userStep, tnr ),
+		  m_step_checkpoint(),
+		  m_resilient_contex(ctxt),
+		  m_communicator(*this)
     {
+        m_resilient_contex.registerStepCheckPoint( &m_step_checkpoint );
     }
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

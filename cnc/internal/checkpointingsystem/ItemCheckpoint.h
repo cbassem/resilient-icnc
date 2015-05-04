@@ -26,12 +26,16 @@ public:
 
 	void add_checkpoint_locally();
 
+	void decrement_get_count(CnC::Internal::tag_base& tag);
+
 	int getId();
 
 	void print();
 
 private:
-	typedef std::tr1::unordered_map< Key, Item * > itemMap;
+	typedef std::pair< Item*, int > checkpoint_item_type;
+
+	typedef std::tr1::unordered_map< Key, checkpoint_item_type > itemMap;
 
 	typedef tbb::scalable_allocator< Item > item_allocator_type;
 
@@ -54,17 +58,24 @@ ItemCheckpoint< Derived, Key, Item, Tuner, CheckpointTuner >::ItemCheckpoint(res
 template< typename Derived, typename Key, typename Item, typename Tuner, typename CheckpointTuner >
 ItemCheckpoint< Derived, Key, Item, Tuner, CheckpointTuner >::~ItemCheckpoint() { cleanup(); };
 
+//Make sure to return the address of the item!
 template< typename Derived, typename Key, typename Item, typename Tuner, typename CheckpointTuner >
 void * ItemCheckpoint< Derived, Key, Item, Tuner, CheckpointTuner >::put( const Key & tag, const Item & item ) {
 	typename itemMap::iterator it = m_item_map.find(tag);
 	if (it == m_item_map.end()) {
 		Item * _i = create(item);
-		m_item_map[tag] = _i;
+		m_item_map[tag] = checkpoint_item_type(_i, 0);
 		return static_cast<void*>(_i);
 	} else {
-		Item * tmp = it->second;
+		Item * tmp = it->second.first;
 		return static_cast<void*>(tmp);
 	}
+}
+
+template< typename Derived, typename Key, typename Item, typename Tuner, typename CheckpointTuner >
+void ItemCheckpoint< Derived, Key, Item, Tuner, CheckpointTuner >::decrement_get_count(CnC::Internal::tag_base& tag)
+{
+
 }
 
 template< typename Derived, typename Key, typename Item, typename Tuner, typename CheckpointTuner >
@@ -84,7 +95,7 @@ Item * ItemCheckpoint< Derived, Key, Item, Tuner, CheckpointTuner >::create( con
 template< typename Derived, typename Key, typename Item, typename Tuner, typename CheckpointTuner >
 void ItemCheckpoint< Derived, Key, Item, Tuner, CheckpointTuner >::add_checkpoint_locally() {
 	for( typename itemMap::const_iterator it = m_item_map.begin(); it != m_item_map.end(); ++it) {
-		m_owner.restart_put(it->first, *it->second);
+		m_owner.restart_put(it->first, *it->second.first);
 	}
 }
 
@@ -92,7 +103,7 @@ template< typename Derived, typename Key, typename Item, typename Tuner, typenam
 void ItemCheckpoint< Derived, Key, Item, Tuner, CheckpointTuner >::print() {
 	std::cout << "Printing Item Checkpoint: " << std::endl;
 	for( typename itemMap::const_iterator it = m_item_map.begin(); it != m_item_map.end(); ++it) {
-		std::cout << "(" << it->first <<", " << *it->second << "), ";
+		std::cout << "(" << it->first <<", " << *it->second.first << "), ";
 	}
 	std::cout << std::endl;
 }
@@ -110,7 +121,7 @@ template< typename Derived, typename Key, typename Item, typename Tuner, typenam
 void ItemCheckpoint< Derived, Key, Item, Tuner, CheckpointTuner >::cleanup()
 {
 	for( typename itemMap::const_iterator it = m_item_map.begin(); it != m_item_map.end(); ++it) {
-		uncreate( it->second );
+		uncreate( it->second.first );
 	}
 }
 

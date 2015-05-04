@@ -883,6 +883,9 @@ namespace CnC {
     private:
     	typedef Internal::distributable_context dist_context;
     	typedef item_collection< Tag, Item, Tuner, CheckpointTuner > super_type;
+    	typedef CheckpointTuner ctuner_type;
+
+    	const ctuner_type& m_ctuner;
         ItemCheckpoint< Derived, Tag, Item, Tuner, CheckpointTuner > m_item_checkpoint;
         resilientContext< Derived > & m_resilient_contex;
     	resilient_item_collection::communicator m_communicator;
