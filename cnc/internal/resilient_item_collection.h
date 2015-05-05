@@ -116,6 +116,31 @@ namespace CnC {
     	item_collection< Tag, Item, Tuner, CheckpointTuner >::restart_put( user_tag, item);
     }
 
+    template< typename Derived, typename Tag, typename Item, typename Tuner, typename CheckpointTuner >
+    void resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >::get( const Tag & tag, Item & item ) const
+    {
+    	super_type::get(tag, item);
+    }
+
+    template< typename Derived, typename Tag, typename Item, typename Tuner, typename CheckpointTuner >
+    template< typename UserStepTag, typename UserStep, typename STuner, typename SCheckpointTuner >
+    void resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >::get(
+    		const UserStepTag & getter,
+    		CnC::resilient_step_collection< Derived, UserStepTag, UserStep, STuner, SCheckpointTuner> & getterColl,
+			const Tag & tag, Item & item )
+    {
+    	if ( Internal::distributor::myPid() == 0) {
+    		void * t_ = m_item_checkpoint.getKeyId(tag);
+			getterColl.processGet(getter, &m_item_checkpoint, t_);
+		} else {
+			serializer * ser = m_resilient_contex.dist_context::new_serializer( &m_communicator );
+			//Order is very important since we pass the serialized datastrc to the remote checkpoint object!
+			(*ser) & checkpoint_tuner_types::GET & tag & getterColl.getId() & getter;
+			m_resilient_contex.dist_context::send_msg(ser, 0);
+		}
+		item_collection< Tag, Item, Tuner, CheckpointTuner >::get( tag, item );
+    }
+
 	///////////////////////////////////////////////////////////////////////
 	/// Implementation of CnC::resilient_item_collection::communicator ////
     ///////////////////////////////////////////////////////////////////////
@@ -147,6 +172,16 @@ namespace CnC {
 				//Get the step that made the item put
 				StepCheckpoint_i* i_ = m_resilient_item_collection.m_resilient_contex.getStepCheckPoint(putter_collection_id);
 				i_->processItemPut(ser, itemid);
+				break;
+			}
+			case checkpoint_tuner_types::GET:
+			{
+				Tag tag;
+				int getter_collection_id;
+				(* ser) & tag;
+				StepCheckpoint_i* i_ = m_resilient_item_collection.m_resilient_contex.getStepCheckPoint(getter_collection_id);
+				void * t_ = m_resilient_item_collection.m_item_checkpoint.getKeyId(tag);
+				i_->processItemGet(ser, &m_resilient_item_collection.m_item_checkpoint, t_);
 				break;
 			}
 

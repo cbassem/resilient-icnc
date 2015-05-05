@@ -67,8 +67,8 @@ int fib_step::execute( const int & tag, fib_context & ctxt ) const
         case 1 : ctxt.m_fibs.put(tag, ctxt.m_steps, tag, 1 ); break;
         default :
             // get previous 2 results
-            fib_type f_1; ctxt.m_fibs.get( tag - 1, f_1 );
-            fib_type f_2; ctxt.m_fibs.get( tag - 2, f_2 );
+            fib_type f_1; ctxt.m_fibs.get( tag, ctxt.m_steps, tag - 1, f_1 );
+            fib_type f_2; ctxt.m_fibs.get( tag, ctxt.m_steps, tag - 2, f_2 );
             // put our result
             ctxt.m_fibs.put( tag, ctxt.m_steps, tag, f_1 + f_2 );
     }

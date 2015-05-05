@@ -22,13 +22,16 @@ public:
 	void processStepPrescribe(StepTag prescriber, int prescriberColId, void * prescribedTagId, int tagCollectionId);
 	void processStepDone(StepTag step, int stepColId, int puts, int prescribes);
 	void processItemPut(StepTag producer, int stepProducerColId, void * itemId, int itemColId);
+	void processItemGet(StepTag getter, ItemCheckpoint_i* ich, void * tag);
 
 	//The serializer still contains the responsible one's tag, but this is ok since we know its type! :D
 	void processStepPrescribe(CnC::serializer * ser, void * prescribedTagId);
 	void processStepDone(CnC::serializer * ser);
 	void processItemPut(CnC::serializer * ser, void * itemId);
+	void processItemGet(CnC::serializer * ser, ItemCheckpoint_i* ich, void* tag);
 
-	TagLog& getTagLog( StepTag tag );
+
+	TagLog& getTagLog( StepTag & tag );
 
 	bool isDone(StepTag tag);
 
@@ -66,6 +69,12 @@ void StepCheckpoint< StepTag >::processStepDone(StepTag step, int stepColId, int
 }
 
 template< class StepTag >
+void StepCheckpoint< StepTag >::processItemGet(StepTag getter, ItemCheckpoint_i* ich, void * tag) {
+	TagLog& l_ = getTagLog( getter );
+	l_.processGet(ich, tag);
+}
+
+template< class StepTag >
 void StepCheckpoint< StepTag >::processItemPut(StepTag producer, int stepProducerColId, void * itemId, int itemColId)
 {
 	TagLog& l_ = getTagLog( producer );
@@ -92,6 +101,14 @@ void StepCheckpoint< StepTag >::processStepDone(CnC::serializer * ser)
 }
 
 template< class StepTag >
+void StepCheckpoint< StepTag >::processItemGet(CnC::serializer * ser, ItemCheckpoint_i* ich, void* tag) {
+	StepTag getter;
+	(* ser) & getter;
+	TagLog& l_ = getTagLog( getter );
+	l_.processGet(ich, tag);
+}
+
+template< class StepTag >
 void StepCheckpoint< StepTag >::processItemPut(CnC::serializer * ser, void * itemId)
 {
 	StepTag producer;
@@ -115,7 +132,7 @@ int StepCheckpoint< StepTag >::getId()
 
 
 template<class StepTag >
-TagLog& StepCheckpoint< StepTag >::getTagLog( StepTag tag ) {
+TagLog& StepCheckpoint< StepTag >::getTagLog( StepTag& tag ) {
 	typename tagMap_t::iterator it = tagMap.find(tag);
 	if (it == tagMap.end()) {
 		TagLog & l_ = tagMap[tag] = TagLog();

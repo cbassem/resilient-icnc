@@ -64,14 +64,10 @@ namespace CnC {
             const T & Value() const { return value; };
             T & Value() { return value; };
 
-            bool operator==( const tag_base & that ) const
+            bool operator==( const typed_tag< T > & that ) const
             {
                 if ( this == &that ) return ( true );
-                const typed_tag< T >* t_ = (dynamic_cast< const typed_tag< T >* >(&that)); //TODO blegh... Expensive dynamic cast... Think we can remove it by using http://stackoverflow.com/a/25231384
-                if (t_) {
-                    return value == t_->value;
-                }
-                return false;
+                return value == that->value;
             }
 
             T getValue() {return value;}

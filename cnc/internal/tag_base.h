@@ -43,9 +43,6 @@ namespace CnC {
             // virtual std::ostream & put( std::ostream & s ) const = 0;  
             // friend std::ostream & operator<<( std::ostream & o, const tag_base & t ) { return t.put( o ); }
             tag_base() {};
-//            tag_base(const tag_base& other) {};
-            virtual bool operator==(const tag_base& tag) const = 0;
-            //virtual tag_base& operator= (const tag_base& other) = 0;
         }; // class tag_base
 
     } //    namespace Internal 

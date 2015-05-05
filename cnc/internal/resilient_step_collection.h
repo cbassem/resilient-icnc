@@ -108,6 +108,15 @@ namespace CnC {
     }
 
     template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner >
+    void resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::processGet(
+    		UserStepTag getter,
+			ItemCheckpoint_i * item_cp,
+			void* tag)
+    {
+    	m_step_checkpoint.processItemGet( getter, item_cp, tag );
+    }
+
+    template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner >
     void resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::processDone( void * step, int stepColId, int puts, int prescribes )
     {
     	UserStepTag* s_ = static_cast<UserStepTag*>(step);

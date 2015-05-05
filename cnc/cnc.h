@@ -661,6 +661,7 @@ namespace CnC {
 		static const char REQUESTED_TAG = 6;
 		static const char KEEP_ALIVE_PING = 7;
 		static const char KEEP_ALIVE_PONG = 8;
+		static const char GET = 9;
     }
 
     template< class Derived >
@@ -758,6 +759,11 @@ namespace CnC {
 
         void processPut( UserStepTag putter, void * itemid, int itemCollectionId);
         void processPrescribe( UserStepTag prescriber, void * tagid, int tagCollectionId);
+        void processGet(
+        		UserStepTag getter,
+    			ItemCheckpoint_i * item_cp,
+    			void * tag);
+
 
         void processDone( void * step, int stepColId, int puts, int prescribes );
 
@@ -861,6 +867,13 @@ namespace CnC {
         		const Tag & tag, const Item & item );
 
         void restart_put(const Tag & user_tag, const Item & item);
+
+        void get( const Tag & tag, Item & item ) const;
+
+        template< typename UserStepTag, typename UserStep, typename STuner, typename SCheckpointTuner >
+        void get( const UserStepTag & getter,
+        		CnC::resilient_step_collection< Derived, UserStepTag, UserStep, STuner, SCheckpointTuner> & getterColl,
+				const Tag & tag, Item & item );
 
 	protected:
     	//Since contexts already have their own implementations of send and receive, lets make our own communicator to handle the resilience stuff
