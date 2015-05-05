@@ -24,7 +24,10 @@ class TagLog {
 
 	typedef std::set< void * > prescribes_t;
 	typedef std::set< void * > items_t;
-	typedef std::pair< ItemCheckpoint_i*, CnC::Internal::tag_base > getLog; //FIXME tag by ptr, ref or val?
+	typedef std::pair< ItemCheckpoint_i*, CnC::Internal::tag_base* > getLog; //FIXME tag by ptr, ref or val? No choice has to be a ptr, object slicing problem//
+	typedef tbb::scalable_allocator< CnC::Internal::tag_base > tag_allocator_type;
+
+	tag_allocator_type m_allocator;
 
 
 	prescribes_t prescribes_;
@@ -35,7 +38,7 @@ class TagLog {
 	{
 	  Compare(ItemCheckpoint_i* val1, CnC::Internal::tag_base& val2) : val1_(val1), val2_(val2) {}
 	  bool operator()(const getLog& elem) const {
-	    return val1_ == elem.first && val2_ == elem.second;
+	    return val1_ == elem.first && val2_ == (*elem.second);
 	  }
 	  private:
 	  ItemCheckpoint_i* val1_;
@@ -48,15 +51,31 @@ public:
 
 	void processPut(void * itemId );
 	void processPrescribe(void * tagId);
-	void processGet(ItemCheckpoint_i * item_cp, CnC::Internal::tag_base& tag); //FIXME tag by ptr, ref or val?
+
+	template< typename ItemTagType >
+	void processGet(ItemCheckpoint_i * item_cp, CnC::Internal::typed_tag< ItemTagType >& tag); //FIXME tag by ptr, ref or val?
+
 	void processDone(int totalPuts, int totalPrescribes);
 
 	bool isDone() const;
+
+	template< typename ItemTagType >
+	CnC::Internal::tag_base * create( const CnC::Internal::typed_tag< ItemTagType > & org ) const;
+
+	void uncreate( CnC::Internal::tag_base * item ) const;
+
 };
 
 TagLog::TagLog() :
-		currentPuts_(0), currentPrescribes_(0), totalPuts_(-1), totalPrescribes_(-1), markedDone_(false), prescribes_(), items_(), gets_() {
-}
+		currentPuts_(0),
+		currentPrescribes_(0),
+		totalPuts_(-1),
+		totalPrescribes_(-1),
+		markedDone_(false),
+		prescribes_(),
+		items_(),
+		gets_(),
+		m_allocator() {}
 
 TagLog::~TagLog() {}
 
@@ -76,10 +95,12 @@ void TagLog::processPrescribe(void * tagId) {
 	}
 }
 
-void TagLog::processGet(ItemCheckpoint_i * item_cp, CnC::Internal::tag_base& tag) {
+template< typename ItemTagType >
+void TagLog::processGet(ItemCheckpoint_i * item_cp, CnC::Internal::typed_tag< ItemTagType >& tag) {
 	std::vector< getLog >::iterator it = std::find_if( gets_.begin(), gets_.end(), Compare(item_cp, tag) );
 	if (it == gets_.end()) {
-		gets_.push_back(getLog(item_cp, tag));
+		CnC::Internal::tag_base* t_ = new CnC::Internal::typed_tag< ItemTagType >(tag);
+		gets_.push_back(getLog(item_cp, t_));
 	}
 }
 
@@ -99,6 +120,5 @@ bool TagLog::isDone() const {
 		return false;
 	}
 }
-
 
 #endif /* TAGLOG_H_ */

@@ -64,10 +64,11 @@ namespace CnC {
             const T & Value() const { return value; };
             T & Value() { return value; };
 
-            bool operator==( const typed_tag< T > & that ) const
+            bool operator==( const tag_base & that ) const
             {
                 if ( this == &that ) return ( true );
-                return value == that.value;
+                const typed_tag< T >& t_ = (static_cast< const typed_tag< T >& >(that)); //TODO blegh...
+                return value == t_.value;
             }
     
             // printing 
