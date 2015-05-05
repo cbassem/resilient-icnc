@@ -67,9 +67,14 @@ namespace CnC {
             bool operator==( const tag_base & that ) const
             {
                 if ( this == &that ) return ( true );
-                const typed_tag< T >& t_ = (static_cast< const typed_tag< T >& >(that)); //TODO blegh...
-                return value == t_.value;
+                const typed_tag< T >* t_ = (dynamic_cast< const typed_tag< T >* >(&that)); //TODO blegh... Expensive dynamic cast... Think we can remove it by using http://stackoverflow.com/a/25231384
+                if (t_) {
+                    return value == t_->value;
+                }
+                return false;
             }
+
+            T getValue() {return value;}
     
             // printing 
             // virtual std::ostream & put( std::ostream & o ) const { o << "<"; cnc_format( o, value ); return o << ">"; }

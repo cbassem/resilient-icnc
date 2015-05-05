@@ -10,6 +10,7 @@
 
 #include "ItemCheckpoint_i.h"
 #include <tr1/unordered_map>
+#include <cnc/internal/typed_tag.h>
 
 
 namespace CnC {
@@ -75,6 +76,11 @@ void * ItemCheckpoint< Derived, Key, Item, Tuner, CheckpointTuner >::put( const 
 template< typename Derived, typename Key, typename Item, typename Tuner, typename CheckpointTuner >
 void ItemCheckpoint< Derived, Key, Item, Tuner, CheckpointTuner >::decrement_get_count(CnC::Internal::tag_base& tag)
 {
+	Internal::typed_tag< Key >& t_ = static_cast< Internal::typed_tag< Key >& >(tag);
+	typename itemMap::iterator it = m_item_map.find(t_.getValue());
+	if (it != m_item_map.end()) {
+		it->second.second--;
+	}
 
 }
 
