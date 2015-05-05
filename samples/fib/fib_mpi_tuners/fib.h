@@ -54,7 +54,7 @@ struct fib_cr_step_tuner: public CnC::checkpoint_step_tuner
 
 struct fib_cr_item_tuner: public CnC::checkpoint_item_tuner<int>
 {
-	int getNrOfgets(int & tag) const;
+	int getNrOfgets(const int & tag) const;
 
 };
 

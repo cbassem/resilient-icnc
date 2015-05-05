@@ -50,7 +50,7 @@ int fib_cr_step_tuner::getNrOfPuts() const {
 	return 1;
 };
 
-int fib_cr_item_tuner::getNrOfgets(int & tag) const {
+int fib_cr_item_tuner::getNrOfgets(const int & tag) const {
 	if (tag > 0) {
 		return 2;
 	} else {

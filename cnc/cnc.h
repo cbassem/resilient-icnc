@@ -847,7 +847,7 @@ namespace CnC {
     	resilient_tag_collection::communicator m_communicator;
     };
 
-    template< typename Derived, typename Tag, typename Item, typename Tuner = hashmap_tuner, typename CheckpointTuner = checkpoint_tuner_nop<Tag , Item>  >
+    template< typename Derived, typename Tag, typename Item, typename Tuner = hashmap_tuner, typename CheckpointTuner = checkpoint_item_tuner< Tag >  >
     class /*CNC_API*/ resilient_item_collection: public item_collection< Tag, Item, Tuner, CheckpointTuner >
     {
 
@@ -897,6 +897,7 @@ namespace CnC {
     	typedef Internal::distributable_context dist_context;
     	typedef item_collection< Tag, Item, Tuner, CheckpointTuner > super_type;
     	typedef CheckpointTuner ctuner_type;
+    	friend ItemCheckpoint< Derived, Tag, Item, Tuner, CheckpointTuner >;
 
     	const ctuner_type& m_ctuner;
         ItemCheckpoint< Derived, Tag, Item, Tuner, CheckpointTuner > m_item_checkpoint;

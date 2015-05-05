@@ -75,7 +75,8 @@ void * ItemCheckpoint< Derived, Key, Item, Tuner, CheckpointTuner >::put( const 
 	typename itemMap::iterator it = m_item_map.find(tag);
 	if (it == m_item_map.end()) {
 		Item * _i = create_item(item);
-		m_item_map[tag] = checkpoint_item_type(_i, 0); //TODO introduce tuner here!
+		int get_count = m_owner.m_ctuner.getNrOfgets(tag);
+		m_item_map[tag] = checkpoint_item_type(_i, get_count);
 		return static_cast<void*>(_i);
 	} else {
 		Item * tmp = it->second.first;
