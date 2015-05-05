@@ -27,7 +27,7 @@ public:
 
 	void add_checkpoint_locally();
 
-	void decrement_get_count(CnC::Internal::tag_base& tag);
+	void decrement_get_count(CnC::Internal::tag_base* const tag);
 
 	int getId();
 
@@ -72,16 +72,17 @@ void * ItemCheckpoint< Derived, Key, Item, Tuner, CheckpointTuner >::put( const 
 		return static_cast<void*>(tmp);
 	}
 }
-
 template< typename Derived, typename Key, typename Item, typename Tuner, typename CheckpointTuner >
-void ItemCheckpoint< Derived, Key, Item, Tuner, CheckpointTuner >::decrement_get_count(CnC::Internal::tag_base& tag)
+void ItemCheckpoint< Derived, Key, Item, Tuner, CheckpointTuner >::decrement_get_count(CnC::Internal::tag_base* const tag)
 {
-	Internal::typed_tag< Key >& t_ = static_cast< Internal::typed_tag< Key >& >(tag);
-	typename itemMap::iterator it = m_item_map.find(t_.getValue());
+	Internal::typed_tag< Key >* t_ = static_cast< Internal::typed_tag< Key >* >(tag);
+	typename itemMap::iterator it = m_item_map.find(t_->getValue());
 	if (it != m_item_map.end()) {
-		it->second.second--;
+		if (--it->second.second == 0) {
+			uncreate( it->second.first );
+			m_item_map.erase(it);
+		}
 	}
-
 }
 
 template< typename Derived, typename Key, typename Item, typename Tuner, typename CheckpointTuner >

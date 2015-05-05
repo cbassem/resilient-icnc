@@ -34,6 +34,8 @@ public:
 
 	int getId();
 
+	void decrement_get_counts();
+
 
 private:
 	typedef std::tr1::unordered_map< StepTag, TagLog > tagMap_t;
@@ -121,6 +123,13 @@ TagLog& StepCheckpoint< StepTag >::getTagLog( StepTag tag ) {
 	} else {
 		TagLog & l_ = it->second;
 		return l_;
+	}
+}
+
+template<class StepTag >
+void StepCheckpoint< StepTag >::decrement_get_counts() {
+	for (typename tagMap_t::iterator it = tagMap.begin(); it != tagMap.end(); ++it) {
+		if ((it->second).isDone()) (it->second).decrement_get_counts();
 	}
 }
 

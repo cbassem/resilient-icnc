@@ -64,6 +64,8 @@ public:
 
 	void uncreate( CnC::Internal::tag_base * item ) const;
 
+	void decrement_get_counts();
+
 };
 
 TagLog::TagLog() :
@@ -77,7 +79,12 @@ TagLog::TagLog() :
 		gets_(),
 		m_allocator() {}
 
-TagLog::~TagLog() {}
+TagLog::~TagLog() {
+	for (typename std::vector< getLog >::iterator it = gets_.begin(); it != gets_.end(); ++it) {
+		  delete it->second;
+		  it = gets_.erase(it);
+		}
+	}
 
 void TagLog::processPut(void * itemId) {
 	typename items_t::iterator it = items_.find(itemId);
@@ -111,13 +118,12 @@ void TagLog::processDone(int totalPuts, int totalPrescribes) {
 }
 
 bool TagLog::isDone() const {
-	if ( markedDone_ && currentPrescribes_ == totalPrescribes_ && currentPuts_ == totalPuts_ ) {
-		for (typename std::vector< getLog >::const_iterator it = gets_.begin(); it != gets_.end(); ++it) {
-			//(it->first).decrement_get_count(it->second);
-		}
-		return true;
-	} else {
-		return false;
+	return markedDone_ && currentPrescribes_ == totalPrescribes_ && currentPuts_ == totalPuts_;
+}
+
+void TagLog::decrement_get_counts() {
+	for (typename std::vector< getLog >::const_iterator it = gets_.begin(); it != gets_.end(); ++it) {
+		(it->first)->decrement_get_count(it->second);
 	}
 }
 
