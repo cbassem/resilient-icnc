@@ -546,7 +546,7 @@ namespace CnC {
                     init_wait( send );
                     do {
                         wait_all();
-                    } while(/** distributor::has_pending_messages()  && **/ _yield() );
+                    } while( /*distributor::has_pending_messages()  && */   _yield() );
                     send = m_root == distributor::myPid();
                 std::cout << "scheduler_i main no more messages" << std::endl;
                 } while( fini_wait()
@@ -579,12 +579,16 @@ namespace CnC {
         void scheduler_i::wait_loop_clone( bool from_schedulable )
         {
         		if( ! from_schedulable ) ++m_userStepsInFlight;
-
-        		do {
+        		do{
+        			do {
+        				wait_all();
+        			} while (/*distributor::has_pending_messages() &&*/ !restarted  && _yield());
         			wait_all();
-        		} while ((!restarted /**| distributor::has_pending_messages() **/) && _yield());
-        		wait_all();
+
+        		} while (!restarted && fini_wait());
+
                 if( ! from_schedulable ) --m_userStepsInFlight;
+                std::cout << "out of waitloop" << std::endl;
 
 //                for( pending_list_type::iterator i = m_pendingSteps.begin(); i != m_pendingSteps.end(); ++i ) {
 //                    delete *i;
@@ -592,7 +596,15 @@ namespace CnC {
 //                for( pending_list_type::iterator i = m_seqSteps.begin(); i != m_seqSteps.end(); ++i ) {
 //                    delete *i;
 //                }
-        		restarted_safe = true;
+                if (restarted) {
+                	restarted_safe = true;}
+//                 else {
+//                    std::cout << "Ending waitloop" << std::endl;
+//                    fini_wait();
+//                    std::cout << "End waitloop" << std::endl;
+//                }
+
+
 
         }
 

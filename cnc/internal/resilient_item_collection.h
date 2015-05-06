@@ -178,7 +178,7 @@ namespace CnC {
 			{
 				Tag tag;
 				int getter_collection_id;
-				(* ser) & tag;
+				(* ser) & tag & getter_collection_id;
 				StepCheckpoint_i* i_ = m_resilient_item_collection.m_resilient_contex.getStepCheckPoint(getter_collection_id);
 				void * t_ = m_resilient_item_collection.m_item_checkpoint.getKeyId(tag);
 				i_->processItemGet(ser, &m_resilient_item_collection.m_item_checkpoint, t_);

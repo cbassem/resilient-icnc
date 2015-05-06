@@ -8,7 +8,7 @@
 #ifndef TAGLOG_H_
 #define TAGLOG_H_
 
-#include <vector>
+#include "tbb/concurrent_vector.h"
 #include <set>
 #include <algorithm>
 #include <tr1/unordered_map>
@@ -29,7 +29,7 @@ class TagLog {
 
 	prescribes_t prescribes_;
 	items_t items_;
-	std::vector< getLog > gets_;
+	tbb::concurrent_vector< getLog > gets_;
 
 	struct Compare
 	{
@@ -90,7 +90,8 @@ void TagLog::processPrescribe(void * tagId) {
 
 
 void TagLog::processGet( ItemCheckpoint_i * item_cp, void* tag) {
-	std::vector< getLog >::iterator it = std::find_if( gets_.begin(), gets_.end(), Compare(item_cp, tag) );
+	//I don't think this is thread safe, is this a random access iterator? Yet my bug seems to have disappeared... //TODO
+	tbb::concurrent_vector< getLog >::iterator it = std::find_if( gets_.begin(), gets_.end(), Compare(item_cp, tag) );
 	if (it == gets_.end()) {
 		gets_.push_back(getLog(item_cp, tag));
 	}
@@ -107,7 +108,7 @@ bool TagLog::isDone() const {
 }
 
 void TagLog::decrement_get_counts() {
-	for (typename std::vector< getLog >::const_iterator it = gets_.begin(); it != gets_.end(); ++it) {
+	for (typename tbb::concurrent_vector< getLog >::const_iterator it = gets_.begin(); it != gets_.end(); ++it) {
 		(it->first)->decrement_get_count(it->second);
 	}
 }
