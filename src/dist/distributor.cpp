@@ -428,8 +428,8 @@ namespace CnC {
                 CnC::Internal::scheduler_i::restarted = true;
                 theDistributor->m_state = distributor::DIST_INITING;
                 std::cout << "destructing..." << CnC::Internal::scheduler_i::restarted << "|" << CnC::Internal::scheduler_i::restarted_safe << "|" << std::endl;
-                do {} while (_yield() && !CnC::Internal::scheduler_i::restarted_safe);
-                do {} while (_yield() && has_pending_messages());
+                //do {} while (_yield() && !CnC::Internal::scheduler_i::restarted_safe);
+                //do {} while (_yield() && has_pending_messages());
                 delete _dctxt;
                 std::cout << "done destructing..." << std::endl;
                 theDistributor->m_distContexts[0].erase( _accr );

@@ -86,7 +86,7 @@ struct fib_context : public CnC::resilientContext< fib_context >
         // Producer relations
         m_steps.produces( m_fibs );
 
-        CnC::debug::trace_all(*this, 3);
+        //CnC::debug::trace_all(*this, 3);
 
 
     }

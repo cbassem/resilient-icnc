@@ -407,9 +407,11 @@ namespace CnC {
 
         void scheduler_i::enqueue_waiter()
         {
+        	if (!restarted) {
             _waitTask = new( tbb::task::allocate_root() ) tbb_waiter( this );
             tbb::task::enqueue( *_waitTask );
             std::cout << " enqued wait task " << CnC::Internal::distributor::myPid() << std::endl;
+        	}
         }
 
         void scheduler_i::stop_wait_task()
@@ -546,7 +548,7 @@ namespace CnC {
                     init_wait( send );
                     do {
                         wait_all();
-                    } while( /*distributor::has_pending_messages()  && */   _yield() );
+                    } while( distributor::has_pending_messages()  &&   _yield() );
                     send = m_root == distributor::myPid();
                 std::cout << "scheduler_i main no more messages" << std::endl;
                 } while( fini_wait()
@@ -582,7 +584,7 @@ namespace CnC {
         		do{
         			do {
         				wait_all();
-        			} while (/*distributor::has_pending_messages() &&*/ !restarted  && _yield());
+        			} while (distributor::has_pending_messages() && !restarted  && _yield());
         			wait_all();
 
         		} while (!restarted && fini_wait());
@@ -596,8 +598,7 @@ namespace CnC {
 //                for( pending_list_type::iterator i = m_seqSteps.begin(); i != m_seqSteps.end(); ++i ) {
 //                    delete *i;
 //                }
-                if (restarted) {
-                	restarted_safe = true;}
+                if (restarted) { restarted_safe = true;}
 //                 else {
 //                    std::cout << "Ending waitloop" << std::endl;
 //                    fini_wait();
