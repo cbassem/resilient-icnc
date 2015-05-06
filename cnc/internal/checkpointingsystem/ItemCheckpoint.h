@@ -9,6 +9,7 @@
 #define ITEMCHECKPOINT_H_
 
 #include "ItemCheckpoint_i.h"
+#include "tbb/concurrent_hash_map.h"
 #include <tr1/unordered_map>
 #include <cnc/internal/typed_tag.h>
 
@@ -36,9 +37,9 @@ public:
 
 private:
 	typedef std::pair< Item*, int > checkpoint_item_type;
-	typedef std::tr1::unordered_map< Key, checkpoint_item_type > itemMap;
+	typedef tbb::concurrent_hash_map< Key, checkpoint_item_type > itemMap;
 	typedef tbb::scalable_allocator< Item > item_allocator_type;
-	typedef std::tr1::unordered_map< Key, Key* > keyMap;
+	typedef tbb::concurrent_hash_map< Key, Key* > keyMap;
 	typedef tbb::scalable_allocator< Key > key_allocator_type;
 
 	itemMap m_item_map;
@@ -72,14 +73,15 @@ ItemCheckpoint< Derived, Key, Item, Tuner, CheckpointTuner >::~ItemCheckpoint() 
 template< typename Derived, typename Key, typename Item, typename Tuner, typename CheckpointTuner >
 void * ItemCheckpoint< Derived, Key, Item, Tuner, CheckpointTuner >::put( const Key & tag, const Item & item )
 {
-	typename itemMap::iterator it = m_item_map.find(tag);
-	if (it == m_item_map.end()) {
+	typename itemMap::accessor _accr;
+	bool inserted = m_item_map.insert(_accr, tag);
+	if (inserted) {
 		Item * _i = create_item(item);
 		int get_count = m_owner.m_ctuner.getNrOfgets(tag);
-		m_item_map[tag] = checkpoint_item_type(_i, get_count);
+		_accr->second = checkpoint_item_type(_i, get_count);
 		return static_cast<void*>(_i);
 	} else {
-		Item * tmp = it->second.first;
+		Item * tmp = (_accr->second).first;
 		return static_cast<void*>(tmp);
 	}
 }
@@ -87,13 +89,14 @@ void * ItemCheckpoint< Derived, Key, Item, Tuner, CheckpointTuner >::put( const 
 template< typename Derived, typename Key, typename Item, typename Tuner, typename CheckpointTuner >
 void * ItemCheckpoint< Derived, Key, Item, Tuner, CheckpointTuner >::getKeyId(const Key & key)
 {
-	typename keyMap::iterator it = m_key_map.find(key);
-	if (it == m_key_map.end()) {
+	typename keyMap::accessor _accr;
+	bool inserted = m_key_map.insert(_accr, key);
+	if (inserted) {
 		Key * _k = create_key(key);
-		m_key_map[key] = _k;
+		_accr->second = _k;
 		return static_cast<void*>(_k);
 	} else {
-		Key * tmp = it->second;
+		Key * tmp = _accr->second;
 		return static_cast<void*>(tmp);
 	}
 }
@@ -102,17 +105,19 @@ template< typename Derived, typename Key, typename Item, typename Tuner, typenam
 void ItemCheckpoint< Derived, Key, Item, Tuner, CheckpointTuner >::decrement_get_count(void * const tag)
 {
 	Key* t_ = static_cast< Key * >(tag);
-	typename itemMap::iterator it = m_item_map.find(* t_);
-	if (it != m_item_map.end()) {
-		if (--it->second.second == 0) {
-			typename keyMap::iterator itt = m_key_map.find(* t_);
-			if (itt != m_key_map.end()) { //Should not occur
-				uncreate_key(itt->second);
-				m_key_map.erase(itt);
-
+	typename itemMap::accessor _i_accr;
+	bool i_found = m_item_map.find(_i_accr, * t_);
+	if (i_found) {
+		if (--((_i_accr->second).second) == 0) {
+			std::cout << "erasing tag: "<< *t_ <<std::endl;
+			typename keyMap::accessor _k_accr;
+			bool k_found = m_key_map.find(_k_accr, * t_);
+			if (k_found) { //Should not occur
+				uncreate_key(_k_accr->second);
+				m_key_map.erase(_k_accr);
 			}
-			uncreate_item( it->second.first );
-			m_item_map.erase(it);
+			uncreate_item( (_i_accr->second).first );
+			m_item_map.erase(_i_accr);
 		}
 	}
 }
@@ -150,7 +155,7 @@ template< typename Derived, typename Key, typename Item, typename Tuner, typenam
 void ItemCheckpoint< Derived, Key, Item, Tuner, CheckpointTuner >::print() {
 	std::cout << "Printing Item Checkpoint: " << std::endl;
 	for( typename itemMap::const_iterator it = m_item_map.begin(); it != m_item_map.end(); ++it) {
-		std::cout << "(" << it->first <<", " << *it->second.first << "), ";
+		std::cout << "(" << it->first <<", " << *it->second.first << ", " << it->second.second << "), ";
 	}
 	std::cout << std::endl;
 }
