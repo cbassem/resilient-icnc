@@ -20,7 +20,7 @@ public:
 	virtual ~StepCheckpoint();
 
 	void processStepPrescribe(StepTag prescriber, int prescriberColId, void * prescribedTagId, int tagCollectionId);
-	void processStepDone(StepTag step, int stepColId, int puts, int prescribes);
+	void processStepDone(StepTag step, int stepColId, int puts, int prescribes, int gets);
 	void processItemPut(StepTag producer, int stepProducerColId, void * itemId, int itemColId);
 	void processItemGet(StepTag getter, ItemCheckpoint_i* ich, void * tag);
 
@@ -62,10 +62,10 @@ void StepCheckpoint< StepTag >::processStepPrescribe(StepTag prescriber, int pre
 }
 
 template< class StepTag >
-void StepCheckpoint< StepTag >::processStepDone(StepTag step, int stepColId, int puts, int prescribes)
+void StepCheckpoint< StepTag >::processStepDone(StepTag step, int stepColId, int puts, int prescribes, int gets)
 {
 	TagLog& l_ = getTagLog( step );
-	l_.processDone( puts, prescribes );
+	l_.processDone( puts, prescribes, gets );
 }
 
 template< class StepTag >
@@ -94,10 +94,10 @@ template< class StepTag >
 void StepCheckpoint< StepTag >::processStepDone(CnC::serializer * ser)
 {
 	StepTag step;
-	int puts, prescribes;
-	(* ser) & step & puts & prescribes;
+	int puts, prescribes, gets;
+	(* ser) & step & puts & prescribes & gets;
 	TagLog& l_ = getTagLog( step );
-	l_.processDone( puts, prescribes );
+	l_.processDone( puts, prescribes, gets );
 }
 
 template< class StepTag >

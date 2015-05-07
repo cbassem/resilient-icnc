@@ -410,7 +410,7 @@ namespace CnC {
         	if (!restarted) {
             _waitTask = new( tbb::task::allocate_root() ) tbb_waiter( this );
             tbb::task::enqueue( *_waitTask );
-            std::cout << " enqued wait task " << CnC::Internal::distributor::myPid() << std::endl;
+            //std::cout << " enqued wait task " << CnC::Internal::distributor::myPid() << std::endl;
         	}
         }
 
@@ -452,7 +452,7 @@ namespace CnC {
 
         void scheduler_i::re_init_wait(int recvr)
         {
-        	std::cout << "Sending re_init_wait" << std::cout;
+        	//std::cout << "Sending re_init_wait" << std::cout;
         		serializer * _ser = m_context.new_serializer( this );
         	   (*_ser) & PING & m_root;
         	   m_context.send_msg( _ser, recvr );
@@ -550,12 +550,12 @@ namespace CnC {
                         wait_all();
                     } while( distributor::has_pending_messages()  &&   _yield() );
                     send = m_root == distributor::myPid();
-                std::cout << "scheduler_i main no more messages" << std::endl;
+                //std::cout << "scheduler_i main no more messages" << std::endl;
                 } while( fini_wait()
                          || ( m_root == distributor::myPid() //FIXME root != 0 not supported: m_root reset in fini
                               && distributor::flush() > 2*_nProcs - 2 ) ); //3*_nProcs - 2 );
                               // >  5*_nProcs-3 ) ); if ++numMsgRecvd in distributor::new:serializer
-                std::cout << "scheduler_i main fini_wait()" << std::endl;
+                //std::cout << "scheduler_i main fini_wait()" << std::endl;
                 // we need the loop because potentially wait() missed the messages received between reset_recvd_msg_count and flush
                 CNC_ASSERT( m_userStepsInFlight == 1 || m_root != distributor::myPid() );
                 // root sends done flag in distributed env setup
@@ -590,7 +590,7 @@ namespace CnC {
         		} while (!restarted && fini_wait());
 
                 if( ! from_schedulable ) --m_userStepsInFlight;
-                std::cout << "out of waitloop" << std::endl;
+                //std::cout << "out of waitloop" << std::endl;
 
 //                for( pending_list_type::iterator i = m_pendingSteps.begin(); i != m_pendingSteps.end(); ++i ) {
 //                    delete *i;

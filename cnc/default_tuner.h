@@ -638,12 +638,14 @@ namespace CnC {
     	static const int UNDEFINED = -1;
     };
 
+    template< typename StepTag >
     struct checkpoint_step_tuner: public virtual tuner_base {
     	checkpoint_step_tuner() {}
     	virtual ~checkpoint_step_tuner() {}
 
-    	virtual int getNrOfPuts() const = 0;
-    	virtual int getNrOfPrescribes() const = 0;
+    	virtual int getNrOfPuts(const StepTag & tag) const = 0;
+    	virtual int getNrOfPrescribes(const StepTag & tag) const = 0;
+    	virtual int getNrOfGets(const StepTag & tag) const = 0;
 
     private:
     };

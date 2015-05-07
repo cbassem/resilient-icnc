@@ -109,7 +109,6 @@ void ItemCheckpoint< Derived, Key, Item, Tuner, CheckpointTuner >::decrement_get
 	bool i_found = m_item_map.find(_i_accr, * t_);
 	if (i_found) {
 		if (--((_i_accr->second).second) == 0) {
-			std::cout << "erasing tag: "<< *t_ <<std::endl;
 			typename keyMap::accessor _k_accr;
 			bool k_found = m_key_map.find(_k_accr, * t_);
 			if (k_found) { //Should not occur

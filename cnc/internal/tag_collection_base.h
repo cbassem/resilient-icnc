@@ -204,7 +204,6 @@ namespace CnC {
         template< class Tag, class Tuner, class CheckpointTuner >
         void tag_collection_base< Tag, Tuner, CheckpointTuner >::unsafe_reset( bool dist )
         {
-        	std::cout << "UNSAFE RESET!!!!!! with bool " << dist << std::endl;
 #ifdef _DIST_CNC_
             if( dist ) {
                 serializer * _ser = get_context().new_serializer( this );
@@ -221,7 +220,6 @@ namespace CnC {
         template< class Tag, class Tuner, class CheckpointTuner >
         void tag_collection_base< Tag, Tuner, CheckpointTuner >::do_reset()
         {
-        	std::cout << "DO RESET!!!!!!" << std::endl;
             m_tagTable.clear();
         }
 

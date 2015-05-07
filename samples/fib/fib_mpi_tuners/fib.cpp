@@ -42,12 +42,20 @@ typedef unsigned long long fib_type;
 #include <unistd.h>
 
 
-int fib_cr_step_tuner::getNrOfPrescribes() const {
+int fib_cr_step_tuner::getNrOfPrescribes(const int & tag) const {
 	return 0;
 };
 
-int fib_cr_step_tuner::getNrOfPuts() const {
+int fib_cr_step_tuner::getNrOfPuts(const int & tag) const {
 	return 1;
+};
+
+int fib_cr_step_tuner::getNrOfGets(const int & tag) const {
+	if (tag > 1) {
+		return 2;
+	} else {
+		return 0;
+	}
 };
 
 int fib_cr_item_tuner::getNrOfgets(const int & tag) const {

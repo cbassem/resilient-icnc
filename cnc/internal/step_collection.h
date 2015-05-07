@@ -150,7 +150,7 @@ namespace CnC {
     }
 
     template< typename UserStep, typename tuner, typename CheckpointTuner >
-    void  step_collection< UserStep, tuner, CheckpointTuner >::processDone( void * step, int stepColId, int puts, int prescribes ) {
+    void  step_collection< UserStep, tuner, CheckpointTuner >::processDone( void * step, int stepColId, int puts, int prescribes, int gets ) {
        std::cout << "oops we should not be here" <<std::cout;
     }
 

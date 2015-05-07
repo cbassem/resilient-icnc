@@ -125,7 +125,12 @@ namespace CnC {
                         m_stepLauncher->itacid() );
 
             	if (res == CNC_Success){
-            		m_stepLauncher->get_step_col().processDone( t_, m_stepLauncher->get_step_col_id(), _tuner.getNrOfPuts(), _tuner.getNrOfPrescribes());
+            		m_stepLauncher->get_step_col().processDone(
+            				t_,
+            				m_stepLauncher->get_step_col_id(),
+							_tuner.getNrOfPuts(_tag),
+							_tuner.getNrOfPrescribes(_tag),
+							_tuner.getNrOfGets(_tag));
 
             	}
 
@@ -135,7 +140,12 @@ namespace CnC {
                 oss << "Canceled step ";
                 format( oss );
             }
-            m_stepLauncher->get_step_col().processDone( t_, m_stepLauncher->get_step_col_id(), _tuner.getNrOfPuts(), _tuner.getNrOfPrescribes());
+            m_stepLauncher->get_step_col().processDone(
+            		t_,
+					m_stepLauncher->get_step_col_id(),
+					_tuner.getNrOfPuts(_tag),
+					_tuner.getNrOfPrescribes(_tag),
+					_tuner.getNrOfGets(_tag));
             return CNC_Success;
         }
         
@@ -173,7 +183,11 @@ namespace CnC {
                                                                      m_stepLauncher->m_stepColl.name(),
                                                                      m_stepLauncher->itacid() );
             	if(res == CNC_Success) {
-            		m_stepLauncher->get_step_col().processDone(t_ , m_stepLauncher->get_step_col_id(), _tuner.getNrOfPuts(), _tuner.getNrOfPrescribes());
+            		m_stepLauncher->get_step_col().processDone(t_ ,
+            				m_stepLauncher->get_step_col_id(),
+							_tuner.getNrOfPuts(tag),
+							_tuner.getNrOfPrescribes(tag),
+							_tuner.getNrOfGets(tag));
             	}
 
             	return res;
@@ -182,7 +196,12 @@ namespace CnC {
                         oss << "Canceled step ";
                         format( oss );
             }
-            m_stepLauncher->get_step_col().processDone( t_, m_stepLauncher->get_step_col_id(), _tuner.getNrOfPuts(), _tuner.getNrOfPrescribes());
+            m_stepLauncher->get_step_col().processDone(
+            		t_,
+					m_stepLauncher->get_step_col_id(),
+					_tuner.getNrOfPuts(tag),
+					_tuner.getNrOfPrescribes(tag),
+					_tuner.getNrOfGets(tag));
             return CNC_Success;
         }
 

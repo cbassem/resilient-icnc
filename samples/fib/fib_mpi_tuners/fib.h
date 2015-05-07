@@ -45,11 +45,11 @@ typedef CnC::tag_collection< int, CnC::tag_tuner<>, fib_cr_tuner > tag_type;
 
 
 // let's use a tuner to pre-declare dependencies
-struct fib_cr_step_tuner: public CnC::checkpoint_step_tuner
+struct fib_cr_step_tuner: public CnC::checkpoint_step_tuner< int >
 {
-	int getNrOfPuts() const;
-	int getNrOfPrescribes() const;
-
+	int getNrOfPuts(const int & tag) const;
+	int getNrOfPrescribes(const int & tag) const;
+	int getNrOfGets(const int & tag) const;
 };
 
 struct fib_cr_item_tuner: public CnC::checkpoint_item_tuner<int>

@@ -17,8 +17,10 @@
 class TagLog {
 	int currentPuts_;
 	int currentPrescribes_;
+	int currentGets_;
 	int totalPuts_;
 	int totalPrescribes_;
+	int totalGets_;
 
 	bool markedDone_;
 
@@ -50,7 +52,7 @@ public:
 	void processPrescribe(void * tagId);
 	void processGet( ItemCheckpoint_i * item_cp, void* tag); //FIXME tag by ptr, ref or val?
 
-	void processDone(int totalPuts, int totalPrescribes);
+	void processDone(int totalPuts, int totalPrescribes, int totalGets);
 
 	bool isDone() const;
 
@@ -62,8 +64,10 @@ public:
 TagLog::TagLog() :
 		currentPuts_(0),
 		currentPrescribes_(0),
+		currentGets_(0),
 		totalPuts_(-1),
 		totalPrescribes_(-1),
+		totalGets_(-1),
 		markedDone_(false),
 		prescribes_(),
 		items_(),
@@ -93,18 +97,23 @@ void TagLog::processGet( ItemCheckpoint_i * item_cp, void* tag) {
 	//I don't think this is thread safe, is this a random access iterator? Yet my bug seems to have disappeared... //TODO
 	tbb::concurrent_vector< getLog >::iterator it = std::find_if( gets_.begin(), gets_.end(), Compare(item_cp, tag) );
 	if (it == gets_.end()) {
+		currentGets_++;
 		gets_.push_back(getLog(item_cp, tag));
 	}
 }
 
-void TagLog::processDone(int totalPuts, int totalPrescribes) {
+void TagLog::processDone(int totalPuts, int totalPrescribes, int totalGets) {
 	markedDone_ = true;
 	totalPrescribes_ = totalPrescribes;
 	totalPuts_ = totalPuts;
+	totalGets_ = totalGets;
 }
 
 bool TagLog::isDone() const {
-	return markedDone_ && currentPrescribes_ == totalPrescribes_ && currentPuts_ == totalPuts_;
+	return markedDone_
+			&& currentPrescribes_ == totalPrescribes_
+			&& currentPuts_ == totalPuts_
+			&& currentGets_ == totalGets_;
 }
 
 void TagLog::decrement_get_counts() {

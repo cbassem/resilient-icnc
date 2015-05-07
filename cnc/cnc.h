@@ -133,7 +133,7 @@ namespace CnC {
         void controls( CnC::tag_collection< ControlTag, TTuner, TCheckpointTuner > & );
 
 
-        virtual void processDone( void * step, int stepColId, int puts, int prescribes );
+        virtual void processDone( void * step, int stepColId, int puts, int prescribes , int gets);
 
         const int getId() const;
 
@@ -765,7 +765,7 @@ namespace CnC {
     			void * tag);
 
 
-        void processDone( void * step, int stepColId, int puts, int prescribes );
+        void processDone( void * step, int stepColId, int puts, int prescribes, int gets );
 
         StepCheckpoint<UserStepTag> * getStepCheckpoint() {return &m_step_checkpoint;}
 
