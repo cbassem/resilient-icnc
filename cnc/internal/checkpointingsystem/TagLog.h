@@ -12,6 +12,7 @@
 #include <set>
 #include <algorithm>
 #include <tr1/unordered_map>
+#include "tbb/concurrent_unordered_set.h"
 
 
 class TagLog {
@@ -24,8 +25,8 @@ class TagLog {
 
 	bool markedDone_;
 
-	typedef std::set< void * > prescribes_t;
-	typedef std::set< void * > items_t;
+	typedef tbb::concurrent_unordered_set< void * > prescribes_t;
+	typedef tbb::concurrent_unordered_set< void * > items_t;
 	typedef std::pair< ItemCheckpoint_i*, void* > getLog; //FIXME tag by ptr, ref or val? No choice has to be a ptr, object slicing problem//
 
 
