@@ -12,6 +12,7 @@
 #include "StepCheckpoint_i.h"
 #include "StepCheckpoint.h"
 #include <tr1/unordered_map>
+#include "tbb/concurrent_vector.h"
 
 namespace CnC {
 
@@ -36,9 +37,9 @@ public:
 	void print();
 
 private:
-	typedef std::tr1::unordered_map< Tag, Tag * > tagMap;
+	typedef tbb::concurrent_hash_map< Tag, Tag * > tagMap;
     typedef tbb::scalable_allocator< Tag > tag_allocator_type;
-    typedef std::vector< StepCheckpoint< Tag > * > step_checkpoints_type;
+    typedef tbb::concurrent_vector< StepCheckpoint< Tag > * > step_checkpoints_type;
 
     tagMap m_tag_map;
 	mutable tag_allocator_type m_allocator;
@@ -62,13 +63,14 @@ TagCheckpoint< Derived, Tag, Tuner, CheckpointTuner >::~TagCheckpoint() { cleanu
 
 template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner >
 void * TagCheckpoint< Derived, Tag, Tuner, CheckpointTuner >::put( const Tag & tag ) {
-	typename tagMap::iterator it = m_tag_map.find(tag);
-	if (it == m_tag_map.end()) {
+	typename tagMap::accessor _accr;
+	bool inserted = m_tag_map.insert(_accr, tag);
+	if (inserted) {
 		Tag * _i = create(tag);
-		m_tag_map[tag] = _i;
+		_accr->second = _i;
 		return static_cast<void*>(_i);
 	} else {
-		Tag * tmp = it->second;
+		Tag * tmp = _accr->second;
 		return static_cast<void*>(tmp);
 	}
 }
@@ -96,13 +98,24 @@ template< typename Derived, typename Tag, typename Tuner, typename CheckpointTun
 void TagCheckpoint< Derived, Tag, Tuner, CheckpointTuner >::calculate_checkpoint()
 {
 	for( typename step_checkpoints_type::const_iterator it = m_step_checkpoints.begin(); it != m_step_checkpoints.end(); ++it) {
+		std::vector<Tag> to_remove;
 		typename tagMap::const_iterator itt = m_tag_map.begin();
 		while ( itt != m_tag_map.end() )
 		{
 			if ((*it)->isDone(itt->first)) {
-				m_tag_map.erase(itt++);
+				to_remove.push_back(itt->first);
+				//m_tag_map.erase(itt++);
+				++itt;
 			} else {
 				++itt;
+			}
+		}
+		for (typename std::vector<Tag>::iterator ittt = to_remove.begin(); ittt != to_remove.end(); ++ittt) {
+			typename tagMap::accessor _accr;
+			bool found = m_tag_map.find(_accr, *ittt);
+			if (found) {
+				uncreate(_accr->second);
+				m_tag_map.erase(_accr);
 			}
 		}
 	}

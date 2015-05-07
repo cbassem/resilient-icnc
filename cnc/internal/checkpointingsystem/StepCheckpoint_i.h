@@ -14,6 +14,7 @@ public:
 	virtual int getId() = 0;
 
 	virtual void decrement_get_counts() = 0;
+	virtual void cleanup() = 0;
 
 	virtual void processStepPrescribe(CnC::serializer * ser, void * prescribedTagId) = 0;
 	virtual void processStepDone(CnC::serializer * ser) = 0;

@@ -11,7 +11,10 @@
 #include "TagLog.h"
 #include "StepCheckpoint_i.h"
 #include <tr1/unordered_map>
+#include "tbb/concurrent_hash_map.h"
 //#include <cnc/serializer.h>
+
+namespace CnC {
 
 template< class StepTag >
 class StepCheckpoint: public StepCheckpoint_i {
@@ -31,7 +34,7 @@ public:
 	void processItemGet(CnC::serializer * ser, ItemCheckpoint_i* ich, void* tag);
 
 
-	TagLog& getTagLog( StepTag & tag );
+	TagLog* getTagLog( StepTag & tag );
 
 	bool isDone(StepTag tag);
 
@@ -39,46 +42,56 @@ public:
 
 	void decrement_get_counts();
 
+	void cleanup();
+
 
 private:
-	typedef std::tr1::unordered_map< StepTag, TagLog > tagMap_t;
+	typedef tbb::concurrent_hash_map< StepTag, TagLog* > tagMap_t;
+	typedef tbb::scalable_allocator< TagLog > taglog_allocator_type;
 	tagMap_t tagMap;
 	int m_col_id;
+	taglog_allocator_type allocator;
 
+	void uncreate_taglog( TagLog * t );
+	TagLog * create_taglog( const TagLog & org );
 
 };
 
 template< class StepTag >
-StepCheckpoint< StepTag >::StepCheckpoint(int col_id): tagMap(), m_col_id(col_id) {};
+StepCheckpoint< StepTag >::StepCheckpoint(int col_id): tagMap(), m_col_id(col_id), allocator() {};
 
 template< class StepTag >
-StepCheckpoint< StepTag >::~StepCheckpoint() {};
+StepCheckpoint< StepTag >::~StepCheckpoint() {
+	for (typename tagMap_t::iterator it = tagMap.begin(); it != tagMap.end(); ++it) {
+		uncreate_taglog(it->second);
+	}
+};
 
 template< class StepTag >
 void StepCheckpoint< StepTag >::processStepPrescribe(StepTag prescriber, int prescriberColId, void * prescribedTagId, int tagCollectionId)
 {
-	TagLog& l_ = getTagLog( prescriber );
-	l_.processPrescribe( prescribedTagId );
+	TagLog* l_ = getTagLog( prescriber );
+	l_->processPrescribe( prescribedTagId );
 }
 
 template< class StepTag >
 void StepCheckpoint< StepTag >::processStepDone(StepTag step, int stepColId, int puts, int prescribes, int gets)
 {
-	TagLog& l_ = getTagLog( step );
-	l_.processDone( puts, prescribes, gets );
+	TagLog* l_ = getTagLog( step );
+	l_->processDone( puts, prescribes, gets );
 }
 
 template< class StepTag >
 void StepCheckpoint< StepTag >::processItemGet(StepTag getter, ItemCheckpoint_i* ich, void * tag) {
-	TagLog& l_ = getTagLog( getter );
-	l_.processGet(ich, tag);
+	TagLog* l_ = getTagLog( getter );
+	l_->processGet(ich, tag);
 }
 
 template< class StepTag >
 void StepCheckpoint< StepTag >::processItemPut(StepTag producer, int stepProducerColId, void * itemId, int itemColId)
 {
-	TagLog& l_ = getTagLog( producer );
-	l_.processPut( itemId );
+	TagLog* l_ = getTagLog( producer );
+	l_->processPut( itemId );
 }
 
 template< class StepTag >
@@ -86,8 +99,8 @@ void StepCheckpoint< StepTag >::processStepPrescribe(CnC::serializer * ser, void
 {
 	StepTag prescriber;
 	(* ser) & prescriber;
-	TagLog& l_ = getTagLog( prescriber );
-	l_.processPrescribe( prescribedTagId );
+	TagLog* l_ = getTagLog( prescriber );
+	l_->processPrescribe( prescribedTagId );
 }
 
 template< class StepTag >
@@ -96,16 +109,16 @@ void StepCheckpoint< StepTag >::processStepDone(CnC::serializer * ser)
 	StepTag step;
 	int puts, prescribes, gets;
 	(* ser) & step & puts & prescribes & gets;
-	TagLog& l_ = getTagLog( step );
-	l_.processDone( puts, prescribes, gets );
+	TagLog* l_ = getTagLog( step );
+	l_->processDone( puts, prescribes, gets );
 }
 
 template< class StepTag >
 void StepCheckpoint< StepTag >::processItemGet(CnC::serializer * ser, ItemCheckpoint_i* ich, void* tag) {
 	StepTag getter;
 	(* ser) & getter;
-	TagLog& l_ = getTagLog( getter );
-	l_.processGet(ich, tag);
+	TagLog* l_ = getTagLog( getter );
+	l_->processGet(ich, tag);
 }
 
 template< class StepTag >
@@ -113,15 +126,15 @@ void StepCheckpoint< StepTag >::processItemPut(CnC::serializer * ser, void * ite
 {
 	StepTag producer;
 	(* ser) & producer;
-	TagLog& l_ = getTagLog( producer );
-	l_.processPut( itemId );
+	TagLog* l_ = getTagLog( producer );
+	l_->processPut( itemId );
 }
 
 template< class StepTag >
 bool StepCheckpoint< StepTag >::isDone(StepTag tag)
 {
-	TagLog& l_ = getTagLog( tag );
-	return l_.isDone();
+	TagLog* l_ = getTagLog( tag );
+	return l_->isDone();
 }
 
 template< class StepTag >
@@ -132,24 +145,47 @@ int StepCheckpoint< StepTag >::getId()
 
 
 template<class StepTag >
-TagLog& StepCheckpoint< StepTag >::getTagLog( StepTag& tag ) {
-	typename tagMap_t::iterator it = tagMap.find(tag);
-	if (it == tagMap.end()) {
-		TagLog & l_ = tagMap[tag] = TagLog();
-		return l_;
+TagLog* StepCheckpoint< StepTag >::getTagLog( StepTag& tag ) {
+	typename tagMap_t::accessor _accr;
+	bool inserted = tagMap.insert(_accr, tag);
+	if (inserted) {
+		_accr->second = create_taglog(TagLog());
+		return _accr->second;
 	} else {
-		TagLog & l_ = it->second;
-		return l_;
+		return _accr->second;
 	}
 }
 
 template<class StepTag >
-void StepCheckpoint< StepTag >::decrement_get_counts() {
+void StepCheckpoint< StepTag >::decrement_get_counts() { cleanup(); }
+
+template<class StepTag >
+void StepCheckpoint< StepTag >::uncreate_taglog( TagLog * t )
+{
+    if( t ) {
+    	allocator.destroy( t );
+        allocator.deallocate( t, 1 );
+    }
+}
+
+template<class StepTag >
+TagLog * StepCheckpoint< StepTag >::create_taglog( const TagLog & org )
+{
+    TagLog * _item = allocator.allocate( 1 );
+    allocator.construct( _item, org );
+    return _item;
+}
+
+
+template<class StepTag >
+void StepCheckpoint< StepTag >::cleanup()
+{
 	for (typename tagMap_t::iterator it = tagMap.begin(); it != tagMap.end(); ++it) {
-		if ((it->second).isDone()) (it->second).decrement_get_counts();
+		if ((it->second)->isDone()) (it->second)->decrement_get_counts();
 	}
 }
 
+}//END CNC SCOPE
 
 
 #endif /* STEPCHECKPOINT_H_ */

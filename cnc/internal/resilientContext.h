@@ -149,11 +149,12 @@ namespace CnC {
 		}
 
 		for( typename std::vector< StepCheckpoint_i * >::const_iterator it = m_step_checkpoints.begin(); it != m_step_checkpoints.end(); ++it ) {
-			(*it)->decrement_get_counts();// This will results in items being deleted.
+			(*it)->decrement_get_counts();// This will results in items being removed from the checkpoint.
 		}
 
-		//loop over stepcheckpoints & remove all done taglogs
-		//TODO
+//		for( typename std::vector< StepCheckpoint_i * >::const_iterator it = m_step_checkpoints.begin(); it != m_step_checkpoints.end(); ++it ) {
+//			(*it)->cleanup();
+//		}
 	}
 
 
