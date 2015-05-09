@@ -70,19 +70,51 @@ struct counter
     int execute( const tag_type & t, cw_context & ctxt ) const;
 };
 
-struct cw_context : public CnC::context< cw_context >
+struct cr_step_tuner: public CnC::checkpoint_step_tuner< tag_type >
+{
+	int getNrOfPuts(const tag_type & tag) const;
+	int getNrOfPrescribes(const tag_type & tag) const;
+	int getNrOfGets(const tag_type & tag) const;
+};
+
+struct cr_item_blocks_tuner: public CnC::checkpoint_item_tuner<int>
+{
+	int getNrOfgets(const int & tag) const;
+
+};
+
+struct cr_counts_per_block_tuner: public CnC::checkpoint_item_tuner<tag_type>
+{
+	int getNrOfgets(const tag_type & tag) const;
+
+};
+
+struct cr_item_counts_tuner: public CnC::checkpoint_item_tuner<int>
+{
+	int getNrOfgets(const int & tag) const;
+
+};
+
+struct cr_red_counts_tuner: public CnC::checkpoint_item_tuner<int>
+{
+	int getNrOfgets(const int & tag) const {};
+
+};
+
+
+struct cw_context : public CnC::resilientContext< cw_context >
 {
     // the prescribing tags
-    CnC::tag_collection< tag_type > tags;
+    CnC::resilient_tag_collection< tag_type > tags;
     // holds the lines/blocks of the file(s)
-    CnC::item_collection< int, std::string > blocks;
+    CnC::resilient_item_collection< int, std::string > blocks;
     // for each pair(block,string) we put the number of occurances of string found in block
-    CnC::item_collection< tag_type, size_type > counts_per_block;
+    CnC::resilient_item_collection< tag_type, size_type > counts_per_block;
     // the final number of occurances per string
-    CnC::item_collection< std::string, size_type > counts;
+    CnC::resilient_item_collection< std::string, size_type > counts;
     // the number of items (e.g. counts per string) participating in a reduction
-    CnC::item_collection< std::string, size_type > red_counts;
-    CnC::step_collection< counter > steps;
+    CnC::resilient_item_collection< std::string, size_type > red_counts;
+    CnC::resilient_step_collection< counter > steps;
     // our reduction is provided as a graph, see constructor for its instantiation&wiring
     CnC::graph * reduce;
     

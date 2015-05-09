@@ -62,10 +62,8 @@ StepCheckpoint< StepTag >::StepCheckpoint(int col_id): tagMap(), m_col_id(col_id
 
 template< class StepTag >
 StepCheckpoint< StepTag >::~StepCheckpoint() {
-	for (typename tagMap_t::iterator it = tagMap.begin(); it != tagMap.end(); ++it) {
-		uncreate_taglog(it->second);
-	}
-};
+	cleanup();
+}
 
 template< class StepTag >
 void StepCheckpoint< StepTag >::processStepPrescribe(StepTag prescriber, int prescriberColId, void * prescribedTagId, int tagCollectionId)
@@ -157,7 +155,12 @@ TagLog* StepCheckpoint< StepTag >::getTagLog( StepTag& tag ) {
 }
 
 template<class StepTag >
-void StepCheckpoint< StepTag >::decrement_get_counts() { cleanup(); }
+void StepCheckpoint< StepTag >::decrement_get_counts()
+{
+	for (typename tagMap_t::iterator it = tagMap.begin(); it != tagMap.end(); ++it) {
+		if ((it->second)->isDone()) (it->second)->decrement_get_counts();
+	}
+}
 
 template<class StepTag >
 void StepCheckpoint< StepTag >::uncreate_taglog( TagLog * t )
@@ -181,7 +184,7 @@ template<class StepTag >
 void StepCheckpoint< StepTag >::cleanup()
 {
 	for (typename tagMap_t::iterator it = tagMap.begin(); it != tagMap.end(); ++it) {
-		if ((it->second)->isDone()) (it->second)->decrement_get_counts();
+		uncreate_taglog(it->second);
 	}
 }
 

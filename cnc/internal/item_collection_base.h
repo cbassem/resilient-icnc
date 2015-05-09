@@ -854,9 +854,9 @@ namespace CnC {
                     CNC_ASSERT( ! _prop->m_subscribers );
 #endif
                     if( ! fromRemote || _prop->am_owner() ) {
-                        Speaker oss( std::cerr );
-                        oss << "Warning:";
-                        format( oss, "multiple assignments to same item ", user_tag, m_context.current_step_instance() );
+//                        Speaker oss( std::cerr );
+//                        oss << "Warning:";
+//                        format( oss, "multiple assignments to same item ", user_tag, m_context.current_step_instance() );
                     }
                 }
                 
@@ -1065,12 +1065,12 @@ namespace CnC {
                 void operator()( const Tag & tag, const Item * item, const item_properties * ip, const std::string & name )
                 {
                     if( ip->m_suspendGroup ) {
-                        std::ostringstream oss;
-                        oss << " is waiting for item " << name << "[";
-                        cnc_format( oss, tag );
-                        oss << "]";
-                        dumper _dmpr;
-                        ip->m_suspendGroup->for_all( _dmpr, oss.str() );
+//                        std::ostringstream oss;
+//                        oss << " is waiting for item " << name << "[";
+//                        cnc_format( oss, tag );
+//                        oss << "]";
+//                        dumper _dmpr;
+//                        ip->m_suspendGroup->for_all( _dmpr, oss.str() );
                     }
 #ifdef CNC_USE_ASSERT
                     if( item && ip->am_owner() && ip->get_count() != item_properties::NO_GET_COUNT ) {

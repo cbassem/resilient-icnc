@@ -281,7 +281,7 @@ namespace CnC {
                     	if( ! _inserted ) {
                     		distributable_context * _dctxt = _accr->second;
                     		int _tid = _dctxt->factory_id();
-                    		(*_serlzr) & RESTART & _tid & ctxtid  & (*_dctxt);
+                    		(*_serlzr) & RESTART & _tid & ctxtid  ;//& (*_dctxt);
                     		send_msg( _serlzr, senderPid );
                     	}
                     	break;
@@ -301,7 +301,7 @@ namespace CnC {
                         distributable_context * _dctxt = static_cast< distributable_context * >( _crtbl );
                         _dctxt->set_gid( ctxtid );
                         _accr->second = _dctxt;
-                        (*serlzr) & (*_dctxt);
+                        //(*serlzr) & (*_dctxt);
                         theDistributor->m_state = distributor::DIST_ON;
                         _dctxt->set_distributionReady();
                         _dctxt->restarted();

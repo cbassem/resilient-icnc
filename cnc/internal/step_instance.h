@@ -140,12 +140,12 @@ namespace CnC {
                 oss << "Canceled step ";
                 format( oss );
             }
-            m_stepLauncher->get_step_col().processDone(
-            		t_,
-					m_stepLauncher->get_step_col_id(),
-					_tuner.getNrOfPuts(_tag),
-					_tuner.getNrOfPrescribes(_tag),
-					_tuner.getNrOfGets(_tag));
+//            m_stepLauncher->get_step_col().processDone(
+//            		t_,
+//					m_stepLauncher->get_step_col_id(),
+//					_tuner.getNrOfPuts(_tag),
+//					_tuner.getNrOfPrescribes(_tag),
+//					_tuner.getNrOfGets(_tag));
             return CNC_Success;
         }
         
@@ -196,12 +196,12 @@ namespace CnC {
                         oss << "Canceled step ";
                         format( oss );
             }
-            m_stepLauncher->get_step_col().processDone(
-            		t_,
-					m_stepLauncher->get_step_col_id(),
-					_tuner.getNrOfPuts(tag),
-					_tuner.getNrOfPrescribes(tag),
-					_tuner.getNrOfGets(tag));
+//            m_stepLauncher->get_step_col().processDone(
+//            		t_,
+//					m_stepLauncher->get_step_col_id(),
+//					_tuner.getNrOfPuts(tag),
+//					_tuner.getNrOfPrescribes(tag),
+//					_tuner.getNrOfGets(tag));
             return CNC_Success;
         }
 
