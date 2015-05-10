@@ -40,53 +40,42 @@ namespace CnC {
     template< typename Derived, typename Tag, typename Item, typename Tuner, typename CheckpointTuner >
     resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >::resilient_item_collection( resilientContext< Derived > & context, const std::string & name )
         : item_collection< Tag, Item, Tuner, CheckpointTuner >( context, name ),
-		  m_item_checkpoint(*this, super_type::getId()),
 		  m_resilient_contex(context),
-		  m_communicator(*this),
-		  m_ctuner(Internal::get_default_checkpoint_tuner<CheckpointTuner>())
-    {
-    	m_resilient_contex.registerItemCheckpoint( &m_item_checkpoint );
-    }
+		  m_ctuner(Internal::get_default_checkpoint_tuner<CheckpointTuner>()),
+		  m_strategy(new resilient_item_collection_strategy_naive<resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >, Tag, Item>(*this))
+    {}
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     template< typename Derived, typename Tag, typename Item, typename Tuner, typename CheckpointTuner >
     resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >::resilient_item_collection( resilientContext< Derived > & context, const std::string & name, const Tuner & tnr )
         : item_collection< Tag, Item, Tuner, CheckpointTuner >( context, name, tnr ),
-		  m_item_checkpoint(*this, super_type::getId()),
 		  m_resilient_contex(context),
-		  m_communicator(*this),
-		  m_ctuner(Internal::get_default_checkpoint_tuner<CheckpointTuner>())
-    {
-    	m_resilient_contex.registerItemCheckpoint( &m_item_checkpoint );
-    } 
+		  m_ctuner(Internal::get_default_checkpoint_tuner<CheckpointTuner>()),
+		  m_strategy(new resilient_item_collection_strategy_naive<resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >, Tag, Item>(*this))
+    {}
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     template< typename Derived, typename Tag, typename Item, typename Tuner, typename CheckpointTuner >
     resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >::resilient_item_collection( resilientContext< Derived > & context, const Tuner & tnr )
         : item_collection< Tag, Item, Tuner, CheckpointTuner >( context, tnr ),
-		  m_item_checkpoint(*this, super_type::getId()),
 		  m_resilient_contex(context),
-		  m_communicator(*this),
-		  m_ctuner(Internal::get_default_checkpoint_tuner<CheckpointTuner>())
-    {
-    	m_resilient_contex.registerItemCheckpoint( &m_item_checkpoint );
-    } 
+		  m_ctuner(Internal::get_default_checkpoint_tuner<CheckpointTuner>()),
+		  m_strategy(new resilient_item_collection_strategy_naive<resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >, Tag, Item>(*this))
+    {}
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     template< typename Derived, typename Tag, typename Item, typename Tuner, typename CheckpointTuner >
     resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >::~resilient_item_collection()
-    {
-    	m_resilient_contex.registerItemCheckpoint( &m_item_checkpoint );
-    }
+    {}
 
 
     template< typename Derived, typename Tag, typename Item, typename Tuner, typename CheckpointTuner >
     void resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >::put( const Tag & t, const Item & i )
     {
-    	void * id = m_item_checkpoint.put( t, i );
+    	m_strategy->processPut(t, i);
     	super_type::put( t, i );
     }
 
@@ -98,15 +87,7 @@ namespace CnC {
     		const Tag & t,
     		const Item & i)
     {
-    	if ( Internal::distributor::myPid() == 0) {
-        	void * itemid = m_item_checkpoint.put( t, i );
-        	putterColl.processPut(putter, itemid, super_type::getId());
-    	} else {
-    		serializer * ser = m_resilient_contex.dist_context::new_serializer( &m_communicator );
-    		//Order is very important since we pass the serialized datastrc to the remote checkpoint object!
-    		(*ser) & checkpoint_tuner_types::PUT & t & i & putterColl.getId() & putter;
-    		m_resilient_contex.dist_context::send_msg(ser, 0);
-    	}
+    	m_strategy->processPut(putter, putterColl, t, i);
     	item_collection< Tag, Item, Tuner, CheckpointTuner >::put( putter, putterColl, t, i );
     }
 
@@ -129,69 +110,9 @@ namespace CnC {
     		CnC::resilient_step_collection< Derived, UserStepTag, UserStep, STuner, SCheckpointTuner> & getterColl,
 			const Tag & tag, Item & item )
     {
-    	if ( Internal::distributor::myPid() == 0) {
-    		void * t_ = m_item_checkpoint.getKeyId(tag);
-			getterColl.processGet(getter, &m_item_checkpoint, t_);
-		} else {
-			serializer * ser = m_resilient_contex.dist_context::new_serializer( &m_communicator );
-			//Order is very important since we pass the serialized datastrc to the remote checkpoint object!
-			(*ser) & checkpoint_tuner_types::GET & tag & getterColl.getId() & getter;
-			m_resilient_contex.dist_context::send_msg(ser, 0);
-		}
+    	m_strategy->processGet(getter, getterColl, tag, item);
 		item_collection< Tag, Item, Tuner, CheckpointTuner >::get( tag, item );
     }
-
-	///////////////////////////////////////////////////////////////////////
-	/// Implementation of CnC::resilient_item_collection::communicator ////
-    ///////////////////////////////////////////////////////////////////////
-
-    template< typename Derived, typename Tag, typename Item, typename Tuner, typename CheckpointTuner >
-	resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >::communicator::communicator(resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner > & r): m_resilient_item_collection(r) {
-    	m_resilient_item_collection.m_resilient_contex.subscribe(this);
-		std::cout << " creating res ctxt comm " << std::endl;
-	}
-
-    template< typename Derived, typename Tag, typename Item, typename Tuner, typename CheckpointTuner >
-    resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >::communicator::~communicator() {
-    	m_resilient_item_collection.m_resilient_contex.unsubscribe(this);
-	}
-
-    template< typename Derived, typename Tag, typename Item, typename Tuner, typename CheckpointTuner >
-	void resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >::communicator::recv_msg( serializer * ser ) {
-		char msg_tag;
-		(* ser) & msg_tag;
-
-		switch (msg_tag) {
-			case checkpoint_tuner_types::PUT:
-			{
-				Tag tag;
-				Item item;
-				int putter_collection_id;
-				(* ser) & tag & item & putter_collection_id;
-				void * itemid = m_resilient_item_collection.m_item_checkpoint.put( tag, item );
-				//Get the step that made the item put
-				StepCheckpoint_i* i_ = m_resilient_item_collection.m_resilient_contex.getStepCheckPoint(putter_collection_id);
-				i_->processItemPut(ser, itemid);
-				break;
-			}
-			case checkpoint_tuner_types::GET:
-			{
-				Tag tag;
-				int getter_collection_id;
-				(* ser) & tag & getter_collection_id;
-				StepCheckpoint_i* i_ = m_resilient_item_collection.m_resilient_contex.getStepCheckPoint(getter_collection_id);
-				void * t_ = m_resilient_item_collection.m_item_checkpoint.getKeyId(tag);
-				i_->processItemGet(ser, &m_resilient_item_collection.m_item_checkpoint, t_);
-				break;
-			}
-
-			default:
-				CNC_ABORT( "Protocol error: unexpected message tag." );
-			}
-		}
-
-	template< typename Derived, typename Tag, typename Item, typename Tuner, typename CheckpointTuner >
-	void resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >::communicator::unsafe_reset( bool dist ) {}
 
 } // namespace CnC
 

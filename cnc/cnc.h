@@ -50,6 +50,8 @@
 #include <cnc/internal/checkpointingsystem/ItemCheckpoint_i.h>
 #include <cnc/internal/checkpointingsystem/TagCheckpoint_i.h>
 #include <cnc/internal/checkpointingsystem/StepCheckpoint_i.h>
+#include <cnc/internal/resilient_item_collection_strategy_i.h>
+#include <cnc/internal/resilient_item_collection_strategy_naive.h>
 
 #include <vector>
 #include <set>
@@ -875,34 +877,23 @@ namespace CnC {
         		CnC::resilient_step_collection< Derived, UserStepTag, UserStep, STuner, SCheckpointTuner> & getterColl,
 				const Tag & tag, Item & item );
 
-	protected:
-    	//Since contexts already have their own implementations of send and receive, lets make our own communicator to handle the resilience stuff
-    	class communicator : public virtual CnC::Internal::distributable
-		{
-		public:
-    	    communicator(resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner > & rctxt);
-    	    virtual ~communicator();
+        resilientContext< Derived >& getContext() {return m_resilient_contex;};
 
-
-        	//Implementing the distributable interface
-        	void recv_msg( serializer * ser );
-        	void unsafe_reset( bool dist );
-
-		private:
-        	resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >& m_resilient_item_collection;
-
-		};
+        const CheckpointTuner& getCTuner() {return m_ctuner;};
 
     private:
-    	typedef Internal::distributable_context dist_context;
     	typedef item_collection< Tag, Item, Tuner, CheckpointTuner > super_type;
-    	typedef CheckpointTuner ctuner_type;
-    	friend ItemCheckpoint< Derived, Tag, Item, Tuner, CheckpointTuner >;
+    	//typedef CheckpointTuner ctuner_type;
 
-    	const ctuner_type& m_ctuner;
-        ItemCheckpoint< Derived, Tag, Item, Tuner, CheckpointTuner > m_item_checkpoint;
+    	const CheckpointTuner& m_ctuner;
         resilientContext< Derived > & m_resilient_contex;
-    	resilient_item_collection::communicator m_communicator;
+
+    	resilient_item_collection_strategy_i<
+			resilient_item_collection_strategy_naive<
+					resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >
+    				, Tag, Item >,
+				Tag, Item
+		> * m_strategy;
     };
 
     /// \brief Execute f( i ) for every i in {first <= i=first+step*x < last and 0 <= x}.
