@@ -42,36 +42,34 @@ namespace CnC {
 
     template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner >
     resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner  >::resilient_tag_collection( resilientContext< Derived > & context, const std::string & name )
-        : tag_collection< Tag, Tuner, CheckpointTuner >( context, name ), m_tag_checkpoint(*this, super_type::getId()), m_resilient_contex(context), m_communicator(*this)
-    {
-    	m_resilient_contex.registerTagCheckpoint( &m_tag_checkpoint );
-    }
+        : tag_collection< Tag, Tuner, CheckpointTuner >( context, name ),
+		  m_resilient_contex(context),
+		  m_strategy(new resilient_tag_collection_strategy_naive<resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >, Tag >(*this))
+    {}
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner  >
     resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner>::resilient_tag_collection( resilientContext< Derived > & context, const Tuner & tnr )
-        : tag_collection< Tag, Tuner, CheckpointTuner >( context, tnr ), m_tag_checkpoint(*this, super_type::getId()), m_resilient_contex(context), m_communicator(*this)
-    {
-    	m_resilient_contex.registerTagCheckpoint( &m_tag_checkpoint );
-    }
+        : tag_collection< Tag, Tuner, CheckpointTuner >( context, tnr ),
+		  m_resilient_contex(context),
+		  m_strategy(new resilient_tag_collection_strategy_naive<resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >, Tag >(*this))
+    {}
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     template<  typename Derived, typename Tag, typename Tuner, typename CheckpointTuner >
     resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >::resilient_tag_collection( resilientContext< Derived > & context, const std::string & name, const Tuner & tnr )
-        : tag_collection< Tag, Tuner, CheckpointTuner >( context, name, tnr ), m_tag_checkpoint(*this, super_type::getId()), m_resilient_contex(context), m_communicator(*this)
-    {
-    	m_resilient_contex.registerTagCheckpoint( &m_tag_checkpoint );
-    }
+        : tag_collection< Tag, Tuner, CheckpointTuner >( context, name, tnr ),
+		  m_resilient_contex(context),
+		  m_strategy(new resilient_tag_collection_strategy_naive<resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >, Tag >(*this))
+    {}
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner >
     resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >::~resilient_tag_collection()
-    {
-    	m_resilient_contex.registerTagCheckpoint( &m_tag_checkpoint );
-    }
+    {}
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -79,7 +77,7 @@ namespace CnC {
     template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner >
     void resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >::put( const Tag & t )
     {
-    	void * id = m_tag_checkpoint.put( t );
+    	m_strategy->processPrescribe( t );
         tag_collection< Tag, Tuner, CheckpointTuner >::put( t );
     }
 
@@ -93,15 +91,8 @@ namespace CnC {
     		CnC::resilient_step_collection< Derived, UserStepTag, UserStep, STuner, SCheckpointTuner> & prescriberCol ,
     		const Tag & t )
     {
-    	if ( Internal::distributor::myPid() == 0) {
-        	void * tagid = m_tag_checkpoint.put( t );
-        	prescriberCol.processPrescribe( prescriber, tagid, super_type::getId());
-    	} else {
-    	    serializer * ser = m_resilient_contex.dist_context::new_serializer( &m_communicator );
-    	    //Order is very important since we pass the serialized datastrc to the remote checkpoint object!
-    	    (*ser) & checkpoint_tuner_types::PRESCRIBE & t & prescriberCol.getId() & prescriber;
-    	    m_resilient_contex.dist_context::send_msg(ser, 0);
-    	}
+
+    	m_strategy->processPrescribe( prescriber, prescriberCol, t);
     	tag_collection< Tag, Tuner, CheckpointTuner >::put( prescriber, prescriberCol, t );
     }
 
@@ -117,49 +108,10 @@ namespace CnC {
 	{
     	super_type::prescribes(s, arg);
     	StepCheckpoint<Tag> * cp_= s.getStepCheckpoint();
-    	m_tag_checkpoint.prescribeStepCheckpoint(cp_);
+    	m_strategy->prescribeStepCheckpoint(cp_);
 	}
 
 
-	//////////////////////////////////////////////////////////////////////
-	/// Implementation of CnC::resilient_tag_collection::communicator ////
-    //////////////////////////////////////////////////////////////////////
-
-    template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner >
-    resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >::communicator::communicator(resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner > & r): m_resilient_tag_collection(r) {
-    	m_resilient_tag_collection.m_resilient_contex.subscribe(this);
-		std::cout << " creating res ctxt comm " << std::endl;
-	}
-
-    template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner >
-    resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >::communicator::~communicator() {
-    	m_resilient_tag_collection.m_resilient_contex.unsubscribe(this);
-	}
-
-    template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner >
-	void resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >::communicator::recv_msg( serializer * ser ) {
-		char msg_tag;
-		(* ser) & msg_tag;
-
-		switch (msg_tag) {
-			case checkpoint_tuner_types::PRESCRIBE:
-			{
-				Tag tag;
-				int prescriber_collection_id;
-				(* ser) & tag & prescriber_collection_id;
-	        	void * tagid = m_resilient_tag_collection.m_tag_checkpoint.put( tag );
-	        	StepCheckpoint_i* i_ = m_resilient_tag_collection.m_resilient_contex.getStepCheckPoint(prescriber_collection_id);
-				i_->processStepPrescribe(ser, tagid);
-				break;
-			}
-
-			default:
-				CNC_ABORT( "Protocol error: unexpected message tag." );
-			}
-		}
-
-    template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner >
-	void resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >::communicator::unsafe_reset( bool dist ) {}
 
 
 

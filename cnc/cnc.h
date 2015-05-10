@@ -52,6 +52,8 @@
 #include <cnc/internal/checkpointingsystem/StepCheckpoint_i.h>
 #include <cnc/internal/resilient_item_collection_strategy_i.h>
 #include <cnc/internal/resilient_item_collection_strategy_naive.h>
+#include <cnc/internal/resilient_tag_collection_strategy_i.h>
+#include <cnc/internal/resilient_tag_collection_strategy_naive.h>
 
 #include <vector>
 #include <set>
@@ -823,30 +825,19 @@ namespace CnC {
         template< typename SDerived, typename UserStepTag, typename UserStep, typename STuner, typename Arg, typename SCheckpointTuner >
         error_type prescribes( resilient_step_collection< SDerived, UserStepTag, UserStep, STuner, SCheckpointTuner > & s, Arg & arg );
 
-	protected:
-    	//Since contexts already have their own implementations of send and receive, lets make our own communicator to handle the resilience stuff
-    	class communicator : public virtual CnC::Internal::distributable
-		{
-		public:
-    	    communicator(resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner > & rctxt);
-    	    virtual ~communicator();
-
-
-        	//Implementing the distributable interface
-        	void recv_msg( serializer * ser );
-        	void unsafe_reset( bool dist );
-
-		private:
-        	resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >& m_resilient_tag_collection;
-
-		};
+        resilientContext< Derived >& getContext() {return m_resilient_contex;};
 
     private:
     	typedef Internal::distributable_context dist_context;
     	typedef tag_collection< Tag, Tuner, CheckpointTuner > super_type;
-        TagCheckpoint< Derived, Tag, Tuner, CheckpointTuner > m_tag_checkpoint;
         resilientContext< Derived > & m_resilient_contex;
-    	resilient_tag_collection::communicator m_communicator;
+
+        resilient_tag_collection_strategy_i<
+        			resilient_tag_collection_strategy_naive<
+        					resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >
+            				, Tag >,
+        				Tag
+        		> * m_strategy;
     };
 
     template< typename Derived, typename Tag, typename Item, typename Tuner = hashmap_tuner, typename CheckpointTuner = checkpoint_item_tuner< Tag >  >
