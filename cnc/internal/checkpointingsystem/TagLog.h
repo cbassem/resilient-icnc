@@ -27,23 +27,14 @@ class TagLog {
 
 	typedef tbb::concurrent_unordered_set< void * > prescribes_t;
 	typedef tbb::concurrent_unordered_set< void * > items_t;
-	typedef std::pair< ItemCheckpoint_i*, void* > getLog; //FIXME tag by ptr, ref or val? No choice has to be a ptr, object slicing problem//
+	typedef std::pair< ItemCheckpoint_i*, void* > getLog;
+	typedef tbb::concurrent_unordered_set< getLog > gets_t;
 
 
 	prescribes_t prescribes_;
 	items_t items_;
-	tbb::concurrent_vector< getLog > gets_;
-
-	struct Compare
-	{
-	  Compare(ItemCheckpoint_i* val1, void * val2) : val1_(val1), val2_(val2) {}
-	  bool operator()(const getLog& elem) const {
-	    return val1_ == elem.first && val2_ == elem.second;
-	  }
-	  private:
-	  ItemCheckpoint_i* val1_;
-	  void*  val2_;
-	};
+	//tbb::concurrent_vector< getLog > gets_;
+	gets_t gets_;
 
 public:
 	TagLog();
@@ -78,28 +69,32 @@ TagLog::TagLog() :
 TagLog::~TagLog() {}
 
 void TagLog::processPut(void * itemId) {
-	typename items_t::iterator it = items_.find(itemId);
-	if (it == items_.end()) {
+// Because insert after find is not thread safe!!!
+// What was I thinking...
+//	typename items_t::iterator it = items_.find(itemId);
+//	if (it == items_.end()) {
+//		currentPuts_++;
+//		items_.insert(itemId);
+//	}
+
+	std::pair<items_t::iterator, bool> res = items_.insert(itemId);
+	if (res.second) {
 		currentPuts_++;
-		items_.insert(itemId);
 	}
 }
 
 void TagLog::processPrescribe(void * tagId) {
-	typename prescribes_t::iterator it = prescribes_.find(tagId);
-	if (it == items_.end()) {
+	std::pair<prescribes_t::iterator, bool> res = prescribes_.insert(tagId);
+	if (res.second) {
 		currentPrescribes_++;
-		prescribes_.insert(tagId);
 	}
 }
 
 
 void TagLog::processGet( ItemCheckpoint_i * item_cp, void* tag) {
-	//I don't think this is thread safe, is this a random access iterator? Yet my bug seems to have disappeared... //TODO
-	tbb::concurrent_vector< getLog >::iterator it = std::find_if( gets_.begin(), gets_.end(), Compare(item_cp, tag) );
-	if (it == gets_.end()) {
+	std::pair<gets_t::iterator, bool> res = gets_.insert(getLog(item_cp, tag));
+	if(res.second) {
 		currentGets_++;
-		gets_.push_back(getLog(item_cp, tag));
 	}
 }
 
@@ -118,7 +113,7 @@ bool TagLog::isDone() const {
 }
 
 void TagLog::decrement_get_counts() {
-	for (typename tbb::concurrent_vector< getLog >::const_iterator it = gets_.begin(); it != gets_.end(); ++it) {
+	for (typename gets_t::const_iterator it = gets_.begin(); it != gets_.end(); ++it) {
 		(it->first)->decrement_get_count(it->second);
 	}
 }
