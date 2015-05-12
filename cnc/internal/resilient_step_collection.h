@@ -38,43 +38,35 @@ namespace CnC {
     template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner >
     resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::resilient_step_collection( resilientContext< Derived > & ctxt )
         : step_collection< UserStep, Tuner, CheckpointTuner >( ctxt ),
-		  m_step_checkpoint(super_type::getId()),
 		  m_resilient_contex(ctxt),
-		  m_communicator(*this)    {
-        m_resilient_contex.registerStepCheckPoint( &m_step_checkpoint );
-    }
+		  m_strategy(new resilient_step_collection_strategy_naive<resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >, UserStepTag >(*this))
+	{}
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner >
     resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::resilient_step_collection( resilientContext< Derived > & ctxt, const std::string & name )
         : step_collection< UserStep, Tuner, CheckpointTuner >( ctxt, name),
-		  m_step_checkpoint(super_type::getId()),
 		  m_resilient_contex(ctxt),
-		  m_communicator(*this)    {
-        m_resilient_contex.registerStepCheckPoint( &m_step_checkpoint );
-    }
+		  m_strategy(new resilient_step_collection_strategy_naive<resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >, UserStepTag >(*this))
+    {}
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner >
     resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::resilient_step_collection( resilientContext< Derived > & ctxt, const std::string & name, const step_type & userStep )
         : step_collection< UserStep, Tuner, CheckpointTuner >( ctxt, name, userStep ),
-		  m_step_checkpoint(super_type::getId()),
 		  m_resilient_contex(ctxt),
-		  m_communicator(*this)    {
-        m_resilient_contex.registerStepCheckPoint( &m_step_checkpoint );
-    }
+		  m_strategy(new resilient_step_collection_strategy_naive<resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >, UserStepTag >(*this))
+    {}
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner >
     resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::resilient_step_collection( resilientContext< Derived > & ctxt, const tuner_type & tnr, const std::string & name )
         : step_collection< UserStep, Tuner, CheckpointTuner >( ctxt, tnr, name ),
-		  m_step_checkpoint(super_type::getId()),
 		  m_resilient_contex(ctxt),
-		  m_communicator(*this)    {
-        m_resilient_contex.registerStepCheckPoint( &m_step_checkpoint );
-    }
+		  m_strategy(new resilient_step_collection_strategy_naive<resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >, UserStepTag >(*this))
+    {}
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -82,12 +74,9 @@ namespace CnC {
     resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::resilient_step_collection( resilientContext< Derived > & ctxt, const std::string & name,
                                                          const step_type & userStep, const tuner_type & tnr )
         : step_collection< UserStep, Tuner, CheckpointTuner >( ctxt, name, userStep, tnr ),
-		  m_step_checkpoint(),
 		  m_resilient_contex(ctxt),
-		  m_communicator(*this)
-    {
-        m_resilient_contex.registerStepCheckPoint( &m_step_checkpoint );
-    }
+		  m_strategy(new resilient_step_collection_strategy_naive<resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >, UserStepTag >(*this))
+    {}
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -96,15 +85,21 @@ namespace CnC {
 
 
     template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner >
-    void resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::processPut( UserStepTag putter, void * itemid, int itemCollectionId)
+    void resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::processPut(
+    		UserStepTag putter,
+    		void * itemid,
+    		int itemCollectionId)
     {
-    	m_step_checkpoint.processItemPut( putter, super_type::getId(), itemid, itemCollectionId);
+    	m_strategy->processPut( putter, super_type::getId(), itemid, itemCollectionId );
     }
 
     template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner >
-    void resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::processPrescribe( UserStepTag prescriber, void * tagid, int tagCollectionId)
+    void resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::processPrescribe(
+    		UserStepTag prescriber,
+    		void * tagid,
+    		int tagCollectionId)
     {
-    	m_step_checkpoint.processStepPrescribe( prescriber, super_type::getId(), tagid , tagCollectionId);
+    	m_strategy->processPrescribe(prescriber, super_type::getId(), tagid , tagCollectionId);
     }
 
     template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner >
@@ -113,65 +108,26 @@ namespace CnC {
 			ItemCheckpoint_i * item_cp,
 			void* tag)
     {
-    	m_step_checkpoint.processItemGet( getter, item_cp, tag );
+    	m_strategy->processGet(getter, item_cp, tag );
     }
 
     template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner >
-    void resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::processDone( void * step, int stepColId, int puts, int prescribes, int gets )
+    void resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::processDone(
+    		void * step,
+    		int stepColId,
+    		int puts,
+    		int prescribes,
+    		int gets )
     {
     	UserStepTag* s_ = static_cast<UserStepTag*>(step);
-    	if ( Internal::distributor::myPid() == 0) {
-        	m_step_checkpoint.processStepDone( *s_, stepColId, puts, prescribes, gets);
-        	m_resilient_contex.checkForCrash();
-    	} else {
-    	    serializer * ser = m_resilient_contex.dist_context::new_serializer( &m_communicator );
-    	    //Order is very important since we pass the serialized datastrc to the remote checkpoint object!
-    	    (*ser) & checkpoint_tuner_types::DONE & stepColId & *s_ & puts & prescribes & gets;
-    	    m_resilient_contex.dist_context::send_msg(ser, 0);
-    	}
+
+    	m_strategy->processStepDone(*s_, stepColId, puts, prescribes, gets);
     }
 
-	///////////////////////////////////////////////////////////////////////
-	/// Implementation of CnC::resilient_step_collection::communicator ////
-    ///////////////////////////////////////////////////////////////////////
-
     template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner >
-    resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::communicator::communicator(resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner > & r): m_resilient_step_collection(r) {
-    	m_resilient_step_collection.m_resilient_contex.subscribe(this);
-		std::cout << " creating res ctxt comm " << std::endl;
-	}
-
-    template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner >
-    resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::communicator::~communicator() {
-    	m_resilient_step_collection.m_resilient_contex.unsubscribe(this);
-	}
-
-    template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner >
-	void resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::communicator::recv_msg( serializer * ser ) {
-		char msg_tag;
-		(* ser) & msg_tag;
-
-		switch (msg_tag) {
-			case checkpoint_tuner_types::DONE:
-			{
-				int step_collection_id;
-				(* ser) & step_collection_id;
-				StepCheckpoint_i& i_ = m_resilient_step_collection.m_step_checkpoint;
-				i_.processStepDone(ser);
-				if ( Internal::distributor::myPid() == 0) {
-					m_resilient_step_collection.m_resilient_contex.checkForCrash();
-				}
-				break;
-			}
-
-			default:
-				CNC_ABORT( "Protocol error: unexpected message tag." );
-			}
-		}
-
-    template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner >
-	void resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::communicator::unsafe_reset( bool dist ) {}
-
+    CnC::StepCheckpoint<UserStepTag> * resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::getStepCheckpoint() {
+    	return m_strategy->getStepCheckpoint();
+    }
 
 
 } // end namespace CnC

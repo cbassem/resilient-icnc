@@ -54,6 +54,8 @@
 #include <cnc/internal/resilient_item_collection_strategy_naive.h>
 #include <cnc/internal/resilient_tag_collection_strategy_i.h>
 #include <cnc/internal/resilient_tag_collection_strategy_naive.h>
+#include <cnc/internal/resilient_step_collection_strategy_i.h>
+#include <cnc/internal/resilient_step_collection_strategy_naive.h>
 
 #include <vector>
 #include <set>
@@ -771,32 +773,21 @@ namespace CnC {
 
         void processDone( void * step, int stepColId, int puts, int prescribes, int gets );
 
-        StepCheckpoint<UserStepTag> * getStepCheckpoint() {return &m_step_checkpoint;}
+        CnC::StepCheckpoint<UserStepTag> * getStepCheckpoint();
 
-	protected:
-    	//Since contexts already have their own implementations of send and receive, lets make our own communicator to handle the resilience stuff
-    	class communicator : public virtual CnC::Internal::distributable
-		{
-		public:
-    	    communicator(resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner > & rctxt);
-    	    virtual ~communicator();
-
-
-        	//Implementing the distributable interface
-        	void recv_msg( serializer * ser );
-        	void unsafe_reset( bool dist );
-
-		private:
-        	resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >& m_resilient_step_collection;
-
-		};
+        resilientContext< Derived >& getContext() {return m_resilient_contex;};
 
     private:
     	typedef Internal::distributable_context dist_context;
     	typedef step_collection< UserStep, Tuner, CheckpointTuner > super_type;
-    	StepCheckpoint< UserStepTag > m_step_checkpoint;
         resilientContext< Derived > & m_resilient_contex;
-    	resilient_step_collection::communicator m_communicator;
+
+        resilient_step_collection_strategy_i<
+        			resilient_step_collection_strategy_naive<
+        					resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >
+            				, UserStepTag >,
+            				UserStepTag
+        		> * m_strategy;
 
     };
 
