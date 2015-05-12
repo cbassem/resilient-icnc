@@ -37,6 +37,7 @@ public:
 	TagLog* getTagLog( StepTag & tag );
 
 	bool isDone(StepTag tag);
+	bool isDone(CnC::serializer * ser);
 
 	int getId();
 
@@ -134,6 +135,16 @@ bool StepCheckpoint< StepTag >::isDone(StepTag tag)
 	TagLog* l_ = getTagLog( tag );
 	return l_->isDone();
 }
+
+template< class StepTag >
+bool StepCheckpoint< StepTag >::isDone(CnC::serializer * ser)
+{
+	StepTag producer;
+	(* ser) & producer;
+	TagLog* l_ = getTagLog( producer );
+	return l_->isDone();
+}
+
 
 template< class StepTag >
 int StepCheckpoint< StepTag >::getId()

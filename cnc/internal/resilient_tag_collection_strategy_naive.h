@@ -76,9 +76,11 @@ void resilient_tag_collection_strategy_naive< ResilientTagCollection, Tag >::pro
 		const Tag & t)
 {
 	if ( Internal::distributor::myPid() == 0) {
-		void * tagid = m_tag_checkpoint.put( t );
-		putterColl.processPrescribe( putter, tagid, m_resilient_tag_collection.getId());
-	} else {
+		//if (!putterColl.isStepDone(const_cast<UserStepTag&>(putter))) {
+			void * tagid = m_tag_checkpoint.put( t );
+			putterColl.processPrescribe( putter, tagid, m_resilient_tag_collection.getId());
+		//}
+		} else {
 		serializer * ser = m_resilient_tag_collection.getContext().new_serializer( this );
 		//Order is very important since we pass the serialized datastrc to the remote checkpoint object!
 		(*ser) & PRESCRIBE & t & putterColl.getId() & putter;
@@ -106,9 +108,14 @@ void resilient_tag_collection_strategy_naive< ResilientTagCollection, Tag >::rec
 			Tag tag;
 			int prescriber_collection_id;
 			(* ser) & tag & prescriber_collection_id;
-			void * tagid = m_tag_checkpoint.put( tag );
+			//first copy ser obj
+			//serializer ser_cpy = *ser;
 			StepCheckpoint_i* i_ = m_resilient_tag_collection.getContext().getStepCheckPoint(prescriber_collection_id);
-			i_->processStepPrescribe(ser, tagid);
+			//if (!i_->isDone(&ser_cpy)) {
+				void * tagid = m_tag_checkpoint.put( tag );
+				i_->processStepPrescribe(ser, tagid);
+			//}
+
 			break;
 		}
 

@@ -716,6 +716,8 @@ namespace CnC {
 
     	void resetTimer();
 
+    	void calculateAndSendCheckpoint();
+
 	protected:
     	//Since contexts already have their own implementations of send and receive, lets make our own communicator to handle the resilience stuff
     	class communicator : public virtual CnC::Internal::distributable
@@ -792,6 +794,8 @@ namespace CnC {
         CnC::StepCheckpoint<UserStepTag> * getStepCheckpoint();
 
         resilientContext< Derived >& getContext() {return m_resilient_contex;};
+
+        bool isStepDone(UserStepTag & step);
 
     private:
     	typedef Internal::distributable_context dist_context;

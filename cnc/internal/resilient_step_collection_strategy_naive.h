@@ -40,6 +40,8 @@ public:
 
 	StepCheckpoint<Tag> * getStepCheckpoint();
 
+	bool isStepDone( Tag & tag );
+
 
 	void recv_msg( serializer * ser );
 	void unsafe_reset( bool dist );
@@ -127,6 +129,10 @@ void resilient_step_collection_strategy_naive< ResilientStepCollection, Tag >::p
 template< typename ResilientStepCollection, typename Tag >
 CnC::StepCheckpoint<Tag> * resilient_step_collection_strategy_naive< ResilientStepCollection, Tag >::getStepCheckpoint() {
 	return &m_step_checkpoint;
+}
+template< typename ResilientStepCollection, typename Tag >
+bool resilient_step_collection_strategy_naive< ResilientStepCollection, Tag >::isStepDone( Tag & tag ) {
+	return m_step_checkpoint.isDone(tag);
 }
 
 

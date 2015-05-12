@@ -112,8 +112,12 @@ void resilient_step_collection_strategy_naive< ResilientStepCollection, Tag >::p
 		int prescribes,
 		int gets)
 {
-    	m_step_checkpoint.processStepDone( step, stepColId, puts, prescribes, gets);
-    	m_resilient_step_collection.getContext().checkForCrash();
+    m_step_checkpoint.processStepDone( step, stepColId, puts, prescribes, gets);
+    m_resilient_step_collection.getContext().checkForCrash();
+	if (m_resilient_step_collection.getContext().hasTimePassed() && Internal::distributor::myPid() != 0){
+		m_resilient_step_collection.getContext().calculateAndSendCheckpoint();
+		m_resilient_step_collection.getContext().resetTimer();
+	}
 }
 
 template< typename ResilientStepCollection, typename Tag >

@@ -48,6 +48,11 @@ public:
 	{
 		return static_cast<Derived*>(this)->getStepCheckpoint();
 	}
+
+	bool isStepDone(UserStepTag & step)
+	{
+		return static_cast<Derived*>(this)->isStepDone(step);
+	}
 };
 
 

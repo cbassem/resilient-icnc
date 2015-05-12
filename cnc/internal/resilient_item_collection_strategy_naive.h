@@ -85,8 +85,10 @@ void resilient_item_collection_strategy_naive< ResilientItemCollection, Key, Ite
 		const Item & i)
 {
 	if ( Internal::distributor::myPid() == 0) {
-		void * itemid = m_item_checkpoint.put( t, i );
-		putterColl.processPut(putter, itemid, m_resilient_item_collection.getId());
+		//if (!putterColl.isStepDone(const_cast<UserStepTag&>(putter))) {
+			void * itemid = m_item_checkpoint.put( t, i );
+			putterColl.processPut(putter, itemid, m_resilient_item_collection.getId());
+		//}
 	} else {
 		serializer * ser = m_resilient_item_collection.getContext().new_serializer( this );
 		//Order is very important since we pass the serialized datastrc to the remote checkpoint object!
@@ -128,10 +130,15 @@ void resilient_item_collection_strategy_naive< ResilientItemCollection, Key, Ite
 			Item item;
 			int putter_collection_id;
 			(* ser) & tag & item & putter_collection_id;
-			void * itemid = m_item_checkpoint.put( tag, item );
+			//cpy ser obj
+			//serializer scpy_ = *ser;
+
 			//Get the step that made the item put
 			StepCheckpoint_i* i_ = m_resilient_item_collection.getContext().getStepCheckPoint(putter_collection_id);
-			i_->processItemPut(ser, itemid);
+			//if (!i_->isDone(&scpy_)) {
+				void * itemid = m_item_checkpoint.put( tag, item );
+				i_->processItemPut(ser, itemid);
+			//}
 			break;
 		}
 		case resilient_item_collection_strategy_naive::GET:
@@ -140,8 +147,14 @@ void resilient_item_collection_strategy_naive< ResilientItemCollection, Key, Ite
 			int getter_collection_id;
 			(* ser) & tag & getter_collection_id;
 			StepCheckpoint_i* i_ = m_resilient_item_collection.getContext().getStepCheckPoint(getter_collection_id);
-			void * t_ = m_item_checkpoint.getKeyId(tag);
-			i_->processItemGet(ser, &m_item_checkpoint, t_);
+
+			//cpy ser obj
+			//serializer scpy_ = *ser;
+
+			//if (!i_->isDone(&scpy_)) {
+				void * t_ = m_item_checkpoint.getKeyId(tag);
+				i_->processItemGet(ser, &m_item_checkpoint, t_);
+			//}
 			break;
 		}
 

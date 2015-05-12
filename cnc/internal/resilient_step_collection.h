@@ -132,6 +132,12 @@ namespace CnC {
     	return m_strategy->getStepCheckpoint();
     }
 
+    template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner >
+    bool resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::isStepDone(UserStepTag & step)
+    {
+    	return m_strategy->isStepDone(step);
+    }
+
 
 } // end namespace CnC
 

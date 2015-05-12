@@ -48,6 +48,9 @@ private:
 	int m_col_id;
 	ResilientTagCollection & m_owner;
 
+	typedef tbb::spin_mutex mutex_t;
+	mutex_t m_mutex;
+
 	Tag * create( const Tag & org ) const;
 	void uncreate( Tag * item ) const;
 
@@ -56,13 +59,14 @@ private:
 
 template< typename ResilientTagCollection, typename Tag >
 TagCheckpoint< ResilientTagCollection, Tag >::TagCheckpoint(ResilientTagCollection & owner, int col_id):
-m_tag_map(), m_allocator(), m_col_id(col_id), m_step_checkpoints(), m_owner(owner) {};
+m_tag_map(), m_allocator(), m_col_id(col_id), m_step_checkpoints(), m_owner(owner),m_mutex() {};
 
 template< typename ResilientTagCollection, typename Tag >
 TagCheckpoint< ResilientTagCollection, Tag >::~TagCheckpoint() { cleanup(); };
 
 template< typename ResilientTagCollection, typename Tag >
 void * TagCheckpoint< ResilientTagCollection, Tag >::put( const Tag & tag ) {
+	//mutex_t::scoped_lock _l( m_mutex );
 	typename tagMap::accessor _accr;
 	bool inserted = m_tag_map.insert(_accr, tag);
 	if (inserted) {
@@ -89,6 +93,7 @@ void TagCheckpoint< ResilientTagCollection, Tag >::prescribeStepCheckpoint( Step
 
 template< typename ResilientTagCollection, typename Tag >
 void TagCheckpoint< ResilientTagCollection, Tag >::add_checkpoint_locally() {
+	//mutex_t::scoped_lock _l( m_mutex );
 	for( typename tagMap::const_iterator it = m_tag_map.begin(); it != m_tag_map.end(); ++it) {
 		m_owner.restart_put(it->first);
 	}
@@ -97,6 +102,8 @@ void TagCheckpoint< ResilientTagCollection, Tag >::add_checkpoint_locally() {
 template< typename ResilientTagCollection, typename Tag >
 void TagCheckpoint< ResilientTagCollection, Tag >::calculate_checkpoint()
 {
+	//mutex_t::scoped_lock _l( m_mutex );
+
 	for( typename step_checkpoints_type::const_iterator it = m_step_checkpoints.begin(); it != m_step_checkpoints.end(); ++it) {
 		std::vector<Tag> to_remove;
 		typename tagMap::const_iterator itt = m_tag_map.begin();

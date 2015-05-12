@@ -211,6 +211,20 @@ namespace CnC {
 		gettimeofday(&m_last_time, 0);
 	}
 
+	template< class Derived >
+	void resilientContext< Derived >::calculateAndSendCheckpoint()
+	{
+		for( typename std::vector< TagCheckpoint_i * >::const_iterator it = m_tag_checkpoints.begin(); it != m_tag_checkpoints.end(); ++it ) {
+			(*it)->calculate_checkpoint();
+		}
+
+		for( typename std::vector< StepCheckpoint_i * >::const_iterator it = m_step_checkpoints.begin(); it != m_step_checkpoints.end(); ++it ) {
+			(*it)->decrement_get_counts();// This will results in items being removed from the checkpoint.
+		}
+	}
+
+
+
 	//////////////////////////////////////////////////////////////
 	/// Implementation of CnC::resilientContext::communicator ////
     /////////////////////////////////////////////////////////////

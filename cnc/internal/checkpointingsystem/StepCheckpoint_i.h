@@ -21,6 +21,8 @@ public:
 	virtual void processItemPut(CnC::serializer * ser, void * itemId) = 0;
 	virtual void processItemGet(CnC::serializer * ser, ItemCheckpoint_i* ich, void * tag) = 0;
 
+	virtual bool isDone(CnC::serializer * ser) = 0;
+
 
 };
 
