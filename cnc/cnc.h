@@ -52,10 +52,13 @@
 #include <cnc/internal/checkpointingsystem/StepCheckpoint_i.h>
 #include <cnc/internal/resilient_item_collection_strategy_i.h>
 #include <cnc/internal/resilient_item_collection_strategy_naive.h>
+#include <cnc/internal/resilient_item_collection_strategy_dist.h>
 #include <cnc/internal/resilient_tag_collection_strategy_i.h>
 #include <cnc/internal/resilient_tag_collection_strategy_naive.h>
+#include <cnc/internal/resilient_tag_collection_strategy_dist.h>
 #include <cnc/internal/resilient_step_collection_strategy_i.h>
 #include <cnc/internal/resilient_step_collection_strategy_naive.h>
+#include <cnc/internal/resilient_step_collection_strategy_dist.h>
 
 #include <iostream>
 #include <ctime>
@@ -802,8 +805,15 @@ namespace CnC {
     	typedef step_collection< UserStep, Tuner, CheckpointTuner > super_type;
         resilientContext< Derived > & m_resilient_contex;
 
+//        resilient_step_collection_strategy_i<
+//        			resilient_step_collection_strategy_naive<
+//        					resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >
+//            				, UserStepTag >,
+//            				UserStepTag
+//        		> * m_strategy;
+
         resilient_step_collection_strategy_i<
-        			resilient_step_collection_strategy_naive<
+        			resilient_step_collection_strategy_dist<
         					resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >
             				, UserStepTag >,
             				UserStepTag
@@ -843,8 +853,15 @@ namespace CnC {
     	typedef tag_collection< Tag, Tuner, CheckpointTuner > super_type;
         resilientContext< Derived > & m_resilient_contex;
 
+//        resilient_tag_collection_strategy_i<
+//        			resilient_tag_collection_strategy_naive<
+//        					resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >
+//            				, Tag >,
+//        				Tag
+//        		> * m_strategy;
+
         resilient_tag_collection_strategy_i<
-        			resilient_tag_collection_strategy_naive<
+        			resilient_tag_collection_strategy_dist<
         					resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >
             				, Tag >,
         				Tag
@@ -890,8 +907,15 @@ namespace CnC {
     	const CheckpointTuner& m_ctuner;
         resilientContext< Derived > & m_resilient_contex;
 
+//    	resilient_item_collection_strategy_i<
+//			resilient_item_collection_strategy_naive<
+//					resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >
+//    				, Tag, Item >,
+//				Tag, Item
+//		> * m_strategy;
+
     	resilient_item_collection_strategy_i<
-			resilient_item_collection_strategy_naive<
+			resilient_item_collection_strategy_dist<
 					resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >
     				, Tag, Item >,
 				Tag, Item

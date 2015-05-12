@@ -124,10 +124,10 @@ int main( int argc, char* argv[] )
     // print result
     std::cout << "fib (" << n << "): " << res2 << std::endl;
 
-    ctxt.calculate_checkpoint();
+    //ctxt.calculate_checkpoint();
     //ctxt.calculate_checkpoint();
 
-    ctxt.print_checkpoint();
+    //ctxt.print_checkpoint();
 
     return 0;
 }

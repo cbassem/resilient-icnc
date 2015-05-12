@@ -5,14 +5,14 @@
 namespace CnC {
 
 template< typename ResilientStepCollection, typename Tag >
-class resilient_step_collection_strategy_naive:
-		public resilient_step_collection_strategy_i< resilient_step_collection_strategy_naive< ResilientStepCollection, Tag >, Tag >,
+class resilient_step_collection_strategy_dist:
+		public resilient_step_collection_strategy_i< resilient_step_collection_strategy_dist< ResilientStepCollection, Tag >, Tag >,
 		public virtual CnC::Internal::distributable
 {
 public:
 
-	resilient_step_collection_strategy_naive(ResilientStepCollection & resilient_step_collection);
-	~resilient_step_collection_strategy_naive();
+	resilient_step_collection_strategy_dist(ResilientStepCollection & resilient_step_collection);
+	~resilient_step_collection_strategy_dist();
 
 	void processPut(
 			Tag putter,
@@ -56,12 +56,12 @@ private:
 
 
 template< typename ResilientStepCollection, typename Tag >
-const char resilient_step_collection_strategy_naive< ResilientStepCollection, Tag >::resilient_step_collection_strategy_naive::DONE;
+const char resilient_step_collection_strategy_dist< ResilientStepCollection, Tag >::resilient_step_collection_strategy_dist::DONE;
 
 
 template< typename ResilientStepCollection, typename Tag >
-resilient_step_collection_strategy_naive< ResilientStepCollection, Tag >::resilient_step_collection_strategy_naive(ResilientStepCollection & resilient_step_collection):
-	resilient_step_collection_strategy_i< resilient_step_collection_strategy_naive< ResilientStepCollection, Tag >, Tag >(),
+resilient_step_collection_strategy_dist< ResilientStepCollection, Tag >::resilient_step_collection_strategy_dist(ResilientStepCollection & resilient_step_collection):
+	resilient_step_collection_strategy_i< resilient_step_collection_strategy_dist< ResilientStepCollection, Tag >, Tag >(),
 	m_resilient_step_collection(resilient_step_collection),
 	m_step_checkpoint(resilient_step_collection.getId())
 {
@@ -70,13 +70,13 @@ resilient_step_collection_strategy_naive< ResilientStepCollection, Tag >::resili
 }
 
 template< typename ResilientStepCollection, typename Tag >
-resilient_step_collection_strategy_naive< ResilientStepCollection, Tag >::~resilient_step_collection_strategy_naive()
+resilient_step_collection_strategy_dist< ResilientStepCollection, Tag >::~resilient_step_collection_strategy_dist()
 {
 	m_resilient_step_collection.getContext().unsubscribe(this);
 }
 
 template< typename ResilientStepCollection, typename Tag >
-void resilient_step_collection_strategy_naive< ResilientStepCollection, Tag >::processPut(
+void resilient_step_collection_strategy_dist< ResilientStepCollection, Tag >::processPut(
 		Tag putter,
 		int stepProducerColId,
 		void * itemid,
@@ -86,7 +86,7 @@ void resilient_step_collection_strategy_naive< ResilientStepCollection, Tag >::p
 }
 
 template< typename ResilientStepCollection, typename Tag >
-void resilient_step_collection_strategy_naive< ResilientStepCollection, Tag >::processPrescribe(
+void resilient_step_collection_strategy_dist< ResilientStepCollection, Tag >::processPrescribe(
 		Tag prescriber,
 		int prescriberColId,
 		void * tagid,
@@ -96,7 +96,7 @@ void resilient_step_collection_strategy_naive< ResilientStepCollection, Tag >::p
 }
 
 template< typename ResilientStepCollection, typename Tag >
-void resilient_step_collection_strategy_naive< ResilientStepCollection, Tag >::processGet(
+void resilient_step_collection_strategy_dist< ResilientStepCollection, Tag >::processGet(
 		Tag getter,
 		ItemCheckpoint_i * item_cp,
 		void* tag)
@@ -105,7 +105,7 @@ void resilient_step_collection_strategy_naive< ResilientStepCollection, Tag >::p
 }
 
 template< typename ResilientStepCollection, typename Tag >
-void resilient_step_collection_strategy_naive< ResilientStepCollection, Tag >::processStepDone(
+void resilient_step_collection_strategy_dist< ResilientStepCollection, Tag >::processStepDone(
 		Tag step,
 		int stepColId,
 		int puts,
@@ -121,13 +121,13 @@ void resilient_step_collection_strategy_naive< ResilientStepCollection, Tag >::p
 }
 
 template< typename ResilientStepCollection, typename Tag >
-CnC::StepCheckpoint<Tag> * resilient_step_collection_strategy_naive< ResilientStepCollection, Tag >::getStepCheckpoint() {
+CnC::StepCheckpoint<Tag> * resilient_step_collection_strategy_dist< ResilientStepCollection, Tag >::getStepCheckpoint() {
 	return &m_step_checkpoint;
 }
 
 
 template< typename ResilientStepCollection, typename Tag >
-void resilient_step_collection_strategy_naive< ResilientStepCollection, Tag >::recv_msg( serializer * ser )
+void resilient_step_collection_strategy_dist< ResilientStepCollection, Tag >::recv_msg( serializer * ser )
 {
 	char msg_tag;
 	(* ser) & msg_tag;
@@ -150,7 +150,7 @@ void resilient_step_collection_strategy_naive< ResilientStepCollection, Tag >::r
 }
 
 template< typename ResilientStepCollection, typename Tag >
-void resilient_step_collection_strategy_naive< ResilientStepCollection, Tag >::unsafe_reset( bool dist ) {}
+void resilient_step_collection_strategy_dist< ResilientStepCollection, Tag >::unsafe_reset( bool dist ) {}
 
 
 

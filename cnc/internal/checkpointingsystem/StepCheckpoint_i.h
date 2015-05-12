@@ -23,6 +23,7 @@ public:
 
 	virtual bool isDone(CnC::serializer * ser) = 0;
 
+	virtual void sendStepDones();
 
 };
 

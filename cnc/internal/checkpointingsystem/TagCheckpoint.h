@@ -36,6 +36,8 @@ public:
 
 	void print();
 
+	void sendStepDones();
+
 private:
 	typedef tbb::concurrent_hash_map< Tag, Tag * > tagMap;
     typedef tbb::scalable_allocator< Tag > tag_allocator_type;
@@ -165,6 +167,15 @@ void TagCheckpoint< ResilientTagCollection, Tag >::cleanup()
 		uncreate( it->second );
 	}
 }
+
+template< typename ResilientTagCollection, typename Tag >
+void TagCheckpoint< ResilientTagCollection, Tag >::sendStepDones()
+{
+	for( typename tagMap::const_iterator it = m_tag_map.begin(); it != m_tag_map.end(); ++it) {
+	}
+
+}
+
 
 }
 
