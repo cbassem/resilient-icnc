@@ -69,7 +69,9 @@ namespace CnC {
 
     template< typename Derived, typename Tag, typename Item, typename Tuner, typename CheckpointTuner >
     resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >::~resilient_item_collection()
-    {}
+    {
+    	delete m_strategy;
+    }
 
 
     template< typename Derived, typename Tag, typename Item, typename Tuner, typename CheckpointTuner >

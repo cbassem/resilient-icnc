@@ -81,7 +81,10 @@ namespace CnC {
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner >
-    resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::~resilient_step_collection() {}
+    resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::~resilient_step_collection()
+    {
+    	delete m_strategy;
+    }
 
 
     template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner >
