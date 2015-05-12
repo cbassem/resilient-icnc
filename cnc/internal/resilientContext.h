@@ -21,7 +21,9 @@ namespace CnC {
 		m_item_checkpoints(1),
 		m_tag_checkpoints(1),
 		m_countdown_to_crash( -1 ),
-		m_process_to_crash( -1 )
+		m_process_to_crash( -1 ),
+		m_timer_sec(-1),
+		m_last_time()
 //		m_mutex()
 		{ std::cout << " creating res ctxt " << std::endl; }
 
@@ -33,9 +35,41 @@ namespace CnC {
 		m_item_checkpoints(1),
 		m_tag_checkpoints(1),
 		m_countdown_to_crash( countdown ),
-		m_process_to_crash( processId )
+		m_process_to_crash( processId ),
+		m_timer_sec(-1),
+		m_last_time()
 //		m_mutex()
 		{  std::cout << " creating res ctxt " << std::endl; }
+
+	template< class Derived >
+	resilientContext< Derived >::resilientContext(int countdown, int processId, int sec):
+		context< Derived >(),
+		m_communicator( *this ),
+		m_step_checkpoints(1),
+		m_item_checkpoints(1),
+		m_tag_checkpoints(1),
+		m_countdown_to_crash( countdown ),
+		m_process_to_crash( processId ),
+		m_timer_sec(sec),
+		m_last_time()
+	{
+		gettimeofday(&m_last_time, 0);
+	}
+
+	template< class Derived >
+	resilientContext< Derived >::resilientContext(int sec):
+		context< Derived >(),
+		m_communicator( *this ),
+		m_step_checkpoints(1),
+		m_item_checkpoints(1),
+		m_tag_checkpoints(1),
+		m_countdown_to_crash( -1 ),
+		m_process_to_crash( -1 ),
+		m_timer_sec(sec),
+		m_last_time()
+	{
+		gettimeofday(&m_last_time, 0);
+	}
 
 	template< class Derived >
 	resilientContext< Derived >::~resilientContext() {
@@ -161,6 +195,20 @@ namespace CnC {
 	template< class Derived >
 	void resilientContext< Derived >::remote_wait_init( int recvr ) {
 		CnC::Internal::context_base::m_scheduler->re_init_wait( recvr );
+	}
+
+
+	template< class Derived >
+	bool resilientContext< Derived >::hasTimePassed() {
+		timeval now;
+		gettimeofday(&now, 0);
+		long diff(now.tv_sec - m_last_time.tv_sec);
+		return (diff >= m_timer_sec);
+	}
+
+	template< class Derived >
+	void resilientContext< Derived >::resetTimer() {
+		gettimeofday(&m_last_time, 0);
 	}
 
 	//////////////////////////////////////////////////////////////

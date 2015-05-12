@@ -57,6 +57,11 @@
 #include <cnc/internal/resilient_step_collection_strategy_i.h>
 #include <cnc/internal/resilient_step_collection_strategy_naive.h>
 
+#include <iostream>
+#include <ctime>
+#include <unistd.h>
+#include <sys/time.h>
+
 #include <vector>
 #include <set>
 #include <tr1/unordered_map>
@@ -680,6 +685,10 @@ namespace CnC {
     	/// Specify-when-to-crash-constructor
     	resilientContext(int countdown, int processId); //since the user has to call register coll fcts we could refactor the quantities out
 
+    	//TODO I should refactor resilientContext cause this is just ugly
+    	resilientContext(int countdown, int processId, int sec);
+    	resilientContext(int sec);
+
     	/// destructor
     	virtual ~resilientContext();
     	/// (distCnC) overload this if default construction on remote processes is not enough.
@@ -702,6 +711,10 @@ namespace CnC {
     	void calculate_checkpoint();
 
     	void restarted();
+
+    	bool hasTimePassed();
+
+    	void resetTimer();
 
 	protected:
     	//Since contexts already have their own implementations of send and receive, lets make our own communicator to handle the resilience stuff
@@ -731,6 +744,9 @@ namespace CnC {
     	resilientContext::communicator m_communicator;
     	int m_countdown_to_crash;
     	int m_process_to_crash;
+
+    	int m_timer_sec;
+    	timeval m_last_time;
 
     	void crash() const;
 
