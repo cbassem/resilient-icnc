@@ -18,8 +18,6 @@ public:
 	virtual void add_checkpoint_locally() = 0;
 	virtual void print() = 0;
 
-	virtual void sendPrescribes() = 0;
-
 };
 
 #endif /* TAGCHECKPOINT_I_H_ */

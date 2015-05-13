@@ -1,6 +1,8 @@
 #ifndef _RESILIENT_STEP_COLLECTION_DIST_H_
 #define _RESILIENT_STEP_COLLECTION_DIST_H_
 
+#include <cnc/internal/checkpointingsystem/StepCheckpoint.h>
+#include <cnc/internal/checkpointingsystem/StepCheckpoint_i.h>
 
 namespace CnC {
 

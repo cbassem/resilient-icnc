@@ -44,12 +44,7 @@
 #include <cnc/internal/item_collection_base.h>
 #include <cnc/internal/context_base.h>
 #include <cnc/internal/no_range.h>
-#include <cnc/internal/checkpointingsystem/ItemCheckpoint.h>
-#include <cnc/internal/checkpointingsystem/TagCheckpoint.h>
-#include <cnc/internal/checkpointingsystem/StepCheckpoint.h>
-#include <cnc/internal/checkpointingsystem/ItemCheckpoint_i.h>
-#include <cnc/internal/checkpointingsystem/TagCheckpoint_i.h>
-#include <cnc/internal/checkpointingsystem/StepCheckpoint_i.h>
+
 #include <cnc/internal/resilient_item_collection_strategy_i.h>
 #include <cnc/internal/resilient_item_collection_strategy_naive.h>
 #include <cnc/internal/resilient_item_collection_strategy_dist.h>

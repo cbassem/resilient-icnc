@@ -214,19 +214,9 @@ namespace CnC {
 	template< class Derived >
 	void resilientContext< Derived >::calculateAndSendCheckpoint()
 	{
+
+		//place lock
 		calculate_checkpoint();
-
-		for (typename std::vector< TagCheckpoint_i * >::const_iterator it = m_tag_checkpoints.begin(); it != m_tag_checkpoints.end(); ++it ) {
-			(*it)->sendPrescribes();
-		}
-
-		for (typename std::vector< ItemCheckpoint_i * >::const_iterator it = m_item_checkpoints.begin(); it != m_item_checkpoints.end(); ++it ) {
-			(*it)->sendPuts();
-		}
-
-		for (typename std::vector< StepCheckpoint_i * >::const_iterator it = m_step_checkpoints.begin(); it != m_step_checkpoints.end(); ++it ) {
-			(*it)->sendStepDones();
-		}
 
 
 	}

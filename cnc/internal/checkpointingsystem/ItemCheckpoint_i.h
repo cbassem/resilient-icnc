@@ -17,8 +17,6 @@ public:
 	virtual void print() = 0;
 	virtual void decrement_get_count(void* tag) = 0;
 
-	virtual void sendPuts() = 0;
-
 };
 
 

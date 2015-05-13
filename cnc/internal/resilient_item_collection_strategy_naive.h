@@ -1,6 +1,9 @@
 #ifndef _RESILIENT_ITEM_COLLECTION_NAIVE_H_
 #define _RESILIENT_ITEM_COLLECTION_NAIVE_H_
 
+#include <cnc/internal/checkpointingsystem/StepCheckpoint_i.h>
+#include <cnc/internal/checkpointingsystem/ItemCheckpoint.h>
+
 
 namespace CnC {
 

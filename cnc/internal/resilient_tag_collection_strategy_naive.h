@@ -1,6 +1,8 @@
 #ifndef _RESILIENT_TAG_COLLECTION_NAIVE_H_
 #define _RESILIENT_TAG_COLLECTION_NAIVE_H_
 
+#include <cnc/internal/checkpointingsystem/TagCheckpoint.h>
+#include <cnc/internal/checkpointingsystem/TagCheckpoint_i.h>
 
 namespace CnC {
 

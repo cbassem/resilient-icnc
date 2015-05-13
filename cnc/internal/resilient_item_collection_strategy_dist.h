@@ -1,6 +1,8 @@
 #ifndef _RESILIENT_ITEM_COLLECTION_DIST_H_
 #define _RESILIENT_ITEM_COLLECTION_DIST_H_
 
+#include <cnc/internal/checkpointingsystem/ItemCheckpoint_i.h>
+#include <cnc/internal/checkpointingsystem/ItemCheckpoint.h>
 
 namespace CnC {
 

@@ -8,6 +8,8 @@
 #ifndef STEPCHECKPOINT_I_H_
 #define STEPCHECKPOINT_I_H_
 
+#include <cnc/internal/checkpointingsystem/ItemCheckpoint.h>
+
 class StepCheckpoint_i {
 public:
 	virtual ~StepCheckpoint_i() {};
@@ -22,8 +24,6 @@ public:
 	virtual void processItemGet(CnC::serializer * ser, ItemCheckpoint_i* ich, void * tag) = 0;
 
 	virtual bool isDone(CnC::serializer * ser) = 0;
-
-	virtual void sendStepDones();
 
 };
 
