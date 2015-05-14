@@ -69,14 +69,6 @@ TagLog::TagLog() :
 TagLog::~TagLog() {}
 
 void TagLog::processPut(void * itemId) {
-// Because insert after find is not thread safe!!!
-// What was I thinking...
-//	typename items_t::iterator it = items_.find(itemId);
-//	if (it == items_.end()) {
-//		currentPuts_++;
-//		items_.insert(itemId);
-//	}
-
 	std::pair<items_t::iterator, bool> res = items_.insert(itemId);
 	if (res.second) {
 		currentPuts_++;

@@ -44,7 +44,6 @@ typedef CnC::item_collection< int, fib_type, CnC::hashmap_tuner, fib_cr_tuner> i
 typedef CnC::tag_collection< int, CnC::tag_tuner<>, fib_cr_tuner > tag_type;
 
 
-// let's use a tuner to pre-declare dependencies
 struct fib_cr_step_tuner: public CnC::checkpoint_step_tuner< int >
 {
 	int getNrOfPuts(const int & tag) const;
@@ -71,7 +70,7 @@ struct fib_context : public CnC::resilientContext< fib_context >
 
     // The context class constructor
     fib_context()
-        : CnC::resilientContext< fib_context >(5),
+        : CnC::resilientContext< fib_context >(50, 1),
           // Initialize each step collection
           m_steps( *this ),
           // Initialize each item collection

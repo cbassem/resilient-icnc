@@ -116,6 +116,24 @@ namespace CnC {
 		item_collection< Tag, Item, Tuner, CheckpointTuner >::get( tag, item );
     }
 
+    template< typename Derived, typename Tag, typename Item, typename Tuner, typename CheckpointTuner >
+    typename CnC::item_collection<Tag, Item, Tuner, CheckpointTuner>::const_iterator resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >::begin() const
+    {
+    	typename CnC::item_collection<Tag, Item, Tuner, CheckpointTuner>::const_iterator _tmp( this, super_type::m_itemCollection.begin() );
+    	typename CnC::item_collection<Tag, Item, Tuner, CheckpointTuner>::const_iterator _e( end() );
+        while( _tmp != _e && ! _tmp.valid() ) ++_tmp;
+        return _tmp;
+    }
+
+    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    template< typename Derived, typename Tag, typename Item, typename Tuner, typename CheckpointTuner >
+    typename CnC::item_collection<Tag, Item, Tuner, CheckpointTuner>::const_iterator resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >::end() const
+    {
+        return const_iterator( this, super_type::m_itemCollection.end() );
+    }
+
 } // namespace CnC
 
 #endif // _CnC_RESILIENT_ITEM_COLLECTION_H_

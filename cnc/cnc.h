@@ -428,8 +428,10 @@ namespace CnC {
 
         int getId();
 
-    private:
+    protected:
         base_coll_type m_itemCollection;
+
+    private:
         friend struct ::CnC::debug;
         friend class Internal::step_delayer;
         friend class const_iterator;
@@ -894,6 +896,10 @@ namespace CnC {
         resilientContext< Derived >& getContext() {return m_resilient_contex;};
 
         const CheckpointTuner& getCTuner() {return m_ctuner;};
+
+        typename CnC::item_collection<Tag, Item, Tuner, CheckpointTuner>::const_iterator begin() const;
+
+        typename CnC::item_collection<Tag, Item, Tuner, CheckpointTuner>::const_iterator end() const;
 
     private:
     	typedef item_collection< Tag, Item, Tuner, CheckpointTuner > super_type;

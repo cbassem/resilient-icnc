@@ -581,13 +581,17 @@ namespace CnC {
         void scheduler_i::wait_loop_clone( bool from_schedulable )
         {
         		if( ! from_schedulable ) ++m_userStepsInFlight;
-        		do{
-        			do {
-        				wait_all();
-        			} while (distributor::has_pending_messages() && !restarted  && _yield());
-        			wait_all();
+        		if (! restarted) {
+            		do{
+            			if (! restarted) {
+                			do {
+                				wait_all();
+                			} while (distributor::has_pending_messages() && !restarted  && _yield());
+                			wait_all();
+            			}
+            		} while (!restarted && fini_wait());
+        		}
 
-        		} while (!restarted && fini_wait());
 
                 if( ! from_schedulable ) --m_userStepsInFlight;
                 //std::cout << "out of waitloop" << std::endl;

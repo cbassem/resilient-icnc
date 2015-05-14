@@ -125,12 +125,12 @@ namespace CnC {
                         m_stepLauncher->itacid() );
 
             	if (res == CNC_Success){
-            		m_stepLauncher->get_step_col().processDone(
-            				t_,
-            				m_stepLauncher->get_step_col_id(),
-							_tuner.getNrOfPuts(_tag),
-							_tuner.getNrOfPrescribes(_tag),
-							_tuner.getNrOfGets(_tag));
+                		m_stepLauncher->get_step_col().processDone(
+                				t_,
+                				m_stepLauncher->get_step_col_id(),
+    							_tuner.getNrOfPuts(_tag),
+    							_tuner.getNrOfPrescribes(_tag),
+    							_tuner.getNrOfGets(_tag));
 
             	}
 
