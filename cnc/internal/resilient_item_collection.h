@@ -42,7 +42,7 @@ namespace CnC {
         : item_collection< Tag, Item, Tuner, CheckpointTuner >( context, name ),
 		  m_resilient_contex(context),
 		  m_ctuner(Internal::get_default_checkpoint_tuner<CheckpointTuner>()),
-		  m_strategy(new resilient_item_collection_strategy_dist<resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >, Tag, Item>(*this))
+		  m_strategy(new resilient_item_collection_strategy_naive<resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >, Tag, Item>(*this))
     {}
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -52,7 +52,7 @@ namespace CnC {
         : item_collection< Tag, Item, Tuner, CheckpointTuner >( context, name, tnr ),
 		  m_resilient_contex(context),
 		  m_ctuner(Internal::get_default_checkpoint_tuner<CheckpointTuner>()),
-		  m_strategy(new resilient_item_collection_strategy_dist<resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >, Tag, Item>(*this))
+		  m_strategy(new resilient_item_collection_strategy_naive<resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >, Tag, Item>(*this))
     {}
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -62,7 +62,7 @@ namespace CnC {
         : item_collection< Tag, Item, Tuner, CheckpointTuner >( context, tnr ),
 		  m_resilient_contex(context),
 		  m_ctuner(Internal::get_default_checkpoint_tuner<CheckpointTuner>()),
-		  m_strategy(new resilient_item_collection_strategy_dist<resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >, Tag, Item>(*this))
+		  m_strategy(new resilient_item_collection_strategy_naive<resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >, Tag, Item>(*this))
     {}
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

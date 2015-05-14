@@ -800,19 +800,19 @@ namespace CnC {
     	typedef step_collection< UserStep, Tuner, CheckpointTuner > super_type;
         resilientContext< Derived > & m_resilient_contex;
 
-//        resilient_step_collection_strategy_i<
-//        			resilient_step_collection_strategy_naive<
-//        					resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >
-//            				, UserStepTag >,
-//            				UserStepTag
-//        		> * m_strategy;
-
         resilient_step_collection_strategy_i<
-        			resilient_step_collection_strategy_dist<
+        			resilient_step_collection_strategy_naive<
         					resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >
             				, UserStepTag >,
             				UserStepTag
         		> * m_strategy;
+
+//        resilient_step_collection_strategy_i<
+//        			resilient_step_collection_strategy_dist<
+//        					resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >
+//            				, UserStepTag >,
+//            				UserStepTag
+//        		> * m_strategy;
 
     };
 
@@ -848,19 +848,19 @@ namespace CnC {
     	typedef tag_collection< Tag, Tuner, CheckpointTuner > super_type;
         resilientContext< Derived > & m_resilient_contex;
 
-//        resilient_tag_collection_strategy_i<
-//        			resilient_tag_collection_strategy_naive<
-//        					resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >
-//            				, Tag >,
-//        				Tag
-//        		> * m_strategy;
-
         resilient_tag_collection_strategy_i<
-        			resilient_tag_collection_strategy_dist<
+        			resilient_tag_collection_strategy_naive<
         					resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >
             				, Tag >,
         				Tag
         		> * m_strategy;
+
+//        resilient_tag_collection_strategy_i<
+//        			resilient_tag_collection_strategy_dist<
+//        					resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >
+//            				, Tag >,
+//        				Tag
+//        		> * m_strategy;
     };
 
     template< typename Derived, typename Tag, typename Item, typename Tuner = hashmap_tuner, typename CheckpointTuner = checkpoint_item_tuner< Tag >  >
@@ -902,19 +902,19 @@ namespace CnC {
     	const CheckpointTuner& m_ctuner;
         resilientContext< Derived > & m_resilient_contex;
 
-//    	resilient_item_collection_strategy_i<
-//			resilient_item_collection_strategy_naive<
-//					resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >
-//    				, Tag, Item >,
-//				Tag, Item
-//		> * m_strategy;
-
     	resilient_item_collection_strategy_i<
-			resilient_item_collection_strategy_dist<
+			resilient_item_collection_strategy_naive<
 					resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >
     				, Tag, Item >,
 				Tag, Item
 		> * m_strategy;
+
+//    	resilient_item_collection_strategy_i<
+//			resilient_item_collection_strategy_dist<
+//					resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >
+//    				, Tag, Item >,
+//				Tag, Item
+//		> * m_strategy;
     };
 
     /// \brief Execute f( i ) for every i in {first <= i=first+step*x < last and 0 <= x}.

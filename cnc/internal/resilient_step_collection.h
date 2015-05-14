@@ -39,7 +39,7 @@ namespace CnC {
     resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::resilient_step_collection( resilientContext< Derived > & ctxt )
         : step_collection< UserStep, Tuner, CheckpointTuner >( ctxt ),
 		  m_resilient_contex(ctxt),
-		  m_strategy(new resilient_step_collection_strategy_dist<resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >, UserStepTag >(*this))
+		  m_strategy(new resilient_step_collection_strategy_naive<resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >, UserStepTag >(*this))
 	{}
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -48,7 +48,7 @@ namespace CnC {
     resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::resilient_step_collection( resilientContext< Derived > & ctxt, const std::string & name )
         : step_collection< UserStep, Tuner, CheckpointTuner >( ctxt, name),
 		  m_resilient_contex(ctxt),
-		  m_strategy(new resilient_step_collection_strategy_dist<resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >, UserStepTag >(*this))
+		  m_strategy(new resilient_step_collection_strategy_naive<resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >, UserStepTag >(*this))
     {}
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -56,7 +56,7 @@ namespace CnC {
     resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::resilient_step_collection( resilientContext< Derived > & ctxt, const std::string & name, const step_type & userStep )
         : step_collection< UserStep, Tuner, CheckpointTuner >( ctxt, name, userStep ),
 		  m_resilient_contex(ctxt),
-		  m_strategy(new resilient_step_collection_strategy_dist<resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >, UserStepTag >(*this))
+		  m_strategy(new resilient_step_collection_strategy_naive<resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >, UserStepTag >(*this))
     {}
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -65,7 +65,7 @@ namespace CnC {
     resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >::resilient_step_collection( resilientContext< Derived > & ctxt, const tuner_type & tnr, const std::string & name )
         : step_collection< UserStep, Tuner, CheckpointTuner >( ctxt, tnr, name ),
 		  m_resilient_contex(ctxt),
-		  m_strategy(new resilient_step_collection_strategy_dist<resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >, UserStepTag >(*this))
+		  m_strategy(new resilient_step_collection_strategy_naive<resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >, UserStepTag >(*this))
     {}
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -75,7 +75,7 @@ namespace CnC {
                                                          const step_type & userStep, const tuner_type & tnr )
         : step_collection< UserStep, Tuner, CheckpointTuner >( ctxt, name, userStep, tnr ),
 		  m_resilient_contex(ctxt),
-		  m_strategy(new resilient_step_collection_strategy_dist<resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >, UserStepTag >(*this))
+		  m_strategy(new resilient_step_collection_strategy_naive<resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >, UserStepTag >(*this))
     {}
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -174,7 +174,8 @@ namespace CnC {
     template< typename PTag, typename UserStep, typename STuner, typename SCheckpointTuner >
     void item_collection< Tag, Item, Tuner, CheckpointTuner >::put(const PTag & putter, const CnC::step_collection<UserStep, STuner, SCheckpointTuner>& putterColl, const Tag & t, const Item & i)
     {
-    	m_itemCollection.put( putter, putterColl.getId(), t, i );
+    	m_itemCollection.put( t, i, false );
+    	//m_itemCollection.put( putter, putterColl.getId(), t, i );
     }
 
     template< typename Tag, typename Item, typename Tuner, typename CheckpointTuner >

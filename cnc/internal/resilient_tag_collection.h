@@ -44,7 +44,7 @@ namespace CnC {
     resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner  >::resilient_tag_collection( resilientContext< Derived > & context, const std::string & name )
         : tag_collection< Tag, Tuner, CheckpointTuner >( context, name ),
 		  m_resilient_contex(context),
-		  m_strategy(new resilient_tag_collection_strategy_dist<resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >, Tag >(*this))
+		  m_strategy(new resilient_tag_collection_strategy_naive<resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >, Tag >(*this))
     {}
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -53,7 +53,7 @@ namespace CnC {
     resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner>::resilient_tag_collection( resilientContext< Derived > & context, const Tuner & tnr )
         : tag_collection< Tag, Tuner, CheckpointTuner >( context, tnr ),
 		  m_resilient_contex(context),
-		  m_strategy(new resilient_tag_collection_strategy_dist<resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >, Tag >(*this))
+		  m_strategy(new resilient_tag_collection_strategy_naive<resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >, Tag >(*this))
     {}
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -62,7 +62,7 @@ namespace CnC {
     resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >::resilient_tag_collection( resilientContext< Derived > & context, const std::string & name, const Tuner & tnr )
         : tag_collection< Tag, Tuner, CheckpointTuner >( context, name, tnr ),
 		  m_resilient_contex(context),
-		  m_strategy(new resilient_tag_collection_strategy_dist<resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >, Tag >(*this))
+		  m_strategy(new resilient_tag_collection_strategy_naive<resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >, Tag >(*this))
     {}
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
