@@ -89,7 +89,7 @@ int sc_s3_tuner::getNrOfGets(const triple & t) const
 
 
 int Lkji_tuner::getNrOfgets(const triple & tag) const{
-	return 100;
+    return 100; //FIXME I have no clue
 };
 
 
@@ -251,31 +251,57 @@ void cholesky( double * A, const int n, const int b, const char * oname, dist_ty
     // Create an instance of the context class which defines the graph
     cholesky_context c( b, p, n, dt );
     
-    //    for(int i = 0; i < p; i++) {
-    CnC::parallel_for( 0, p, 1, [A,&c,b,p,n]( int i ) {
-            for( int j = 0; j <= i; j++ ) {
-                // Allocate memory for the tiles.
-                tile_ptr_type temp = std::make_shared< tile_type >( b );
-                // Split the matrix into tiles and write it into the item space at time 0.
-                // The tiles are indexed by tile indices (which are tag values).
-                for(int A_i = i*b,T_i = 0; T_i < b; A_i++,T_i++) {
-                    for(int A_j = j*b,T_j = 0; T_j < b; A_j++,T_j++) {
-                        (*temp)( T_i, T_j ) = A[A_i*n+A_j];
-                    }
-                }
-                c.Lkji.put(triple(0,i,j),temp);
-            }
-            // control tags
-            const int k = i;
-            c.control_S1.put( k );
-            for(int j = k+1; j < p; j++) {  
-                c.control_S2.put(pair(k,j));
-                for(int i = k+1; i <= j; i++) {
-                    c.control_S3.put(triple(k,j,i));
-                }
-            }
-        } );
+//    //    for(int i = 0; i < p; i++) {
+//    CnC::parallel_for( 0, p, 1, [A,&c,b,p,n]( int i ) {
+//            for( int j = 0; j <= i; j++ ) {
+//                // Allocate memory for the tiles.
+//                tile_ptr_type temp = std::make_shared< tile_type >( b );
+//                // Split the matrix into tiles and write it into the item space at time 0.
+//                // The tiles are indexed by tile indices (which are tag values).
+//                for(int A_i = i*b,T_i = 0; T_i < b; A_i++,T_i++) {
+//                    for(int A_j = j*b,T_j = 0; T_j < b; A_j++,T_j++) {
+//                        (*temp)( T_i, T_j ) = A[A_i*n+A_j];
+//                    }
+//                }
+//                c.Lkji.put(triple(0,i,j),temp);
+//            }
+//            // control tags
+//            const int k = i;
+//            c.control_S1.put( k );
+//            for(int j = k+1; j < p; j++) {
+//                c.control_S2.put(pair(k,j));
+//                for(int i = k+1; i <= j; i++) {
+//                    c.control_S3.put(triple(k,j,i));
+//                }
+//            }
+//        } );
     
+    for (int i = 0; i < p; i++ ){
+        for( int j = 0; j <= i; j++ ) {
+            // Allocate memory for the tiles.
+            tile_ptr_type temp = std::make_shared< tile_type >( b );
+            // Split the matrix into tiles and write it into the item space at time 0.
+            // The tiles are indexed by tile indices (which are tag values).
+            for(int A_i = i*b,T_i = 0; T_i < b; A_i++,T_i++) {
+                for(int A_j = j*b,T_j = 0; T_j < b; A_j++,T_j++) {
+                    (*temp)( T_i, T_j ) = A[A_i*n+A_j];
+                }
+            }
+            c.Lkji.put(triple(0,i,j),temp);
+        }
+        // control tags
+        const int k = i;
+        c.control_S1.put( k );
+        for(int j = k+1; j < p; j++) {
+            c.control_S2.put(pair(k,j));
+            for(int i = k+1; i <= j; i++) {
+                c.control_S3.put(triple(k,j,i));
+            }
+        }
+    }
+
+
+
     // Wait for all steps to finish
     c.wait();
     tbb::tick_count t3 = tbb::tick_count::now();
@@ -316,4 +342,7 @@ void cholesky( double * A, const int n, const int b, const char * oname, dist_ty
             }
         }
     }
+
+    c.calculate_checkpoint();
+    c.print_checkpoint();
 }

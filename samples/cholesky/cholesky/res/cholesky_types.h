@@ -33,7 +33,7 @@
 //#else
 //# include <cnc/cnc.h>
 //#endif
-# include <cnc/dist_cnc.h>
+#include <cnc/dist_cnc.h>
 #include <iostream>
 #include <cassert>
 

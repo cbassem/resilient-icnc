@@ -53,7 +53,7 @@ public:
 
 };
 
-TagLog::TagLog() :
+inline TagLog::TagLog() :
 		currentPuts_(0),
 		currentPrescribes_(0),
 		currentGets_(0),
@@ -66,16 +66,16 @@ TagLog::TagLog() :
 		gets_()
 		{}
 
-TagLog::~TagLog() {}
+inline TagLog::~TagLog() {}
 
-void TagLog::processPut(void * itemId) {
+inline void TagLog::processPut(void * itemId) {
 	std::pair<items_t::iterator, bool> res = items_.insert(itemId);
 	if (res.second) {
 		currentPuts_++;
 	}
 }
 
-void TagLog::processPrescribe(void * tagId) {
+inline void TagLog::processPrescribe(void * tagId) {
 	std::pair<prescribes_t::iterator, bool> res = prescribes_.insert(tagId);
 	if (res.second) {
 		currentPrescribes_++;
@@ -83,28 +83,28 @@ void TagLog::processPrescribe(void * tagId) {
 }
 
 
-void TagLog::processGet( ItemCheckpoint_i * item_cp, void* tag) {
+inline void TagLog::processGet( ItemCheckpoint_i * item_cp, void* tag) {
 	std::pair<gets_t::iterator, bool> res = gets_.insert(getLog(item_cp, tag));
 	if(res.second) {
 		currentGets_++;
 	}
 }
 
-void TagLog::processDone(int totalPuts, int totalPrescribes, int totalGets) {
+inline void TagLog::processDone(int totalPuts, int totalPrescribes, int totalGets) {
 	markedDone_ = true;
 	totalPrescribes_ = totalPrescribes;
 	totalPuts_ = totalPuts;
 	totalGets_ = totalGets;
 }
 
-bool TagLog::isDone() const {
+inline bool TagLog::isDone() const {
 	return markedDone_
 			&& currentPrescribes_ == totalPrescribes_
 			&& currentPuts_ == totalPuts_
 			&& currentGets_ == totalGets_;
 }
 
-void TagLog::decrement_get_counts() {
+inline void TagLog::decrement_get_counts() {
 	for (typename gets_t::const_iterator it = gets_.begin(); it != gets_.end(); ++it) {
 		(it->first)->decrement_get_count(it->second);
 	}

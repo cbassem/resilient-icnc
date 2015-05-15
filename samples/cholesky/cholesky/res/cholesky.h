@@ -27,11 +27,7 @@
 #ifndef cholesky_H_ALREADY_INCLUDED
 #define cholesky_H_ALREADY_INCLUDED
 
-#ifdef _DIST_
-# include <cnc/dist_cnc.h>
-#else
-# include <cnc/cnc.h>
-#endif
+#include <cnc/dist_cnc.h>
 #include <cnc/debug.h>
 #include <memory>
 
