@@ -81,7 +81,7 @@ namespace CnC {
     template< typename UserStep, typename Tuner, typename CheckpointTuner> class step_collection;
 
     template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner > class resilient_tag_collection;
-    template< typename Derived, typename Tag, typename Item, typename Tuner, typename CheckpointTuner > class resilient_item_collection;
+    template< typename Derived, typename Tag, typename Item, typename Tuner, typename CheckpointTuner, typename Strategy > class resilient_item_collection;
     template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner> class resilient_step_collection;
 
 
@@ -718,6 +718,7 @@ namespace CnC {
 
     	void calculateAndSendCheckpoint();
 
+
 	protected:
     	//Since contexts already have their own implementations of send and receive, lets make our own communicator to handle the resilience stuff
     	class communicator : public virtual CnC::Internal::distributable
@@ -865,7 +866,36 @@ namespace CnC {
 //        		> * m_strategy;
     };
 
-    template< typename Derived, typename Tag, typename Item, typename Tuner = hashmap_tuner, typename CheckpointTuner = checkpoint_item_tuner< Tag >  >
+    template <
+    typename Derived,
+	typename Tag,
+	typename Item,
+	typename Tuner,
+	typename CheckpointTuner,
+	typename Strategy>
+    struct DefaultStrategyReplacement
+    {
+    	typedef Strategy strategy;
+    };
+
+    template <
+    typename Derived,
+	typename Tag,
+	typename Item,
+	typename Tuner,
+	typename CheckpointTuner>
+    struct DefaultStrategyReplacement<Derived, Tag, Item, Tuner, CheckpointTuner, void>
+    {
+    	typedef resilient_item_collection_strategy_naive< resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner, void >, Tag, Item  >  strategy;
+    };
+
+    template<
+    	typename Derived,
+    	typename Tag,
+    	typename Item,
+    	typename Tuner = hashmap_tuner,
+    	typename CheckpointTuner = checkpoint_item_tuner< Tag >,
+    	typename Strategy = void >
     class /*CNC_API*/ resilient_item_collection: public item_collection< Tag, Item, Tuner, CheckpointTuner >
     {
 
@@ -907,16 +937,13 @@ namespace CnC {
 
     	const CheckpointTuner& m_ctuner;
         resilientContext< Derived > & m_resilient_contex;
+        typedef typename DefaultStrategyReplacement<Derived, Tag, Item, Tuner, CheckpointTuner, Strategy>::strategy strategy_t;
 
-    	resilient_item_collection_strategy_i<
-			resilient_item_collection_strategy_naive<
-					resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >
-    				, Tag, Item >,
-				Tag, Item
-		> * m_strategy;
+        resilient_item_collection_strategy_i< strategy_t, Tag, Item > * m_strategy;
+
 
 //    	resilient_item_collection_strategy_i<
-//			resilient_item_collection_strategy_dist<
+//			resilient_item_collection_strategy_naive<
 //					resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >
 //    				, Tag, Item >,
 //				Tag, Item

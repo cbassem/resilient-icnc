@@ -16,8 +16,6 @@
 
 namespace CnC {
 
-template< typename ResilientItemCollection, typename Tag, typename Item, typename Tuner, typename CheckpointTuner > class resilient_item_collection;
-
 template< typename ResilientItemCollection, typename Key, typename Item >
 class ItemCheckpoint: public ItemCheckpoint_i {
 public:
