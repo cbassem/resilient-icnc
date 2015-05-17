@@ -82,10 +82,10 @@ namespace CnC {
     }
 
     template< typename Derived, typename Tag, typename Item, typename Tuner, typename CheckpointTuner, typename Strategy >
-    template< typename UserStepTag, typename UserStep, typename STuner, typename SCheckpointTuner >
+    template< typename UserStepTag, typename UserStep, typename STuner, typename SCheckpointTuner, typename SStrategy >
     void resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner, Strategy >::put(
     		const UserStepTag & putter,
-    		CnC::resilient_step_collection< Derived, UserStepTag, UserStep, STuner, SCheckpointTuner>& putterColl,
+    		CnC::resilient_step_collection< Derived, UserStepTag, UserStep, STuner, SCheckpointTuner, SStrategy>& putterColl,
     		const Tag & t,
     		const Item & i)
     {
@@ -106,10 +106,10 @@ namespace CnC {
     }
 
     template< typename Derived, typename Tag, typename Item, typename Tuner, typename CheckpointTuner, typename Strategy >
-    template< typename UserStepTag, typename UserStep, typename STuner, typename SCheckpointTuner >
+    template< typename UserStepTag, typename UserStep, typename STuner, typename SCheckpointTuner, typename SStrategy >
     void resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner, Strategy >::get(
     		const UserStepTag & getter,
-    		CnC::resilient_step_collection< Derived, UserStepTag, UserStep, STuner, SCheckpointTuner> & getterColl,
+    		CnC::resilient_step_collection< Derived, UserStepTag, UserStep, STuner, SCheckpointTuner, SStrategy > & getterColl,
 			const Tag & tag, Item & item )
     {
     	m_strategy->processGet(getter, getterColl, tag, item);

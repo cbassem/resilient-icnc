@@ -80,9 +80,9 @@ namespace CnC {
     template< typename Tag, typename Item, typename Tuner, typename CheckpointTuner > class item_collection;
     template< typename UserStep, typename Tuner, typename CheckpointTuner> class step_collection;
 
-    template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner > class resilient_tag_collection;
+    template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner, typename Strategy > class resilient_tag_collection;
     template< typename Derived, typename Tag, typename Item, typename Tuner, typename CheckpointTuner, typename Strategy > class resilient_item_collection;
-    template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner> class resilient_step_collection;
+    template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner, typename Strategy > class resilient_step_collection;
 
 
     /// Steps return CNC_Success if execution was successful
@@ -763,7 +763,51 @@ namespace CnC {
 
 	};
 
-    template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner = step_tuner<>, typename CheckpointTuner = checkpoint_tuner_nop<int, int> >
+    struct step_strategy_naive;
+    struct step_strategy_dist;
+
+    template <
+    	typename Derived,
+		typename UserStepTag,
+		typename UserStep,
+		typename Tuner,
+		typename CheckpointTuner,
+		typename Strategy>
+    struct DefaultStepStrategyReplacement
+    {
+    	typedef Strategy strategy;
+    };
+
+    template <
+    	typename Derived,
+		typename UserStepTag,
+		typename UserStep,
+		typename Tuner,
+		typename CheckpointTuner>
+    struct DefaultStepStrategyReplacement<Derived, UserStepTag, UserStep, Tuner, CheckpointTuner, step_strategy_naive>
+    {
+    	typedef resilient_step_collection_strategy_naive< resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner, step_strategy_naive >, UserStepTag >  strategy;
+    };
+
+    template <
+    	typename Derived,
+		typename UserStepTag,
+		typename UserStep,
+		typename Tuner,
+		typename CheckpointTuner>
+    struct DefaultStepStrategyReplacement<Derived, UserStepTag, UserStep, Tuner, CheckpointTuner, step_strategy_dist>
+    {
+    	typedef resilient_step_collection_strategy_dist< resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner, step_strategy_dist >, UserStepTag >  strategy;
+    };
+
+
+    template<
+		typename Derived,
+		typename UserStepTag,
+		typename UserStep,
+		typename Tuner = step_tuner<>,
+		typename CheckpointTuner = checkpoint_tuner_nop<int, int>,
+		typename Strategy = step_strategy_naive >
     class resilient_step_collection : public step_collection< UserStep, Tuner, CheckpointTuner > , public virtual Internal::traceable
     {
     public:
@@ -802,24 +846,54 @@ namespace CnC {
     	typedef Internal::distributable_context dist_context;
     	typedef step_collection< UserStep, Tuner, CheckpointTuner > super_type;
         resilientContext< Derived > & m_resilient_contex;
+        typedef typename DefaultStepStrategyReplacement<Derived, UserStepTag, UserStep, Tuner, CheckpointTuner, Strategy>::strategy strategy_t;
 
-        resilient_step_collection_strategy_i<
-        			resilient_step_collection_strategy_naive<
-        					resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >
-            				, UserStepTag >,
-            				UserStepTag
-        		> * m_strategy;
-
-//        resilient_step_collection_strategy_i<
-//        			resilient_step_collection_strategy_dist<
-//        					resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner >
-//            				, UserStepTag >,
-//            				UserStepTag
-//        		> * m_strategy;
+        resilient_step_collection_strategy_i< strategy_t, UserStepTag > * m_strategy;
 
     };
 
-    template< typename Derived, typename Tag, typename Tuner = tag_tuner<>, typename CheckpointTuner = checkpoint_tuner_nop< Tag, int > >
+
+    struct tag_strategy_naive;
+    struct tag_strategy_dist;
+
+    template <
+    	typename Derived,
+		typename Tag,
+		typename Tuner,
+		typename CheckpointTuner,
+		typename Strategy>
+    struct DefaultTagStrategyReplacement
+    {
+    	typedef Strategy strategy;
+    };
+
+    template <
+    	typename Derived,
+		typename Tag,
+		typename Tuner,
+		typename CheckpointTuner>
+    struct DefaultTagStrategyReplacement<Derived, Tag, Tuner, CheckpointTuner, tag_strategy_naive>
+    {
+    	typedef resilient_tag_collection_strategy_naive< resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner, tag_strategy_naive >, Tag >  strategy;
+    };
+
+    template <
+    	typename Derived,
+		typename Tag,
+		typename Tuner,
+		typename CheckpointTuner>
+    struct DefaultTagStrategyReplacement<Derived, Tag, Tuner, CheckpointTuner, tag_strategy_dist>
+    {
+    	typedef resilient_tag_collection_strategy_dist< resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner, tag_strategy_dist >, Tag >  strategy;
+    };
+
+
+    template<
+		typename Derived,
+		typename Tag,
+		typename Tuner = tag_tuner<>,
+		typename CheckpointTuner = checkpoint_tuner_nop< Tag, int >,
+    	typename Strategy = tag_strategy_naive >
     class /*CNC_API*/ resilient_tag_collection: public tag_collection< Tag, Tuner, CheckpointTuner >
     {
     public:
@@ -834,15 +908,15 @@ namespace CnC {
 
         void put( const Tag & t );
 
-        template< typename UserStepTag, typename UserStep, typename STuner, typename SCheckpointTuner >
+        template< typename UserStepTag, typename UserStep, typename STuner, typename SCheckpointTuner, typename SStrategy >
         void put( const UserStepTag & prescriber,
-        		CnC::resilient_step_collection< Derived, UserStepTag, UserStep, STuner, SCheckpointTuner> & prescriberColId,
+        		CnC::resilient_step_collection< Derived, UserStepTag, UserStep, STuner, SCheckpointTuner, SStrategy> & prescriberColId,
         		const Tag & tag );
 
         void restart_put( const Tag & t );
 
-        template< typename SDerived, typename UserStepTag, typename UserStep, typename STuner, typename Arg, typename SCheckpointTuner >
-        error_type prescribes( resilient_step_collection< SDerived, UserStepTag, UserStep, STuner, SCheckpointTuner > & s, Arg & arg );
+        template< typename SDerived, typename UserStepTag, typename UserStep, typename STuner, typename Arg, typename SCheckpointTuner, typename SStrategy >
+        error_type prescribes( resilient_step_collection< SDerived, UserStepTag, UserStep, STuner, SCheckpointTuner, SStrategy > & s, Arg & arg );
 
         resilientContext< Derived >& getContext() {return m_resilient_contex;};
 
@@ -850,43 +924,48 @@ namespace CnC {
     	typedef Internal::distributable_context dist_context;
     	typedef tag_collection< Tag, Tuner, CheckpointTuner > super_type;
         resilientContext< Derived > & m_resilient_contex;
+        typedef typename DefaultTagStrategyReplacement<Derived, Tag, Tuner, CheckpointTuner, Strategy>::strategy strategy_t;
 
-        resilient_tag_collection_strategy_i<
-        			resilient_tag_collection_strategy_naive<
-        					resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >
-            				, Tag >,
-        				Tag
-        		> * m_strategy;
+        resilient_tag_collection_strategy_i< strategy_t, Tag > * m_strategy;
 
-//        resilient_tag_collection_strategy_i<
-//        			resilient_tag_collection_strategy_dist<
-//        					resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >
-//            				, Tag >,
-//        				Tag
-//        		> * m_strategy;
     };
 
+
+    struct item_strategy_naive;
+    struct item_strategy_dist;
+
     template <
-    typename Derived,
-	typename Tag,
-	typename Item,
-	typename Tuner,
-	typename CheckpointTuner,
-	typename Strategy>
-    struct DefaultStrategyReplacement
+    	typename Derived,
+		typename Tag,
+		typename Item,
+		typename Tuner,
+		typename CheckpointTuner,
+		typename Strategy>
+    struct DefaultItemStrategyReplacement
     {
     	typedef Strategy strategy;
     };
 
     template <
-    typename Derived,
-	typename Tag,
-	typename Item,
-	typename Tuner,
-	typename CheckpointTuner>
-    struct DefaultStrategyReplacement<Derived, Tag, Item, Tuner, CheckpointTuner, void>
+    	typename Derived,
+		typename Tag,
+		typename Item,
+		typename Tuner,
+		typename CheckpointTuner>
+    struct DefaultItemStrategyReplacement<Derived, Tag, Item, Tuner, CheckpointTuner, item_strategy_naive>
     {
-    	typedef resilient_item_collection_strategy_naive< resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner, void >, Tag, Item  >  strategy;
+    	typedef resilient_item_collection_strategy_naive< resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner, item_strategy_naive >, Tag, Item  >  strategy;
+    };
+
+    template <
+    	typename Derived,
+		typename Tag,
+		typename Item,
+		typename Tuner,
+		typename CheckpointTuner>
+    struct DefaultItemStrategyReplacement<Derived, Tag, Item, Tuner, CheckpointTuner, item_strategy_dist>
+    {
+    	typedef resilient_item_collection_strategy_dist< resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner, item_strategy_dist >, Tag, Item  >  strategy;
     };
 
     template<
@@ -895,7 +974,7 @@ namespace CnC {
     	typename Item,
     	typename Tuner = hashmap_tuner,
     	typename CheckpointTuner = checkpoint_item_tuner< Tag >,
-    	typename Strategy = void >
+    	typename Strategy = item_strategy_naive >
     class /*CNC_API*/ resilient_item_collection: public item_collection< Tag, Item, Tuner, CheckpointTuner >
     {
 
@@ -909,18 +988,18 @@ namespace CnC {
 
         void put( const Tag & tag, const Item & item );
 
-        template< typename UserStepTag, typename UserStep, typename STuner, typename SCheckpointTuner >
+        template< typename UserStepTag, typename UserStep, typename STuner, typename SCheckpointTuner, typename SStrategy >
         void put( const UserStepTag & putter,
-        		CnC::resilient_step_collection< Derived, UserStepTag, UserStep, STuner, SCheckpointTuner> & putterColl,
+        		CnC::resilient_step_collection< Derived, UserStepTag, UserStep, STuner, SCheckpointTuner, SStrategy > & putterColl,
         		const Tag & tag, const Item & item );
 
         void restart_put(const Tag & user_tag, const Item & item);
 
         void get( const Tag & tag, Item & item ) const;
 
-        template< typename UserStepTag, typename UserStep, typename STuner, typename SCheckpointTuner >
+        template< typename UserStepTag, typename UserStep, typename STuner, typename SCheckpointTuner, typename SStrategy >
         void get( const UserStepTag & getter,
-        		CnC::resilient_step_collection< Derived, UserStepTag, UserStep, STuner, SCheckpointTuner> & getterColl,
+        		CnC::resilient_step_collection< Derived, UserStepTag, UserStep, STuner, SCheckpointTuner, SStrategy > & getterColl,
 				const Tag & tag, Item & item );
 
         resilientContext< Derived >& getContext() {return m_resilient_contex;};
@@ -937,17 +1016,10 @@ namespace CnC {
 
     	const CheckpointTuner& m_ctuner;
         resilientContext< Derived > & m_resilient_contex;
-        typedef typename DefaultStrategyReplacement<Derived, Tag, Item, Tuner, CheckpointTuner, Strategy>::strategy strategy_t;
+        typedef typename DefaultItemStrategyReplacement<Derived, Tag, Item, Tuner, CheckpointTuner, Strategy>::strategy strategy_t;
 
         resilient_item_collection_strategy_i< strategy_t, Tag, Item > * m_strategy;
 
-
-//    	resilient_item_collection_strategy_i<
-//			resilient_item_collection_strategy_naive<
-//					resilient_item_collection< Derived, Tag, Item, Tuner, CheckpointTuner >
-//    				, Tag, Item >,
-//				Tag, Item
-//		> * m_strategy;
     };
 
     /// \brief Execute f( i ) for every i in {first <= i=first+step*x < last and 0 <= x}.

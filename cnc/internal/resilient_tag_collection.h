@@ -40,35 +40,35 @@ namespace CnC {
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner >
-    resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner  >::resilient_tag_collection( resilientContext< Derived > & context, const std::string & name )
+    template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner, typename Strategy >
+    resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner, Strategy >::resilient_tag_collection( resilientContext< Derived > & context, const std::string & name )
         : tag_collection< Tag, Tuner, CheckpointTuner >( context, name ),
 		  m_resilient_contex(context),
-		  m_strategy(new resilient_tag_collection_strategy_naive<resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >, Tag >(*this))
+		  m_strategy(new strategy_t(*this))
     {}
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner  >
-    resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner>::resilient_tag_collection( resilientContext< Derived > & context, const Tuner & tnr )
+    template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner, typename Strategy >
+    resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner, Strategy >::resilient_tag_collection( resilientContext< Derived > & context, const Tuner & tnr )
         : tag_collection< Tag, Tuner, CheckpointTuner >( context, tnr ),
 		  m_resilient_contex(context),
-		  m_strategy(new resilient_tag_collection_strategy_naive<resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >, Tag >(*this))
+		  m_strategy(new strategy_t(*this))
     {}
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    template<  typename Derived, typename Tag, typename Tuner, typename CheckpointTuner >
-    resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >::resilient_tag_collection( resilientContext< Derived > & context, const std::string & name, const Tuner & tnr )
+    template<  typename Derived, typename Tag, typename Tuner, typename CheckpointTuner, typename Strategy >
+    resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner, Strategy >::resilient_tag_collection( resilientContext< Derived > & context, const std::string & name, const Tuner & tnr )
         : tag_collection< Tag, Tuner, CheckpointTuner >( context, name, tnr ),
 		  m_resilient_contex(context),
-		  m_strategy(new resilient_tag_collection_strategy_naive<resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >, Tag >(*this))
+		  m_strategy(new strategy_t(*this))
     {}
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner >
-    resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >::~resilient_tag_collection()
+    template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner, typename Strategy >
+    resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner, Strategy >::~resilient_tag_collection()
     {
     	delete m_strategy;
     }
@@ -76,8 +76,8 @@ namespace CnC {
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner >
-    void resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >::put( const Tag & t )
+    template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner, typename Strategy >
+    void resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner, Strategy >::put( const Tag & t )
     {
     	m_strategy->processPrescribe( t );
         tag_collection< Tag, Tuner, CheckpointTuner >::put( t );
@@ -86,11 +86,11 @@ namespace CnC {
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner >
-    template< typename UserStepTag, typename UserStep, typename STuner, typename SCheckpointTuner >
-    void resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >::put(
+    template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner, typename Strategy >
+    template< typename UserStepTag, typename UserStep, typename STuner, typename SCheckpointTuner, typename SStrategy >
+    void resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner, Strategy >::put(
     		const UserStepTag & prescriber,
-    		CnC::resilient_step_collection< Derived, UserStepTag, UserStep, STuner, SCheckpointTuner> & prescriberCol ,
+    		CnC::resilient_step_collection< Derived, UserStepTag, UserStep, STuner, SCheckpointTuner, SStrategy> & prescriberCol ,
     		const Tag & t )
     {
 
@@ -98,15 +98,15 @@ namespace CnC {
     	tag_collection< Tag, Tuner, CheckpointTuner >::put( prescriber, prescriberCol, t );
     }
 
-    template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner >
-    void resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >::restart_put( const Tag & t ) {
+    template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner, typename Strategy >
+    void resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner, Strategy >::restart_put( const Tag & t ) {
     	//tag_collection< Tag, Tuner, CheckpointTuner >::restart_put( t );
     	tag_collection< Tag, Tuner, CheckpointTuner >::put( t );
     }
 
-    template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner >
-    template< typename SDerived, typename UserStepTag, typename UserStep, typename STuner, typename Arg, typename SCheckpointTuner >
-    error_type resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner >::prescribes( resilient_step_collection< SDerived, UserStepTag, UserStep, STuner, SCheckpointTuner > & s, Arg & arg )
+    template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner, typename Strategy >
+    template< typename SDerived, typename UserStepTag, typename UserStep, typename STuner, typename Arg, typename SCheckpointTuner, typename SStrategy >
+    error_type resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner, Strategy >::prescribes( resilient_step_collection< SDerived, UserStepTag, UserStep, STuner, SCheckpointTuner, SStrategy > & s, Arg & arg )
 	{
     	super_type::prescribes(s, arg);
     	StepCheckpoint<Tag> * cp_= s.getStepCheckpoint();

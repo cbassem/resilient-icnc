@@ -16,8 +16,6 @@
 
 namespace CnC {
 
-template< typename Derived, typename Tag, typename Tuner, typename CheckpointTuner > class resilient_tag_collection;
-
 template< typename ResilientTagCollection, typename Tag >
 class TagCheckpoint: public TagCheckpoint_i {
 public:
