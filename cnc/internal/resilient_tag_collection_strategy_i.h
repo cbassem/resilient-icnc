@@ -28,6 +28,8 @@ public:
 		static_cast<Derived*>(this)->prescribeStepCheckpoint(s);
 	}
 
+
+
 };
 
 

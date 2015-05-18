@@ -80,7 +80,7 @@ void resilient_tag_collection_strategy_naive< ResilientTagCollection, Tag >::pro
 	if ( Internal::distributor::myPid() == 0) {
 		//if (!putterColl.isStepDone(const_cast<UserStepTag&>(putter))) {
 			void * tagid = m_tag_checkpoint.put( t );
-			putterColl.processPrescribe( putter, tagid, m_resilient_tag_collection.getId());
+			putterColl.processPrescribe( putter, &m_tag_checkpoint, tagid);
 		//}
 		} else {
 		serializer * ser = m_resilient_tag_collection.getContext().new_serializer( this );

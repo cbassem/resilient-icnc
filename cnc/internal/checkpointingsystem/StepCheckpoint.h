@@ -22,9 +22,9 @@ public:
 	StepCheckpoint(int col_);
 	virtual ~StepCheckpoint();
 
-	void processStepPrescribe(StepTag prescriber, int prescriberColId, void * prescribedTagId, int tagCollectionId);
+	void processStepPrescribe(StepTag prescriber, TagCheckpoint_i* chp, void * prescribedTagId);
 	void processStepDone(StepTag step, int stepColId, int puts, int prescribes, int gets);
-	void processItemPut(StepTag producer, int stepProducerColId, void * itemId, int itemColId);
+	void processItemPut(StepTag producer, ItemCheckpoint_i* ich, void * itemId);
 	void processItemGet(StepTag getter, ItemCheckpoint_i* ich, void * tag);
 
 	//The serializer still contains the responsible one's tag, but this is ok since we know its type! :D
@@ -69,7 +69,7 @@ StepCheckpoint< StepTag >::~StepCheckpoint() {
 }
 
 template< class StepTag >
-void StepCheckpoint< StepTag >::processStepPrescribe(StepTag prescriber, int prescriberColId, void * prescribedTagId, int tagCollectionId)
+void StepCheckpoint< StepTag >::processStepPrescribe(StepTag prescriber, TagCheckpoint_i*, void * prescribedTagId)
 {
 	TagLog* l_ = getTagLog( prescriber );
 	l_->processPrescribe( prescribedTagId );
@@ -89,7 +89,7 @@ void StepCheckpoint< StepTag >::processItemGet(StepTag getter, ItemCheckpoint_i*
 }
 
 template< class StepTag >
-void StepCheckpoint< StepTag >::processItemPut(StepTag producer, int stepProducerColId, void * itemId, int itemColId)
+void StepCheckpoint< StepTag >::processItemPut(StepTag producer, ItemCheckpoint_i* ich, void * itemId)
 {
 	TagLog* l_ = getTagLog( producer );
 	l_->processPut( itemId );

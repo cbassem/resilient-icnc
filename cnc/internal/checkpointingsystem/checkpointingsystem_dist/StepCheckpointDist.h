@@ -23,15 +23,15 @@ public:
 	StepCheckpointDist(int col_);
 	virtual ~StepCheckpointDist();
 
-	void processStepPrescribe(StepTag prescriber, int prescriberColId, void * prescribedTagId, int tagCollectionId);
+	void processStepPrescribe(StepTag prescriber, TagCheckpoint_i* chp, void * prescribedTagId);
 	void processStepDone(StepTag step, int stepColId, int puts, int prescribes, int gets);
-	void processItemPut(StepTag producer, int stepProducerColId, void * itemId, int itemColId);
+	void processItemPut(StepTag producer, ItemCheckpoint_i* chp, void * itemId);
 	void processItemGet(StepTag getter, ItemCheckpoint_i* ich, void * tag);
 
 	//The serializer still contains the responsible one's tag, but this is ok since we know its type! :D
-	void processStepPrescribe(CnC::serializer * ser, void * prescribedTagId);
+	void processStepPrescribe(CnC::serializer * ser, TagCheckpoint_i* ich, void * prescribedTagId);
 	void processStepDone(CnC::serializer * ser);
-	void processItemPut(CnC::serializer * ser, void * itemId);
+	void processItemPut(CnC::serializer * ser, ItemCheckpoint_i* ich, void * itemId);
 	void processItemGet(CnC::serializer * ser, ItemCheckpoint_i* ich, void* tag);
 
 
@@ -70,10 +70,10 @@ StepCheckpointDist< StepTag >::~StepCheckpointDist() {
 }
 
 template< class StepTag >
-void StepCheckpointDist< StepTag >::processStepPrescribe(StepTag prescriber, int prescriberColId, void * prescribedTagId, int tagCollectionId)
+void StepCheckpointDist< StepTag >::processStepPrescribe(StepTag prescriber, TagCheckpoint_i * chp, void * prescribedTagId)
 {
 	TagLogDist<StepTag>* l_ = getTagLog( prescriber );
-	l_->processPrescribe( prescribedTagId );
+	l_->processPrescribe( chp, prescribedTagId );
 }
 
 template< class StepTag >
@@ -90,19 +90,19 @@ void StepCheckpointDist< StepTag >::processItemGet(StepTag getter, ItemCheckpoin
 }
 
 template< class StepTag >
-void StepCheckpointDist< StepTag >::processItemPut(StepTag producer, int stepProducerColId, void * itemId, int itemColId)
+void StepCheckpointDist< StepTag >::processItemPut(StepTag producer, ItemCheckpoint_i * chp, void * itemId)
 {
 	TagLogDist<StepTag>* l_ = getTagLog( producer );
-	l_->processPut( itemId );
+	l_->processPut( chp, itemId );
 }
 
 template< class StepTag >
-void StepCheckpointDist< StepTag >::processStepPrescribe(CnC::serializer * ser, void * prescribedTagId)
+void StepCheckpointDist< StepTag >::processStepPrescribe(CnC::serializer * ser, TagCheckpoint_i* ich, void * prescribedTagId)
 {
 	StepTag prescriber;
 	(* ser) & prescriber;
 	TagLogDist<StepTag>* l_ = getTagLog( prescriber );
-	l_->processPrescribe( prescribedTagId );
+	l_->processPrescribe( ich, prescribedTagId );
 }
 
 template< class StepTag >
@@ -124,12 +124,12 @@ void StepCheckpointDist< StepTag >::processItemGet(CnC::serializer * ser, ItemCh
 }
 
 template< class StepTag >
-void StepCheckpointDist< StepTag >::processItemPut(CnC::serializer * ser, void * itemId)
+void StepCheckpointDist< StepTag >::processItemPut(CnC::serializer * ser, ItemCheckpoint_i* ich, void * itemId)
 {
 	StepTag producer;
 	(* ser) & producer;
 	TagLogDist<StepTag>* l_ = getTagLog( producer );
-	l_->processPut( itemId );
+	l_->processPut(ich, itemId );
 }
 
 template< class StepTag >

@@ -18,15 +18,13 @@ public:
 
 	void processPut(
 			Tag putter,
-			int stepProducerColId,
-			void * itemid,
-			int itemCollectionId);
+			ItemCheckpoint_i * chp,
+			void * itemid);
 
 	void processPrescribe(
 			Tag prescriber,
-			int prescriberColId,
-			void * tagid,
-			int tagCollectionId);
+			TagCheckpoint_i * chp,
+			void * tagid);
 
 	void processGet(
 			Tag getter,
@@ -82,21 +80,19 @@ resilient_step_collection_strategy_naive< ResilientStepCollection, Tag >::~resil
 template< typename ResilientStepCollection, typename Tag >
 void resilient_step_collection_strategy_naive< ResilientStepCollection, Tag >::processPut(
 		Tag putter,
-		int stepProducerColId,
-		void * itemid,
-		int itemCollectionId)
+		ItemCheckpoint_i * chp,
+		void * itemid)
 {
-	m_step_checkpoint.processItemPut( putter, stepProducerColId, itemid, itemCollectionId);
+	m_step_checkpoint.processItemPut( putter, chp, itemid);
 }
 
 template< typename ResilientStepCollection, typename Tag >
 void resilient_step_collection_strategy_naive< ResilientStepCollection, Tag >::processPrescribe(
 		Tag prescriber,
-		int prescriberColId,
-		void * tagid,
-		int tagCollectionId)
+		TagCheckpoint_i * chp,
+		void * tagid)
 {
-	m_step_checkpoint.processStepPrescribe( prescriber, prescriberColId, tagid , tagCollectionId);
+	m_step_checkpoint.processStepPrescribe( prescriber, chp, tagid);
 }
 
 template< typename ResilientStepCollection, typename Tag >

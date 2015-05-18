@@ -8,21 +8,19 @@ public:
 
 	void processPut(
     		UserStepTag putter,
-    		int stepProducerColId,
-    		void * itemid,
-    		int itemCollectionId)
+			ItemCheckpoint_i * item_cp,
+			void * itemid)
 	{
-		static_cast<Derived*>(this)->processPut(putter, stepProducerColId, itemid, itemCollectionId);
+		static_cast<Derived*>(this)->processPut(putter, item_cp, itemid);
 	}
 
 
 	void processPrescribe(
 			UserStepTag prescriber,
-			int prescriberColId,
-			void * tagid,
-			int tagCollectionId)
+			TagCheckpoint_i * tag_cp,
+			void * tagid)
 	{
-		static_cast<Derived*>(this)->processPrescribe(prescriber, tagid, tagid, tagCollectionId);
+		static_cast<Derived*>(this)->processPrescribe(prescriber, tag_cp, tagid);
 	}
 
 

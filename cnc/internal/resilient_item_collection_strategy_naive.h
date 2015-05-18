@@ -90,7 +90,7 @@ void resilient_item_collection_strategy_naive< ResilientItemCollection, Key, Ite
 	if ( Internal::distributor::myPid() == 0) {
 		//if (!putterColl.isStepDone(const_cast<UserStepTag&>(putter))) {
 			void * itemid = m_item_checkpoint.put( t, i );
-			putterColl.processPut(putter, itemid, m_resilient_item_collection.getId());
+			putterColl.processPut(putter, &m_item_checkpoint,itemid);
 		//}
 	} else {
 		serializer * ser = m_resilient_item_collection.getContext().new_serializer( this );

@@ -817,6 +817,8 @@ namespace CnC {
         // the type of the checkpoint tuner as provided by the user
         typedef CheckpointTuner checkpoint_tuner_type;
 
+        typedef typename DefaultStepStrategyReplacement<Derived, UserStepTag, UserStep, Tuner, CheckpointTuner, Strategy>::strategy strategy_t;
+
         resilient_step_collection( resilientContext< Derived > & ctxt, const std::string & name, const step_type & userStep, const tuner_type & tnr );
         resilient_step_collection( resilientContext< Derived > & ctxt );
         resilient_step_collection( resilientContext< Derived > & ctxt, const std::string & name );
@@ -825,8 +827,14 @@ namespace CnC {
 
         virtual ~resilient_step_collection();
 
-        void processPut( UserStepTag putter, void * itemid, int itemCollectionId);
-        void processPrescribe( UserStepTag prescriber, void * tagid, int tagCollectionId);
+        void processPut(
+        		UserStepTag putter,
+				ItemCheckpoint_i * item_cp,
+        		void * itemid);
+        void processPrescribe(
+        		UserStepTag prescriber,
+        		TagCheckpoint_i * item_cp,
+				void * tagid);
         void processGet(
         		UserStepTag getter,
     			ItemCheckpoint_i * item_cp,
@@ -839,13 +847,14 @@ namespace CnC {
 
         resilientContext< Derived >& getContext() {return m_resilient_contex;};
 
+        resilient_step_collection_strategy_i< strategy_t, UserStepTag > * getStrategy() {return m_strategy;};
+
         bool isStepDone(UserStepTag & step);
 
     private:
     	typedef Internal::distributable_context dist_context;
     	typedef step_collection< UserStep, Tuner, CheckpointTuner > super_type;
         resilientContext< Derived > & m_resilient_contex;
-        typedef typename DefaultStepStrategyReplacement<Derived, UserStepTag, UserStep, Tuner, CheckpointTuner, Strategy>::strategy strategy_t;
 
         resilient_step_collection_strategy_i< strategy_t, UserStepTag > * m_strategy;
 
@@ -899,6 +908,8 @@ namespace CnC {
         /// the tag type
         typedef Tag tag_type;
 
+        typedef typename DefaultTagStrategyReplacement<Derived, Tag, Tuner, CheckpointTuner, Strategy>::strategy strategy_t;
+
         resilient_tag_collection( resilientContext< Derived > & ctxt, const std::string & name, const Tuner & tnr );
         resilient_tag_collection( resilientContext< Derived > & ctxt, const std::string & name = std::string() );
         resilient_tag_collection( resilientContext< Derived > & ctxt, const Tuner & tnr );
@@ -919,11 +930,12 @@ namespace CnC {
 
         resilientContext< Derived >& getContext() {return m_resilient_contex;};
 
+        resilient_tag_collection_strategy_i< strategy_t, Tag > * getStrategy() {return m_strategy;};
+
     private:
     	typedef Internal::distributable_context dist_context;
     	typedef tag_collection< Tag, Tuner, CheckpointTuner > super_type;
         resilientContext< Derived > & m_resilient_contex;
-        typedef typename DefaultTagStrategyReplacement<Derived, Tag, Tuner, CheckpointTuner, Strategy>::strategy strategy_t;
 
         resilient_tag_collection_strategy_i< strategy_t, Tag > * m_strategy;
 
@@ -979,6 +991,8 @@ namespace CnC {
 
     public:
 
+        typedef typename DefaultItemStrategyReplacement<Derived, Tag, Item, Tuner, CheckpointTuner, Strategy>::strategy strategy_t;
+
         resilient_item_collection( resilientContext< Derived > & ctxt, const std::string & name, const Tuner & tnr );
         resilient_item_collection( resilientContext< Derived > & ctxt, const std::string & name = std::string() );
         resilient_item_collection( resilientContext< Derived > & ctxt, const Tuner & tnr );
@@ -1005,6 +1019,8 @@ namespace CnC {
 
         const CheckpointTuner& getCTuner() {return m_ctuner;};
 
+        resilient_item_collection_strategy_i< strategy_t, Tag, Item > * getStrategy() {return m_strategy;};
+
         typename CnC::item_collection<Tag, Item, Tuner, CheckpointTuner>::const_iterator begin() const;
 
         typename CnC::item_collection<Tag, Item, Tuner, CheckpointTuner>::const_iterator end() const;
@@ -1015,7 +1031,6 @@ namespace CnC {
 
     	const CheckpointTuner& m_ctuner;
         resilientContext< Derived > & m_resilient_contex;
-        typedef typename DefaultItemStrategyReplacement<Derived, Tag, Item, Tuner, CheckpointTuner, Strategy>::strategy strategy_t;
 
         resilient_item_collection_strategy_i< strategy_t, Tag, Item > * m_strategy;
 

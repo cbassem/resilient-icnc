@@ -1,5 +1,5 @@
-#ifndef _RESILIENT_TAG_COLLECTION_DIST_H_
-#define _RESILIENT_TAG_COLLECTION_DIST_H_
+#ifndef _RESILIENT_TAG_COLLECTION_STRATEGY_DIST_H_
+#define _RESILIENT_TAG_COLLECTION_STRATEGY_DIST_H_
 
 #include <cnc/internal/checkpointingsystem/checkpointingsystem_dist/TagCheckpointDist.h>
 #include <cnc/internal/checkpointingsystem/TagCheckpoint_i.h>
@@ -52,7 +52,7 @@ template< typename ResilientTagCollection, typename Tag >
 resilient_tag_collection_strategy_dist< ResilientTagCollection, Tag >::resilient_tag_collection_strategy_dist(ResilientTagCollection & resilient_tag_collection):
 	resilient_tag_collection_strategy_i< resilient_tag_collection_strategy_dist< ResilientTagCollection, Tag >, Tag >(),
 	m_resilient_tag_collection(resilient_tag_collection),
-	m_tag_checkpoint(resilient_tag_collection, resilient_tag_collection.getId())
+	m_tag_checkpoint(resilient_tag_collection, resilient_tag_collection.getId(), *this)
 {
 	m_resilient_tag_collection.getContext().subscribe(this);
 	m_resilient_tag_collection.getContext().registerTagCheckpoint( &m_tag_checkpoint );
@@ -80,7 +80,7 @@ void resilient_tag_collection_strategy_dist< ResilientTagCollection, Tag >::proc
 		const Tag & t)
 {
 	void * tagid = m_tag_checkpoint.put( t );
-	putterColl.processPrescribe( putter, tagid, m_resilient_tag_collection.getId());
+	putterColl.processPrescribe( putter, &m_tag_checkpoint, tagid);
 }
 
 template< typename ResilientTagCollection, typename Tag >
@@ -91,7 +91,7 @@ void resilient_tag_collection_strategy_dist< ResilientTagCollection, Tag >::pres
 }
 
 template< typename ResilientTagCollection, typename Tag >
-void resilient_tag_collection_strategy_dist< ResilientTagCollection, Tag >::sendPrescribe(serializer* prescriber_info, Tag t)
+void resilient_tag_collection_strategy_dist< ResilientTagCollection, Tag >::sendPrescribe(serializer * prescriber_info, Tag t)
 {
 	serializer * ser = m_resilient_tag_collection.getContext().new_serializer( this );
     //Order is very important since we pass the serialized datastrc to the remote checkpoint object!
@@ -138,4 +138,4 @@ void resilient_tag_collection_strategy_dist< ResilientTagCollection, Tag >::unsa
 
 
 
-#endif // _RESILIENT_TAG_COLLECTION_DIST_H_
+#endif // _RESILIENT_TAG_COLLECTION_STRATEGY_DIST_H_

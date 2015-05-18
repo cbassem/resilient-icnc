@@ -87,7 +87,7 @@ void resilient_item_collection_strategy_dist< ResilientItemCollection, Key, Item
 		const Item & i)
 {
 	void * itemid = m_item_checkpoint.put( t, i );
-	putterColl.processPut(putter, itemid, m_resilient_item_collection.getId());
+	putterColl.processPut(putter,  &m_item_checkpoint, itemid);
 }
 
 template< typename ResilientItemCollection, typename Key, typename Item >

@@ -90,19 +90,19 @@ namespace CnC {
     template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner, typename Strategy >
     void resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner, Strategy >::processPut(
     		UserStepTag putter,
-    		void * itemid,
-    		int itemCollectionId)
+			ItemCheckpoint_i * item_cp,
+    		void * itemid)
     {
-    	m_strategy->processPut( putter, super_type::getId(), itemid, itemCollectionId );
+    	m_strategy->processPut( putter, item_cp, itemid );
     }
 
     template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner, typename Strategy >
     void resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner, Strategy >::processPrescribe(
     		UserStepTag prescriber,
-    		void * tagid,
-    		int tagCollectionId)
+			TagCheckpoint_i * tag_cp,
+    		void * tagid)
     {
-    	m_strategy->processPrescribe(prescriber, super_type::getId(), tagid , tagCollectionId);
+    	m_strategy->processPrescribe(prescriber, tag_cp , tagid);
     }
 
     template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner, typename Strategy >

@@ -16,10 +16,13 @@
 
 namespace CnC {
 
+template< class ResilientTagCollection, class Tag >
+class resilient_tag_collection_strategy_dist;
+
 template< typename ResilientTagCollection, typename Tag >
 class TagCheckpointDist: public TagCheckpoint_i {
 public:
-	TagCheckpointDist(ResilientTagCollection & owner, int col_id);
+	TagCheckpointDist(ResilientTagCollection & owner, int col_id, resilient_tag_collection_strategy_dist< ResilientTagCollection, Tag > & strategy);
 	virtual ~TagCheckpointDist();
 
 	void * put(const Tag & tag);
@@ -47,6 +50,7 @@ private:
 
 	int m_col_id;
 	ResilientTagCollection & m_owner;
+	resilient_tag_collection_strategy_dist< ResilientTagCollection, Tag > & m_strategy;
 
 	typedef tbb::spin_mutex mutex_t;
 	mutex_t m_mutex;
@@ -58,8 +62,8 @@ private:
 };
 
 template< typename ResilientTagCollection, typename Tag >
-TagCheckpointDist< ResilientTagCollection, Tag >::TagCheckpointDist(ResilientTagCollection & owner, int col_id):
-m_tag_map(), m_allocator(), m_col_id(col_id), m_step_checkpoints(), m_owner(owner),m_mutex() {};
+TagCheckpointDist< ResilientTagCollection, Tag >::TagCheckpointDist(ResilientTagCollection & owner, int col_id, resilient_tag_collection_strategy_dist< ResilientTagCollection, Tag > & strategy):
+m_tag_map(), m_allocator(), m_col_id(col_id), m_step_checkpoints(), m_owner(owner),m_mutex(), m_strategy(strategy) {};
 
 template< typename ResilientTagCollection, typename Tag >
 TagCheckpointDist< ResilientTagCollection, Tag >::~TagCheckpointDist() { cleanup(); };
@@ -169,11 +173,11 @@ void TagCheckpointDist< ResilientTagCollection, Tag >::cleanup()
 template< typename ResilientTagCollection, typename Tag >
 void TagCheckpointDist< ResilientTagCollection, Tag >::sendIfNotDone(serializer * putter_info, void * tag)
 {
-	Tag t_ = const_cast< Tag >(tag);
+	Tag * t_ = static_cast< Tag * >(tag);
 	typename tagMap::accessor _accr;
-	bool found = m_tag_map.find(_accr, t_);
+	bool found = m_tag_map.find(_accr, *t_);
 	if (found) {
-		m_owner.sendPrescribe(putter_info, t_);
+		m_strategy.sendPrescribe(putter_info, *t_);
 	}
 }
 
