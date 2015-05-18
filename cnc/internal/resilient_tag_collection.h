@@ -109,7 +109,7 @@ namespace CnC {
     error_type resilient_tag_collection< Derived, Tag, Tuner, CheckpointTuner, Strategy >::prescribes( resilient_step_collection< SDerived, UserStepTag, UserStep, STuner, SCheckpointTuner, SStrategy > & s, Arg & arg )
 	{
     	super_type::prescribes(s, arg);
-    	StepCheckpoint<Tag> * cp_= s.getStepCheckpoint();
+    	StepCheckpoint_i * cp_= s.getStepCheckpoint();
     	m_strategy->prescribeStepCheckpoint(cp_);
 	}
 

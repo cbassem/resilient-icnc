@@ -1,8 +1,8 @@
 #ifndef _RESILIENT_STEP_COLLECTION_DIST_H_
 #define _RESILIENT_STEP_COLLECTION_DIST_H_
 
-#include <cnc/internal/checkpointingsystem/StepCheckpoint.h>
 #include <cnc/internal/checkpointingsystem/StepCheckpoint_i.h>
+#include "checkpointingsystem/checkpointingsystem_dist/StepCheckpointDist.h"
 
 namespace CnC {
 
@@ -40,7 +40,7 @@ public:
 			int prescribes,
 			int gets);
 
-	StepCheckpoint<Tag> * getStepCheckpoint();
+	StepCheckpoint_i * getStepCheckpoint();
 
 
 	void recv_msg( serializer * ser );
@@ -50,7 +50,7 @@ private:
 	typedef Internal::distributable_context dist_context;
 
 	ResilientStepCollection & m_resilient_step_collection;
-	StepCheckpoint< Tag > m_step_checkpoint;
+	StepCheckpointDist< Tag > m_step_checkpoint;
 
 	static const char DONE = 0;
 
@@ -123,7 +123,7 @@ void resilient_step_collection_strategy_dist< ResilientStepCollection, Tag >::pr
 }
 
 template< typename ResilientStepCollection, typename Tag >
-CnC::StepCheckpoint<Tag> * resilient_step_collection_strategy_dist< ResilientStepCollection, Tag >::getStepCheckpoint() {
+StepCheckpoint_i * resilient_step_collection_strategy_dist< ResilientStepCollection, Tag >::getStepCheckpoint() {
 	return &m_step_checkpoint;
 }
 

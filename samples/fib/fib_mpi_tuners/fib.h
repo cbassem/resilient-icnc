@@ -64,11 +64,11 @@ struct fib_context : public CnC::resilientContext< fib_context >
 {
 
     // step collections
-    CnC::resilient_step_collection< fib_context, int, fib_step, CnC::step_tuner<>, fib_cr_step_tuner, CnC::step_strategy_dist > m_steps;
+    CnC::resilient_step_collection< fib_context, int, fib_step, CnC::step_tuner<>, fib_cr_step_tuner/**, CnC::step_strategy_dist**/ > m_steps;
     // Item collections
-    CnC::resilient_item_collection< fib_context, int, fib_type, CnC::hashmap_tuner, fib_cr_item_tuner, CnC::item_strategy_dist > m_fibs;
+    CnC::resilient_item_collection< fib_context, int, fib_type, CnC::hashmap_tuner, fib_cr_item_tuner/**, CnC::item_strategy_dist**/ > m_fibs;
     // Tag collections
-    CnC::resilient_tag_collection< fib_context, int, CnC::tag_tuner<>, fib_cr_step_tuner, CnC::tag_strategy_dist > m_tags;
+    CnC::resilient_tag_collection< fib_context, int, CnC::tag_tuner<>, fib_cr_step_tuner/**, CnC::tag_strategy_dist**/ > m_tags;
 
     // The context class constructor
     fib_context()

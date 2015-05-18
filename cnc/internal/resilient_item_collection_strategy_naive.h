@@ -140,7 +140,7 @@ void resilient_item_collection_strategy_naive< ResilientItemCollection, Key, Ite
 			StepCheckpoint_i* i_ = m_resilient_item_collection.getContext().getStepCheckPoint(putter_collection_id);
 			//if (!i_->isDone(&scpy_)) {
 				void * itemid = m_item_checkpoint.put( tag, item );
-				i_->processItemPut(ser, itemid);
+				i_->processItemPut(ser, &m_item_checkpoint, itemid);
 			//}
 			break;
 		}

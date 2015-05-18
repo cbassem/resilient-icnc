@@ -28,9 +28,9 @@ public:
 	void processItemGet(StepTag getter, ItemCheckpoint_i* ich, void * tag);
 
 	//The serializer still contains the responsible one's tag, but this is ok since we know its type! :D
-	void processStepPrescribe(CnC::serializer * ser, void * prescribedTagId);
+	void processStepPrescribe(CnC::serializer * ser, TagCheckpoint_i* ich, void * prescribedTagId);
 	void processStepDone(CnC::serializer * ser);
-	void processItemPut(CnC::serializer * ser, void * itemId);
+	void processItemPut(CnC::serializer * ser, ItemCheckpoint_i* ich, void * itemId);
 	void processItemGet(CnC::serializer * ser, ItemCheckpoint_i* ich, void* tag);
 
 
@@ -44,6 +44,8 @@ public:
 	void decrement_get_counts();
 
 	void cleanup();
+
+	void sendNotDone() {}; //TODO factor out
 
 
 private:
@@ -94,7 +96,7 @@ void StepCheckpoint< StepTag >::processItemPut(StepTag producer, int stepProduce
 }
 
 template< class StepTag >
-void StepCheckpoint< StepTag >::processStepPrescribe(CnC::serializer * ser, void * prescribedTagId)
+void StepCheckpoint< StepTag >::processStepPrescribe(CnC::serializer * ser, TagCheckpoint_i* ich, void * prescribedTagId)
 {
 	StepTag prescriber;
 	(* ser) & prescriber;
@@ -121,7 +123,7 @@ void StepCheckpoint< StepTag >::processItemGet(CnC::serializer * ser, ItemCheckp
 }
 
 template< class StepTag >
-void StepCheckpoint< StepTag >::processItemPut(CnC::serializer * ser, void * itemId)
+void StepCheckpoint< StepTag >::processItemPut(CnC::serializer * ser, ItemCheckpoint_i* ich, void * itemId)
 {
 	StepTag producer;
 	(* ser) & producer;

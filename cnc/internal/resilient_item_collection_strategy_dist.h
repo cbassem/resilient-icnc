@@ -118,7 +118,7 @@ void resilient_item_collection_strategy_dist< ResilientItemCollection, Key, Item
 			void * itemid = m_item_checkpoint.put( tag, item );
 			//Get the step that made the item put
 			StepCheckpoint_i* i_ = m_resilient_item_collection.getContext().getStepCheckPoint(putter_collection_id);
-			i_->processItemPut(ser, itemid);
+			i_->processItemPut(ser, &m_item_checkpoint, itemid);
 			break;
 		}
 		case resilient_item_collection_strategy_dist::GET:

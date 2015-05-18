@@ -5,22 +5,22 @@
  *      Author: blackline
  */
 
-#ifndef TAGCHECKPOINT_H_
-#define TAGCHECKPOINT_H_
+#ifndef TAGCHECKPOINT_DIST_H_
+#define TAGCHECKPOINT_DIST_H_
 
-#include "TagCheckpoint_i.h"
-#include "StepCheckpoint_i.h"
-#include "StepCheckpoint.h"
+#include "../StepCheckpoint_i.h"
 #include <tr1/unordered_map>
 #include "tbb/concurrent_vector.h"
+#include "StepCheckpointDist.h"
+#include "../TagCheckpoint_i.h"
 
 namespace CnC {
 
 template< typename ResilientTagCollection, typename Tag >
-class TagCheckpoint: public TagCheckpoint_i {
+class TagCheckpointDist: public TagCheckpoint_i {
 public:
-	TagCheckpoint(ResilientTagCollection & owner, int col_id);
-	virtual ~TagCheckpoint();
+	TagCheckpointDist(ResilientTagCollection & owner, int col_id);
+	virtual ~TagCheckpointDist();
 
 	void * put(const Tag & tag);
 
@@ -34,13 +34,12 @@ public:
 
 	void print();
 
-	void sendIfNotDone(CnC::serializer * ser, void * tag) {};
-
+	void sendIfNotDone(serializer * ser, void * tag);
 
 private:
 	typedef tbb::concurrent_hash_map< Tag, Tag * > tagMap;
     typedef tbb::scalable_allocator< Tag > tag_allocator_type;
-    typedef tbb::concurrent_vector< StepCheckpoint< Tag > * > step_checkpoints_type;
+    typedef tbb::concurrent_vector< StepCheckpointDist< Tag > * > step_checkpoints_type;
 
     tagMap m_tag_map;
 	mutable tag_allocator_type m_allocator;
@@ -59,14 +58,14 @@ private:
 };
 
 template< typename ResilientTagCollection, typename Tag >
-TagCheckpoint< ResilientTagCollection, Tag >::TagCheckpoint(ResilientTagCollection & owner, int col_id):
+TagCheckpointDist< ResilientTagCollection, Tag >::TagCheckpointDist(ResilientTagCollection & owner, int col_id):
 m_tag_map(), m_allocator(), m_col_id(col_id), m_step_checkpoints(), m_owner(owner),m_mutex() {};
 
 template< typename ResilientTagCollection, typename Tag >
-TagCheckpoint< ResilientTagCollection, Tag >::~TagCheckpoint() { cleanup(); };
+TagCheckpointDist< ResilientTagCollection, Tag >::~TagCheckpointDist() { cleanup(); };
 
 template< typename ResilientTagCollection, typename Tag >
-void * TagCheckpoint< ResilientTagCollection, Tag >::put( const Tag & tag ) {
+void * TagCheckpointDist< ResilientTagCollection, Tag >::put( const Tag & tag ) {
 	//mutex_t::scoped_lock _l( m_mutex );
 	typename tagMap::accessor _accr;
 	bool inserted = m_tag_map.insert(_accr, tag);
@@ -81,19 +80,19 @@ void * TagCheckpoint< ResilientTagCollection, Tag >::put( const Tag & tag ) {
 }
 
 template< typename ResilientTagCollection, typename Tag >
-int TagCheckpoint< ResilientTagCollection, Tag >::getId()
+int TagCheckpointDist< ResilientTagCollection, Tag >::getId()
 {
 	return m_col_id;
 }
 
 template< typename ResilientTagCollection, typename Tag >
-void TagCheckpoint< ResilientTagCollection, Tag >::prescribeStepCheckpoint( StepCheckpoint_i * cp)
+void TagCheckpointDist< ResilientTagCollection, Tag >::prescribeStepCheckpoint( StepCheckpoint_i * cp)
 {
-	m_step_checkpoints.push_back(static_cast< StepCheckpoint<Tag> *>(cp));
+	m_step_checkpoints.push_back(static_cast<StepCheckpointDist<Tag> *>(cp));
 }
 
 template< typename ResilientTagCollection, typename Tag >
-void TagCheckpoint< ResilientTagCollection, Tag >::add_checkpoint_locally() {
+void TagCheckpointDist< ResilientTagCollection, Tag >::add_checkpoint_locally() {
 	//mutex_t::scoped_lock _l( m_mutex );
 	for( typename tagMap::const_iterator it = m_tag_map.begin(); it != m_tag_map.end(); ++it) {
 		m_owner.restart_put(it->first);
@@ -101,7 +100,7 @@ void TagCheckpoint< ResilientTagCollection, Tag >::add_checkpoint_locally() {
 }
 
 template< typename ResilientTagCollection, typename Tag >
-void TagCheckpoint< ResilientTagCollection, Tag >::calculate_checkpoint()
+void TagCheckpointDist< ResilientTagCollection, Tag >::calculate_checkpoint()
 {
 	//mutex_t::scoped_lock _l( m_mutex );
 
@@ -131,7 +130,7 @@ void TagCheckpoint< ResilientTagCollection, Tag >::calculate_checkpoint()
 }
 
 template< typename ResilientTagCollection, typename Tag >
-void TagCheckpoint< ResilientTagCollection, Tag >::print()
+void TagCheckpointDist< ResilientTagCollection, Tag >::print()
 {
 	std::cout << "Printing tag checkpoint [" << m_col_id << "]" << std::endl;
 	for(typename tagMap::const_iterator it = m_tag_map.begin(); it != m_tag_map.end(); ++it)
@@ -143,7 +142,7 @@ void TagCheckpoint< ResilientTagCollection, Tag >::print()
 
 
 template< typename ResilientTagCollection, typename Tag >
-Tag * TagCheckpoint< ResilientTagCollection, Tag >::create( const Tag & org ) const
+Tag * TagCheckpointDist< ResilientTagCollection, Tag >::create( const Tag & org ) const
 {
     Tag * _tag = m_allocator.allocate( 1 );
     m_allocator.construct( _tag, org );
@@ -151,7 +150,7 @@ Tag * TagCheckpoint< ResilientTagCollection, Tag >::create( const Tag & org ) co
 }
 
 template< typename ResilientTagCollection, typename Tag >
-void TagCheckpoint< ResilientTagCollection, Tag >::uncreate( Tag * tag ) const
+void TagCheckpointDist< ResilientTagCollection, Tag >::uncreate( Tag * tag ) const
 {
     if( tag ) {
         m_allocator.destroy( tag );
@@ -160,10 +159,21 @@ void TagCheckpoint< ResilientTagCollection, Tag >::uncreate( Tag * tag ) const
 }
 
 template< typename ResilientTagCollection, typename Tag >
-void TagCheckpoint< ResilientTagCollection, Tag >::cleanup()
+void TagCheckpointDist< ResilientTagCollection, Tag >::cleanup()
 {
 	for( typename tagMap::const_iterator it = m_tag_map.begin(); it != m_tag_map.end(); ++it) {
 		uncreate( it->second );
+	}
+}
+
+template< typename ResilientTagCollection, typename Tag >
+void TagCheckpointDist< ResilientTagCollection, Tag >::sendIfNotDone(serializer * putter_info, void * tag)
+{
+	Tag t_ = const_cast< Tag >(tag);
+	typename tagMap::accessor _accr;
+	bool found = m_tag_map.find(_accr, t_);
+	if (found) {
+		m_owner.sendPrescribe(putter_info, t_);
 	}
 }
 
@@ -172,4 +182,4 @@ void TagCheckpoint< ResilientTagCollection, Tag >::cleanup()
 
 
 
-#endif /* TAGCHECKPOINT_H_ */
+#endif /* TAGCHECKPOINT_DIST_H_ */

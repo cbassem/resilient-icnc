@@ -128,7 +128,7 @@ namespace CnC {
     }
 
     template< typename Derived, typename UserStepTag, typename UserStep, typename Tuner, typename CheckpointTuner, typename Strategy >
-    CnC::StepCheckpoint<UserStepTag> * resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner, Strategy >::getStepCheckpoint() {
+    StepCheckpoint_i * resilient_step_collection< Derived, UserStepTag, UserStep, Tuner, CheckpointTuner, Strategy >::getStepCheckpoint() {
     	return m_strategy->getStepCheckpoint();
     }
 

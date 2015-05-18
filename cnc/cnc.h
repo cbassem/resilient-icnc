@@ -757,9 +757,8 @@ namespace CnC {
 
     	void add_checkpoint_data_locally();
 
-//
-//    	typedef tbb::spin_mutex mutex_t;
-//    	mutex_t m_mutex;
+    	typedef tbb::spin_mutex mutex_t;
+    	mutex_t m_mutex;
 
 	};
 
@@ -836,7 +835,7 @@ namespace CnC {
 
         void processDone( void * step, int stepColId, int puts, int prescribes, int gets );
 
-        CnC::StepCheckpoint<UserStepTag> * getStepCheckpoint();
+        StepCheckpoint_i * getStepCheckpoint();
 
         resilientContext< Derived >& getContext() {return m_resilient_contex;};
 

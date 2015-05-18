@@ -1,7 +1,7 @@
 #ifndef _RESILIENT_TAG_COLLECTION_DIST_H_
 #define _RESILIENT_TAG_COLLECTION_DIST_H_
 
-#include <cnc/internal/checkpointingsystem/TagCheckpoint.h>
+#include <cnc/internal/checkpointingsystem/checkpointingsystem_dist/TagCheckpointDist.h>
 #include <cnc/internal/checkpointingsystem/TagCheckpoint_i.h>
 
 namespace CnC {
@@ -28,6 +28,8 @@ public:
 	template < typename StepCheckpoint >
 	void prescribeStepCheckpoint( StepCheckpoint & s );
 
+	void sendPrescribe( serializer* prescriber_info, Tag );
+
 	void recv_msg( serializer * ser );
 	void unsafe_reset( bool dist );
 
@@ -35,7 +37,7 @@ private:
 	typedef Internal::distributable_context dist_context;
 
 	ResilientTagCollection & m_resilient_tag_collection;
-	TagCheckpoint< ResilientTagCollection, Tag > m_tag_checkpoint;
+	TagCheckpointDist< ResilientTagCollection, Tag > m_tag_checkpoint;
 
 	static const char PRESCRIBE = 0;
 
@@ -88,6 +90,16 @@ void resilient_tag_collection_strategy_dist< ResilientTagCollection, Tag >::pres
 	m_tag_checkpoint.prescribeStepCheckpoint(s);
 }
 
+template< typename ResilientTagCollection, typename Tag >
+void resilient_tag_collection_strategy_dist< ResilientTagCollection, Tag >::sendPrescribe(serializer* prescriber_info, Tag t)
+{
+	serializer * ser = m_resilient_tag_collection.getContext().new_serializer( this );
+    //Order is very important since we pass the serialized datastrc to the remote checkpoint object!
+    (*ser) & PRESCRIBE & t & (*prescriber_info);
+    m_resilient_tag_collection.getContext().send_msg(ser, 0);
+    delete prescriber_info;
+}
+
 
 template< typename ResilientTagCollection, typename Tag >
 void resilient_tag_collection_strategy_dist< ResilientTagCollection, Tag >::recv_msg( serializer * ser )
@@ -100,10 +112,14 @@ void resilient_tag_collection_strategy_dist< ResilientTagCollection, Tag >::recv
 		{
 			Tag tag;
 			int prescriber_collection_id;
+			//serializer * prescriber_info;
 			(* ser) & tag & prescriber_collection_id;
+//			prescriber_info.set_mode_unpack();
+//			prescriber_info & prescriber_col_id;
+
 			void * tagid = m_tag_checkpoint.put( tag );
 			StepCheckpoint_i* i_ = m_resilient_tag_collection.getContext().getStepCheckPoint(prescriber_collection_id);
-			i_->processStepPrescribe(ser, tagid);
+			i_->processStepPrescribe(ser, &m_tag_checkpoint, tagid);
 			break;
 		}
 

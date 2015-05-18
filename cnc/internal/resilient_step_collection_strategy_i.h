@@ -44,7 +44,7 @@ public:
 		static_cast<Derived*>(this)->processStepDone(step, stepColId, puts, prescribes, gets);
 	}
 
-	CnC::StepCheckpoint<UserStepTag> * getStepCheckpoint()
+	StepCheckpoint_i * getStepCheckpoint()
 	{
 		return static_cast<Derived*>(this)->getStepCheckpoint();
 	}

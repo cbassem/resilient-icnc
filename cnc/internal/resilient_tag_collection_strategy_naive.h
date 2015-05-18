@@ -115,7 +115,7 @@ void resilient_tag_collection_strategy_naive< ResilientTagCollection, Tag >::rec
 			StepCheckpoint_i* i_ = m_resilient_tag_collection.getContext().getStepCheckPoint(prescriber_collection_id);
 			//if (!i_->isDone(&ser_cpy)) {
 				void * tagid = m_tag_checkpoint.put( tag );
-				i_->processStepPrescribe(ser, tagid);
+				i_->processStepPrescribe(ser, &m_tag_checkpoint, tagid);
 			//}
 
 			break;

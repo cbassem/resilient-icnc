@@ -23,8 +23,8 @@ namespace CnC {
 		m_countdown_to_crash( -1 ),
 		m_process_to_crash( -1 ),
 		m_timer_sec(-1),
-		m_last_time()
-//		m_mutex()
+		m_last_time(),
+		m_mutex()
 		{ std::cout << " creating res ctxt " << std::endl; }
 
 	template< class Derived >
@@ -37,8 +37,8 @@ namespace CnC {
 		m_countdown_to_crash( countdown ),
 		m_process_to_crash( processId ),
 		m_timer_sec(-1),
-		m_last_time()
-//		m_mutex()
+		m_last_time(),
+		m_mutex()
 		{  std::cout << " creating res ctxt " << std::endl; }
 
 	template< class Derived >
@@ -51,7 +51,8 @@ namespace CnC {
 		m_countdown_to_crash( countdown ),
 		m_process_to_crash( processId ),
 		m_timer_sec(sec),
-		m_last_time()
+		m_last_time(),
+		m_mutex()
 	{
 		gettimeofday(&m_last_time, 0);
 	}
@@ -66,7 +67,8 @@ namespace CnC {
 		m_countdown_to_crash( -1 ),
 		m_process_to_crash( -1 ),
 		m_timer_sec(sec),
-		m_last_time()
+		m_last_time(),
+		m_mutex()
 	{
 		gettimeofday(&m_last_time, 0);
 	}
@@ -214,9 +216,16 @@ namespace CnC {
 	template< class Derived >
 	void resilientContext< Derived >::calculateAndSendCheckpoint()
 	{
-
 		//place lock
+		mutex_t::scoped_lock _l( m_mutex );
 		calculate_checkpoint();
+		//Loop over all tagLogs and:
+		//If step done:
+		//	-> Send all tags and items that are not "done" yet.
+		//  -> Else do nothing
+		for( typename std::vector< StepCheckpoint_i * >::const_iterator it = m_step_checkpoints.begin(); it != m_step_checkpoints.end(); ++it ) {
+			(*it)->sendNotDone();// This will results in items being removed from the checkpoint.
+		}
 
 
 	}

@@ -18,6 +18,9 @@ public:
 	virtual void add_checkpoint_locally() = 0;
 	virtual void print() = 0;
 
+	virtual void sendIfNotDone(CnC::serializer * ser, void * tag) = 0;
+
+
 };
 
 #endif /* TAGCHECKPOINT_I_H_ */
