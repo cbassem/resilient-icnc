@@ -28,7 +28,7 @@ public:
 	template < typename StepCheckpoint >
 	void prescribeStepCheckpoint( StepCheckpoint & s );
 
-	void sendPrescribe( serializer* prescriber_info, Tag );
+	void sendPrescribe(TagLog_i * t, Tag );
 
 	void recv_msg( serializer * ser );
 	void unsafe_reset( bool dist );
@@ -91,13 +91,13 @@ void resilient_tag_collection_strategy_dist< ResilientTagCollection, Tag >::pres
 }
 
 template< typename ResilientTagCollection, typename Tag >
-void resilient_tag_collection_strategy_dist< ResilientTagCollection, Tag >::sendPrescribe(serializer * prescriber_info, Tag t)
+void resilient_tag_collection_strategy_dist< ResilientTagCollection, Tag >::sendPrescribe(TagLog_i* f, Tag t)
 {
 	serializer * ser = m_resilient_tag_collection.getContext().new_serializer( this );
     //Order is very important since we pass the serialized datastrc to the remote checkpoint object!
-    (*ser) & PRESCRIBE & t & (*prescriber_info);
+    (*ser) & PRESCRIBE & t;
+    f->add_info(ser);
     m_resilient_tag_collection.getContext().send_msg(ser, 0);
-    delete prescriber_info;
 }
 
 

@@ -13,6 +13,7 @@
 #include "StepCheckpoint.h"
 #include <tr1/unordered_map>
 #include "tbb/concurrent_vector.h"
+#include "TagLog_i.h"
 
 namespace CnC {
 
@@ -34,7 +35,7 @@ public:
 
 	void print();
 
-	void sendIfNotDone(CnC::serializer * ser, void * tag) {};
+	void sendIfNotDone(TagLog_i * t, void * tag) {};
 
 
 private:

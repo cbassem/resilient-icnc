@@ -8,6 +8,7 @@
 #ifndef TAGCHECKPOINT_I_H_
 #define TAGCHECKPOINT_I_H_
 
+#include "TagLog_i.h"
 
 class TagCheckpoint_i {
 public:
@@ -18,7 +19,7 @@ public:
 	virtual void add_checkpoint_locally() = 0;
 	virtual void print() = 0;
 
-	virtual void sendIfNotDone(CnC::serializer * ser, void * tag) = 0;
+	virtual void sendIfNotDone(TagLog_i * t, void * tag) = 0;
 
 
 };

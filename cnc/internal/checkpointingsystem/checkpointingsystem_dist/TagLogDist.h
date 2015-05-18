@@ -14,9 +14,10 @@
 #include <tr1/unordered_map>
 #include "tbb/concurrent_unordered_set.h"
 #include "../TagCheckpoint_i.h"
+#include "../TagLog_i.h"
 
 template< class Tag >
-class TagLogDist {
+class TagLogDist: public TagLog_i {
 	int currentPuts_;
 	int currentPrescribes_;
 	int currentGets_;
@@ -41,7 +42,6 @@ class TagLogDist {
 	gets_t gets_;
 
 	Tag me; // Has to be a copy :/
-	CnC::serializer * get_tag_info_serializer();
 
 public:
 	TagLogDist(int col_id, Tag & tag);
@@ -68,6 +68,8 @@ public:
 	void set_collection_id(int colid ) {collection_id_ = colid;};
 
 	void set_my_tag(Tag t) {me = t;};
+
+	CnC::serializer * add_info(CnC::serializer * ser);
 
 };
 
@@ -149,8 +151,7 @@ void TagLogDist< Tag >::decrement_get_counts() {
 template< class Tag >
 void TagLogDist< Tag >::send_unprocessed_prescribes() {
 	for (typename prescribes_t::const_iterator it = prescribes_.begin(); it != prescribes_.end(); ++it) {
-		//TODO get serializer, put
-		(it->first)->sendIfNotDone(get_tag_info_serializer(), it->second);
+		(it->first)->sendIfNotDone(this, it->second);
 	}
 }
 
@@ -172,11 +173,9 @@ void TagLogDist< Tag >::send_unprocessed_gets() {
 
 
 template< class Tag >
-CnC::serializer * TagLogDist< Tag >::get_tag_info_serializer() {
-    CnC::serializer * _serlzr = new CnC::serializer( false, true ); //TODO make sure we delete this
-    _serlzr->set_mode_pack();
-    (*_serlzr) & collection_id_ & me;
-    return _serlzr;
+CnC::serializer * TagLogDist< Tag >::add_info(CnC::serializer * ser) {
+    (*ser) & collection_id_ & me;
+    return ser;
 }
 
 #endif /* TAGLOG_DIST_H_ */

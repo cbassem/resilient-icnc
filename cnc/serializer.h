@@ -252,6 +252,10 @@ namespace CnC
         return CnC::bitwise_serializable();
     }
 
+//    void serialize(CnC::serializer & buf, CnC::serializer & ser) {
+//    	buf & ser.
+//    }
+
     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     /**

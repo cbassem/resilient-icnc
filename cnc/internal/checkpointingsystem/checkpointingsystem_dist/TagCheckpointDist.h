@@ -37,7 +37,7 @@ public:
 
 	void print();
 
-	void sendIfNotDone(serializer * ser, void * tag);
+	void sendIfNotDone(TagLog_i* f, void * tag);
 
 private:
 	typedef tbb::concurrent_hash_map< Tag, Tag * > tagMap;
@@ -171,13 +171,13 @@ void TagCheckpointDist< ResilientTagCollection, Tag >::cleanup()
 }
 
 template< typename ResilientTagCollection, typename Tag >
-void TagCheckpointDist< ResilientTagCollection, Tag >::sendIfNotDone(serializer * putter_info, void * tag)
+void TagCheckpointDist< ResilientTagCollection, Tag >::sendIfNotDone(TagLog_i * f, void * tag)
 {
 	Tag * t_ = static_cast< Tag * >(tag);
 	typename tagMap::accessor _accr;
 	bool found = m_tag_map.find(_accr, *t_);
 	if (found) {
-		m_strategy.sendPrescribe(putter_info, *t_);
+		m_strategy.sendPrescribe(f, *t_);
 	}
 }
 
