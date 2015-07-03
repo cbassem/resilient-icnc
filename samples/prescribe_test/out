@@ -1,0 +1,59 @@
+[CnC 0] scheduler_i::start_dist() 
+[CnC 0] Using no load balancer (by default).
+[CnC 1] scheduler_i::start_dist() 
+[CnC 1] Using no load balancer (by default).
+[CnC 0] Put tag <0>
+[CnC 0] Put tag <1>
+[CnC 0] Put tag <2>
+[CnC 0] Put tag <3>
+[CnC 0] Put tag <4>
+[CnC 0] Put tag <5>
+[CnC 0] Put tag <6>
+[CnC 0] Put tag <7>
+[CnC 0] Put tag <8>
+[CnC 0] Put tag <9>
+[CnC 0] Put tag <10>
+[CnC 0] Put tag <11>
+[CnC 0] Put tag <12>
+start waiting
+[CnC 0] Start step (11)
+[CnC 0] step (11): Get item [10] = not ready
+[CnC 0] Suspend step (11)
+[CnC 0] Start step (9)
+[CnC 0] step (9): Get item [8] = not ready
+[CnC 0] Suspend step (9)
+[CnC 0] Start step (7)
+[CnC 0] step (7): Get item [6] = not ready
+[CnC 0] Suspend step (7)
+[CnC 0] Start step (5)
+[CnC 0] step (5): Get item [4] = not ready
+[CnC 0] Suspend step (5)
+[CnC 0] Start step (3)
+[CnC 0] step (3): Get item [2] = not ready
+[CnC 0] Suspend step (3)
+[CnC 0] Start step (1)
+[CnC 0] step (1): Put item [1] = 1
+[CnC 0] End step (1)
+[CnC 0] Put item [2] = 1 {from remote}
+[CnC 0] Start step (3)
+[CnC 0] step (3): Get item [2] = 1
+[CnC 0] step (3): Get item [1] = 1
+[CnC 0] Put item [4] = 3 {from remote}
+[CnC 0] step (3): Put item [3] = 2
+[CnC 0] End step (3)
+[CnC 0] Start step (5)
+[CnC 0] step (5): Get item [4] = 3
+[CnC 0] step (5): Get item [3] = 2
+[CnC 0] step (5): Put item [5] = 5
+[CnC 0] End step (5)
+Crashing 1
+[CnC 0] Put item [6] = 8 {from remote}
+Destructor tag_collection_base 1
+Destructor Item Collection 1
+Destructor context 1
+Destructor scheduler_i 1
+[CnC 0] Start step (7)
+[CnC 0] step (7): Get item [6] = 8
+[CnC 0] step (7): Get item [5] = 5
+[CnC 0] step (7): Put item [7] = 13
+[CnC 0] End step (7)

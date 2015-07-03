@@ -1,0 +1,17 @@
+Loading cnc_mpi...Loading cnc_mpi......and communicator...done.
+...and communicator...done.
+[CnC 0] MPI initialization complete (rank 0).
+[CnC 1] MPI initialization complete (rank 1).
+Error: signal 11:
+./fib[0x4077df]
+/lib/x86_64-linux-gnu/libc.so.6(+0x36d40)[0x7f4e01a4cd40]
+./fib[0x42603a]
+./fib[0x4246d5]
+/home/blackline/git/icnc-loadbalancer/build/lib/intel64/libcnc.so.0(_ZN3CnC8Internal21distributable_context8recv_msgEPNS_10serializerE+0x115)[0x7f4e02cd4f15]
+/home/blackline/git/icnc-loadbalancer/build/lib/intel64/libcnc.so.0(_ZN3CnC8Internal11distributor8recv_msgEPNS_10serializerEi+0x1ec)[0x7f4e02cd729c]
+/home/blackline/git/icnc-loadbalancer/build/lib/intel64/libcnc_mpi.so(_ZN3CnC8Internal19GenericCommunicator10RecvThread8recv_msgERi+0x2c)[0x7f4e011eb20c]
+/home/blackline/git/icnc-loadbalancer/build/lib/intel64/libcnc_mpi.so(_ZN3CnC8Internal19GenericCommunicator10RecvThread20runRecvEventLoopHostEv+0x3b)[0x7f4e011eb3cb]
+/home/blackline/git/icnc-loadbalancer/build/lib/intel64/libcnc_mpi.so(_ZN3CnC8Internal14ThreadExecuter10ThreadArgsclEv+0x57)[0x7f4e011ef707]
+/home/blackline/git/icnc-loadbalancer/build/lib/intel64/libcnc_mpi.so(_ZN3tbb8internal16thread_closure_0IN3CnC8Internal14ThreadExecuter10ThreadArgsEE13start_routineEPv+0x9)[0x7f4e011ef799]
+pure virtual method called
+terminate called without an active exception

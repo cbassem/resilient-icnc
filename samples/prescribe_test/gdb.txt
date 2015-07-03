@@ -1,0 +1,6 @@
++focus asm
+Focus set to ASM window.
+Reading symbols from ./pres...done.
++focus asm
+Focus set to ASM window.
+Reading symbols from ./pres...done.
