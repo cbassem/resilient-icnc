@@ -31,6 +31,8 @@ def main(argv=sys.argv):
 	for i in range(0, iters):
 		r = process(path, nodes, iters)
 		results = results + [r]
+		if ((i/float(iters)) * 100) % 5 == 0:
+			print ''.join([str(int((i/float(iters))*100)), '%'])
 	persist(name, nodes, iters, results)
 
 if __name__ == '__main__':
