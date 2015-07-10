@@ -241,9 +241,9 @@ int main(int argc, char* argv[])
         }
     }
 
-    c.calculate_checkpoint();
-
-    c.print_checkpoint();
+//    c.calculate_checkpoint();
+//
+//    c.print_checkpoint();
 
 	timestamp_t t1 = get_timestamp();
 
