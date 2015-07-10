@@ -90,7 +90,7 @@ struct my_context : public CnC::resilientContext< my_context >
     int max_depth;
 
     my_context( int md = 0 ) 
-        : CnC::resilientContext< my_context >(10, 1),
+        : CnC::resilientContext< my_context >(),
           m_steps( *this ),
           m_position( *this ),
           m_data( *this ),
@@ -137,9 +137,17 @@ int ComputeMandel::execute( const pair & p, my_context &c) const
     return CnC::CNC_Success;
 }
 
+typedef unsigned long long timestamp_t;
+static timestamp_t get_timestamp ()
+{
+  struct timeval now;
+  gettimeofday (&now, NULL);
+  return  now.tv_usec + (timestamp_t)now.tv_sec * 1000000;
+}
 
 int main(int argc, char* argv[])
 {
+	timestamp_t t0 = get_timestamp();
     CnC::dist_cnc_init< my_context > dc_init;
     bool verbose = false;
     int max_row = 100;
@@ -177,7 +185,7 @@ int main(int argc, char* argv[])
     // set max-depth in the constructor
     my_context c( max_depth );
 
-    tbb::tick_count t0 = tbb::tick_count::now();
+//    tbb::tick_count t0 = tbb::tick_count::now();
     
     for (int i = 0; i < max_row; i++) 
     {
@@ -200,9 +208,9 @@ int main(int argc, char* argv[])
         }
     }
     
-    tbb::tick_count t1 = tbb::tick_count::now();
-    printf("Mandel %d %d %d in %g seconds\n", max_row, max_col, max_depth,
-           (t1-t0).seconds());
+//    tbb::tick_count t1 = tbb::tick_count::now();
+//    printf("Mandel %d %d %d in %g seconds\n", max_row, max_col, max_depth,
+//           (t1-t0).seconds());
     
     int check = 0;
     for (int i = 0; i < max_row; i++) 
@@ -236,6 +244,11 @@ int main(int argc, char* argv[])
     c.calculate_checkpoint();
 
     c.print_checkpoint();
+
+	timestamp_t t1 = get_timestamp();
+
+    double secs = (t1 - t0) / 1000000.0L;
+    std::cout << "RUNTIME " << secs << std::endl;
 
     return 0;
 }

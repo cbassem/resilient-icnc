@@ -219,7 +219,7 @@ namespace CnC {
         /// This version gives the user the ability to specify the prescriber
         /// \param  t the tag to be put
         template< typename PTag, typename UserStep, typename STuner, typename SCheckpointTuner >
-        void put( const Tag & prescriber, const CnC::step_collection< UserStep, STuner, SCheckpointTuner> & prescriberColId, const Tag & tag ); //TODO change to template val
+        void put( const PTag & prescriber, const CnC::step_collection< UserStep, STuner, SCheckpointTuner> & prescriberColId, const Tag & tag ); //TODO change to template val
 
         void restart_put( const Tag & t );
 

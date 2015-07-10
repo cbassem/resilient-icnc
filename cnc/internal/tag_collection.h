@@ -89,7 +89,7 @@ namespace CnC {
 
     template< typename Tag, typename Tuner, typename CheckpointTuner >
     template< typename PTag, typename UserStep, typename STuner, typename SCheckpointTuner >
-    void tag_collection< Tag, Tuner, CheckpointTuner >::put( const Tag & prescriber, const CnC::step_collection< UserStep, STuner, SCheckpointTuner> & prescriberCol , const Tag & t )
+    void tag_collection< Tag, Tuner, CheckpointTuner >::put( const PTag & prescriber, const CnC::step_collection< UserStep, STuner, SCheckpointTuner> & prescriberCol , const Tag & t )
     {
         m_tagCollection.Put( prescriber, prescriberCol.getId(), t );
     }

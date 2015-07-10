@@ -65,9 +65,9 @@ struct cr_step_b_tuner: public CnC::checkpoint_step_tuner< int >
 	int getNrOfGets(const int & tag) const;
 };
 
-struct fib_cr_item_tuner: public CnC::checkpoint_item_tuner<int>
+struct cr_item_tuner: public CnC::checkpoint_item_tuner< std::pair<int, long int> >
 {
-	int getNrOfgets(const int & tag) const;
+	int getNrOfgets(const std::pair<int, long int> & tag) const;
 
 };
 
@@ -82,7 +82,7 @@ struct pres_context : public CnC::resilientContext< pres_context >
     CnC::resilient_step_collection< pres_context, int, step_b, CnC::step_tuner<>, cr_step_b_tuner > m_steps_b;
 
     // Item collections
-    CnC::resilient_item_collection< pres_context, int, int, CnC::hashmap_tuner, fib_cr_item_tuner > m_unused;
+    CnC::resilient_item_collection< pres_context, std::pair< int, long int >, int, CnC::hashmap_tuner, cr_item_tuner > m_side_effects;
     // Tag collections
     CnC::resilient_tag_collection< pres_context, int, CnC::tag_tuner<>, cr_step_a_tuner > m_tags_a;
     CnC::resilient_tag_collection< pres_context, int, CnC::tag_tuner<>, cr_step_b_tuner > m_tags_b;
@@ -90,12 +90,12 @@ struct pres_context : public CnC::resilientContext< pres_context >
 
     // The context class constructor
     pres_context()
-        : CnC::resilientContext< pres_context >(20, 1),
+        : CnC::resilientContext< pres_context >(20,1),
           m_steps_a( *this ),
           m_steps_b( *this ),
           m_tags_a( *this ),
           m_tags_b( *this ),
-          m_unused( *this )
+		  m_side_effects( *this )
     {
         // Prescriptive relations
         m_tags_a.prescribes( m_steps_a, *this );
@@ -104,7 +104,7 @@ struct pres_context : public CnC::resilientContext< pres_context >
 //        // Consumer relations
 //        m_steps.consumes( m_fibs );
 //        // Producer relations
-//        m_steps.produces( m_fibs );
+        m_steps_b.produces( m_side_effects );
 
         CnC::debug::trace_all(*this, 1);
     }

@@ -654,7 +654,7 @@ namespace CnC {
     struct checkpoint_item_tuner: public virtual tuner_base {
     	checkpoint_item_tuner() {}
     	virtual ~checkpoint_item_tuner() {}
-    	virtual int getNrOfgets(Tag & tag) const {return TUNER_STATE::UNDEFINED;}
+    	virtual int getNrOfgets(const Tag & tag) const {return TUNER_STATE::UNDEFINED;}
 
     private:
     };

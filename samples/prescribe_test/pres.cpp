@@ -40,6 +40,7 @@ typedef unsigned long long fib_type;
 #include <signal.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/time.h>
 
 
 int cr_step_a_tuner::getNrOfPrescribes(const int & tag) const {
@@ -59,15 +60,15 @@ int cr_step_b_tuner::getNrOfPrescribes(const int & tag) const {
 };
 
 int cr_step_b_tuner::getNrOfPuts(const int & tag) const {
-	return 0;
+	return 1;
 };
 
 int cr_step_b_tuner::getNrOfGets(const int & tag) const {
 	return 0;
 };
 
-int fib_cr_item_tuner::getNrOfgets(const int & tag) const {
- return 0;
+int cr_item_tuner::getNrOfgets(const std::pair<int, long int> & tag) const {
+    return 0;
 }
 
 
@@ -80,6 +81,10 @@ int step_a::execute( const int & tag, pres_context & ctxt ) const
 
 int step_b::execute( const int & tag, pres_context & ctxt ) const
 {
+	struct timeval tp;
+	gettimeofday(&tp, NULL);
+	long int ms = tp.tv_sec * 1000 + tp.tv_usec / 1000;
+	ctxt.m_side_effects.put(tag, ctxt.m_steps_b, std::pair<int, long int>(tag, ms), tag);
     return CnC::CNC_Success;
 }
 
@@ -94,6 +99,12 @@ void handler(int sig) {
   fprintf(stderr, "Error: signal %d:\n", sig);
   backtrace_symbols_fd(array, size, STDERR_FILENO);
   exit(1);
+}
+
+inline std::ostream & operator<<( std::ostream& os, const std::pair<int, long int> & t )
+{
+    os << "[ " << t.first << ", " << t.second << " ]";
+    return os;
 }
 
 int main( int argc, char* argv[] )
@@ -124,7 +135,6 @@ int main( int argc, char* argv[] )
     // print result
 //    std::cout << "fib (" << n << "): " << res2 << std::endl;
 
-    //ctxt.calculate_checkpoint();
     ctxt.calculate_checkpoint();
 
     ctxt.print_checkpoint();
