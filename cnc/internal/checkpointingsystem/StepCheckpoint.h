@@ -51,7 +51,7 @@ public:
 
 private:
 	typedef tbb::concurrent_hash_map< StepTag, TagLog* > tagMap_t;
-	typedef tbb::scalable_allocator< TagLog > taglog_allocator_type;
+	typedef tbb::cache_aligned_allocator< TagLog > taglog_allocator_type;
 	tagMap_t tagMap;
 	tagMap_t doneMap;
 
