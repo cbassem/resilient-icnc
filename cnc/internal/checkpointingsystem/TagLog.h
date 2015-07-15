@@ -100,7 +100,7 @@ inline void TagLog::processDone(int totalPuts, int totalPrescribes, int totalGet
 inline bool TagLog::isDone() const {
 	return markedDone_
 			&& currentPrescribes_ == totalPrescribes_
-			&& currentPuts_ == totalPuts_;
+			&& currentPuts_ == totalPuts_
 			&& currentGets_ == totalGets_;
 }
 
