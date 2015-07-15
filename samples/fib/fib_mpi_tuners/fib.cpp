@@ -117,7 +117,7 @@ int main( int argc, char* argv[] )
 
     // create context
     fib_context ctxt;
-    CnC::debug::collect_scheduler_statistics( ctxt );
+    //CnC::debug::collect_scheduler_statistics( ctxt );
 
 
     // put tags to initiate evaluation
