@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <tr1/unordered_map>
 #include "tbb/concurrent_unordered_set.h"
+#include "cnc/serializer.h"
 
 
 class TagLog {
@@ -47,6 +48,9 @@ public:
 	void processDone(int totalPuts, int totalPrescribes, int totalGets);
 
 	bool isDone() const;
+
+	template < typename UserStepTag >
+	void sendGets(const UserStepTag & getter, int getterColl);
 
 
 	void decrement_get_counts();
@@ -108,6 +112,17 @@ inline void TagLog::decrement_get_counts() {
 	for (typename gets_t::const_iterator it = gets_.begin(); it != gets_.end(); ++it) {
 		(it->first)->decrement_get_count(it->second);
 	}
+}
+
+template < typename UserStepTag >
+inline void TagLog::sendGets(const UserStepTag & getter, int  getterColl) {
+    CnC::serializer * _serlzr = new CnC::serializer( false, true );
+    _serlzr->set_mode_pack();
+    (*_serlzr) & getterColl & getter ;
+	for (typename gets_t::const_iterator it = gets_.begin(); it != gets_.end(); ++it) {
+		(it->first)->send_get(_serlzr, it->second);
+	}
+	delete _serlzr;
 }
 
 #endif /* TAGLOG_H_ */

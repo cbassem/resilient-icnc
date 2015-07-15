@@ -117,7 +117,7 @@ int main( int argc, char* argv[] )
 
     // create context
     fib_context ctxt;
-    //CnC::debug::collect_scheduler_statistics( ctxt );
+    CnC::debug::collect_scheduler_statistics( ctxt );
 
 
     // put tags to initiate evaluation
@@ -130,13 +130,13 @@ int main( int argc, char* argv[] )
     fib_type res2;
     ctxt.m_fibs.get( n, res2 );
 
-    // print result
-    //std::cout << "fib (" << n << "): " << res2 << std::endl;
-
-    //ctxt.calculate_checkpoint();
-    //ctxt.calculate_checkpoint();
-
-    //ctxt.print_checkpoint();
+//    // print result
+//    std::cout << "fib (" << n << "): " << res2 << std::endl;
+//
+//    ctxt.calculate_checkpoint();
+//    //ctxt.calculate_checkpoint();
+//
+//    ctxt.print_checkpoint();
 
     timestamp_t t1 = get_timestamp();
 

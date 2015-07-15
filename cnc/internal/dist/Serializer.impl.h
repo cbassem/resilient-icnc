@@ -152,6 +152,14 @@ namespace CnC {
         memcpy( buf, arr, tmp );
     }
 
+    void serializer::add_serializer(serializer & s)
+    {
+    	CNC_ASSERT( m_mode == MODE_PACK );
+    	size_t tmp = s.m_buf->getBodySize();
+    	void * buf = m_buf->acquire( tmp );
+    	memcpy( buf, s.m_buf->getBody(), tmp );
+    }
+
     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     template< class T > inline

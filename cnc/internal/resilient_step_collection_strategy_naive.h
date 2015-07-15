@@ -117,6 +117,8 @@ void resilient_step_collection_strategy_naive< ResilientStepCollection, Tag >::p
     	m_step_checkpoint.processStepDone( step, stepColId, puts, prescribes, gets);
     	m_resilient_step_collection.getContext().checkForCrash();
 	} else {
+		m_step_checkpoint.sendGets(step, m_resilient_step_collection.getId());
+
 	    serializer * ser = m_resilient_step_collection.getContext().new_serializer( this );
 	    //Order is very important since we pass the serialized datastrc to the remote checkpoint object!
 	    (*ser) & DONE & stepColId & step & puts & prescribes & gets;

@@ -33,6 +33,14 @@ public:
 	{
 		static_cast<Derived*>(this)->processGet(getter, getterColl, tag, item);
 	}
+
+    void sendGet(
+			CnC::serializer * ser,
+			void * key)
+	{
+		static_cast<Derived*>(this)->sendGet(ser, key);
+	}
+
 };
 
 

@@ -16,6 +16,7 @@ public:
 	virtual void add_checkpoint_locally() = 0;
 	virtual void print() = 0;
 	virtual void decrement_get_count(void* tag) = 0;
+	virtual void send_get(CnC::serializer * ser, void * tag) = 0;
 
 };
 

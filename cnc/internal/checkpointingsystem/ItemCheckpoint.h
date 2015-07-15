@@ -31,6 +31,8 @@ public:
 
 	int getId();
 
+	void send_get(CnC::serializer * ser, void * tag);
+
 	void print();
 
 private:
@@ -185,6 +187,11 @@ void ItemCheckpoint< ResilientItemCollection, Key, Item >::cleanup()
 	for( typename keyMap::const_iterator it = m_key_map.begin(); it != m_key_map.end(); ++it) {
 		uncreate_key( it->second );
 	}
+}
+
+template< typename ResilientItemCollection, typename Key, typename Item >
+void ItemCheckpoint< ResilientItemCollection, Key, Item >::send_get(CnC::serializer * ser, void * tag) {
+	m_owner.getStrategy()->sendGet(ser, tag);
 }
 
 }

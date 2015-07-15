@@ -48,6 +48,7 @@ public:
 
 	void sendNotDone() {}; //TODO factor out
 
+	void sendGets(StepTag step, int resilient_step_collection_id);
 
 private:
 	typedef tbb::concurrent_hash_map< StepTag, TagLog* > tagMap_t;
@@ -72,6 +73,12 @@ StepCheckpoint< StepTag >::StepCheckpoint(int col_id): tagMap(), m_col_id(col_id
 template< class StepTag >
 StepCheckpoint< StepTag >::~StepCheckpoint() {
 	cleanup();
+}
+
+template< class StepTag >
+void StepCheckpoint< StepTag >::sendGets(StepTag step, int resilient_step_collection_id) {
+	TagLog* l_ = getTagLog( step );
+	l_->sendGets(step, resilient_step_collection_id);
 }
 
 template< class StepTag >

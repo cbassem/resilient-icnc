@@ -252,10 +252,6 @@ namespace CnC
         return CnC::bitwise_serializable();
     }
 
-//    void serialize(CnC::serializer & buf, CnC::serializer & ser) {
-//    	buf & ser.
-//    }
-
     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     /**
@@ -456,6 +452,8 @@ namespace CnC
         {
             destruct_array( T *&, size_type ){}
         };
+
+        inline void add_serializer(serializer & s);
 
     private:
         template< class T > inline size_type packed_size( const T * arr, size_type len, bitwise_serializable ) const;
