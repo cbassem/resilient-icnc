@@ -112,8 +112,8 @@ namespace CnC {
     		CnC::resilient_step_collection< Derived, UserStepTag, UserStep, STuner, SCheckpointTuner, SStrategy > & getterColl,
 			const Tag & tag, Item & item )
     {
-    	m_strategy->processGet(getter, getterColl, tag, item);
 		item_collection< Tag, Item, Tuner, CheckpointTuner >::get( tag, item );
+    	m_strategy->processGet(getter, getterColl, tag, item);
     }
 
     template< typename Derived, typename Tag, typename Item, typename Tuner, typename CheckpointTuner, typename Strategy >
