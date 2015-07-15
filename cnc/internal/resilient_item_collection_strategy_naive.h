@@ -109,15 +109,15 @@ void resilient_item_collection_strategy_naive< ResilientItemCollection, Key, Ite
 		const Key & tag,
 		Item & item)
 {
-//	if ( Internal::distributor::myPid() == 0) {
-//		void * t_ = m_item_checkpoint.getKeyId(tag);
-//		getterColl.processGet(getter, &m_item_checkpoint, t_);
-//	} else {
-//		serializer * ser = m_resilient_item_collection.getContext().new_serializer( this );
-//		//Order is very important since we pass the serialized datastrc to the remote checkpoint object!
-//		(*ser) & resilient_item_collection_strategy_naive::GET & tag & getterColl.getId() & getter;
-//		m_resilient_item_collection.getContext().send_msg(ser, 0);
-//	}
+	if ( Internal::distributor::myPid() == 0) {
+		void * t_ = m_item_checkpoint.getKeyId(tag);
+		getterColl.processGet(getter, &m_item_checkpoint, t_);
+	} else {
+		serializer * ser = m_resilient_item_collection.getContext().new_serializer( this );
+		//Order is very important since we pass the serialized datastrc to the remote checkpoint object!
+		(*ser) & resilient_item_collection_strategy_naive::GET & tag & getterColl.getId() & getter;
+		m_resilient_item_collection.getContext().send_msg(ser, 0);
+	}
 }
 
 template< typename ResilientItemCollection, typename Key, typename Item >

@@ -101,7 +101,7 @@ void resilient_step_collection_strategy_naive< ResilientStepCollection, Tag >::p
 		ItemCheckpoint_i * item_cp,
 		void* tag)
 {
-	//m_step_checkpoint.processItemGet( getter, item_cp, tag );
+	m_step_checkpoint.processItemGet( getter, item_cp, tag );
 }
 
 template< typename ResilientStepCollection, typename Tag >

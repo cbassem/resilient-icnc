@@ -13,7 +13,7 @@ def persist(name, nodes, iters, results):
 			file.write(i+'\n')
 
 def process(path, nodes, iters):
-	cmd = ''.join(['env CNC_LOAD_BALANCER=STEALING env DIST_CNC=MPI /usr/bin/mpiexec.hydra -n ', nodes, ' ', path])
+	cmd = ''.join(['env CNC_NUM_THREADS=4 env CNC_LOAD_BALANCER=STEALING env DIST_CNC=MPI /usr/bin/mpiexec.hydra -n ', nodes, ' ', path])
 	p = subprocess.Popen([cmd], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 	out, err = p.communicate()
         out = out.split()	
