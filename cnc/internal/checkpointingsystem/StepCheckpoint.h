@@ -52,7 +52,7 @@ public:
 
 private:
 	typedef tbb::concurrent_hash_map< StepTag, TagLog* > tagMap_t;
-	typedef tbb::cache_aligned_allocator< TagLog > taglog_allocator_type;
+	typedef tbb::scalable_allocator< TagLog > taglog_allocator_type;
 	tagMap_t tagMap;
 	tagMap_t doneMap;
 
@@ -63,7 +63,7 @@ private:
 	bool in_done_map(StepTag tag);
 
 	void uncreate_taglog( TagLog * t );
-	TagLog * create_taglog( const TagLog & org );
+	TagLog * create_taglog();
 
 };
 
@@ -210,7 +210,7 @@ TagLog* StepCheckpoint< StepTag >::getTagLog( StepTag& tag ) {
 	typename tagMap_t::accessor _accr;
 	bool inserted = tagMap.insert(_accr, tag);
 	if (inserted) {
-		_accr->second = create_taglog(TagLog());
+		_accr->second = create_taglog();
 		return _accr->second;
 	} else {
 		return _accr->second;
@@ -243,17 +243,19 @@ template<class StepTag >
 void StepCheckpoint< StepTag >::uncreate_taglog( TagLog * t )
 {
     if( t ) {
-    	allocator.destroy( t );
-        allocator.deallocate( t, 1 );
+//    	allocator.destroy( t );
+//        allocator.deallocate( t, 1 );
+    	delete t;
     }
 }
 
 template<class StepTag >
-TagLog * StepCheckpoint< StepTag >::create_taglog( const TagLog & org )
+TagLog * StepCheckpoint< StepTag >::create_taglog()
 {
-    TagLog * _item = allocator.allocate( 1 );
-    allocator.construct( _item, org );
-    return _item;
+//    TagLog * _item = allocator.allocate( 1 );
+//    allocator.construct( _item, TagLog() );
+//    return _item;
+	return new TagLog();
 }
 
 

@@ -39,6 +39,7 @@ class TagLog {
 
 public:
 	TagLog();
+	//TagLog(const TagLog & val);
 	virtual ~TagLog();
 
 	void processPut(void * itemId );
