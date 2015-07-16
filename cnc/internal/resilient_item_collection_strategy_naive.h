@@ -42,11 +42,14 @@ public:
 	void recv_msg( serializer * ser );
 	void unsafe_reset( bool dist );
 
+	//TODO MAKE PRIVATE
+	ResilientItemCollection & m_resilient_item_collection;
+	ItemCheckpoint< ResilientItemCollection, Key, Item > m_item_checkpoint;
+
 private:
 	typedef Internal::distributable_context dist_context;
 
-	ResilientItemCollection & m_resilient_item_collection;
-	ItemCheckpoint< ResilientItemCollection, Key, Item > m_item_checkpoint;
+
 
 	static const char PUT = 0;
 	static const char GET = 1;
@@ -133,6 +136,37 @@ void resilient_item_collection_strategy_naive< ResilientItemCollection, Key, Ite
 	}
 }
 
+struct putprocess
+{
+
+	template < typename ResilientItemCollection, typename Key, typename Item >
+    void execute( std::pair< resilient_item_collection_strategy_naive< ResilientItemCollection, Key, Item > *, CnC::serializer > & arg )
+    {
+		Key tag;
+		Item item;
+		int putter_collection_id;
+		arg.second & tag & item & putter_collection_id;
+		StepCheckpoint_i* i_ = arg.first->m_resilient_item_collection.getContext().getStepCheckPoint(putter_collection_id);
+		void * itemid = arg.first->m_item_checkpoint.put( tag, item );
+		i_->processItemPut(&arg.second, &arg.first->m_item_checkpoint, itemid);
+    }
+};
+
+struct getprocess
+{
+
+	template < typename ResilientItemCollection, typename Key, typename Item >
+    void execute( std::pair< resilient_item_collection_strategy_naive< ResilientItemCollection, Key, Item > *, CnC::serializer > & arg )
+    {
+		Key tag;
+		int getter_collection_id;
+		arg.second & tag & getter_collection_id;
+		StepCheckpoint_i* i_ = arg.first->m_resilient_item_collection.getContext().getStepCheckPoint(getter_collection_id);
+		void * t_ = arg.first->m_item_checkpoint.getKeyId(tag);
+		i_->processItemGet(&arg.second, &arg.first->m_item_checkpoint, t_);
+    }
+};
+
 template< typename ResilientItemCollection, typename Key, typename Item >
 void resilient_item_collection_strategy_naive< ResilientItemCollection, Key, Item >::recv_msg( serializer * ser )
 {
@@ -142,35 +176,12 @@ void resilient_item_collection_strategy_naive< ResilientItemCollection, Key, Ite
 	switch (msg_tag) {
 		case resilient_item_collection_strategy_naive::PUT:
 		{
-			Key tag;
-			Item item;
-			int putter_collection_id;
-			(* ser) & tag & item & putter_collection_id;
-			//cpy ser obj
-			//serializer scpy_ = *ser;
-
-			//Get the step that made the item put
-			StepCheckpoint_i* i_ = m_resilient_item_collection.getContext().getStepCheckPoint(putter_collection_id);
-			//if (!i_->isDone(&scpy_)) {
-				void * itemid = m_item_checkpoint.put( tag, item );
-				i_->processItemPut(ser, &m_item_checkpoint, itemid);
-			//}
+			new CnC::Internal::service_task< putprocess, std::pair<  resilient_item_collection_strategy_naive< ResilientItemCollection, Key, Item > *, CnC::serializer > > ( m_resilient_item_collection.getContext().scheduler(), std::make_pair( this, (* ser) ) );
 			break;
 		}
 		case resilient_item_collection_strategy_naive::GET:
 		{
-			Key tag;
-			int getter_collection_id;
-			(* ser) & tag & getter_collection_id;
-			StepCheckpoint_i* i_ = m_resilient_item_collection.getContext().getStepCheckPoint(getter_collection_id);
-
-			//cpy ser obj
-			//serializer scpy_ = *ser;
-
-			//if (!i_->isDone(&scpy_)) {
-				void * t_ = m_item_checkpoint.getKeyId(tag);
-				i_->processItemGet(ser, &m_item_checkpoint, t_);
-			//}
+			new CnC::Internal::service_task< getprocess, std::pair<  resilient_item_collection_strategy_naive< ResilientItemCollection, Key, Item > *, CnC::serializer > > ( m_resilient_item_collection.getContext().scheduler(), std::make_pair( this, (* ser) ) );
 			break;
 		}
 
